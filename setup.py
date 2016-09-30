@@ -33,6 +33,8 @@ setup(
                             'simple_illumina = mitty.plugins.reads.simple_illumina_plugin'],
   },
   install_requires=[
+    'sphinx',
+    'sphinx_rtd_theme',
     'cython',
     'setuptools>=11.0.0',
     'numpy>=1.9.0',
