@@ -58,19 +58,22 @@ def base_quality(fastq_fp, out_fp=None, threads=2, f_size=None, max_reads=None):
     in_queue.put(template)
 
   # Tell child processes to stop
-  logger.debug('Stopping child processes')
+  logger.debug('Telling child processes to stop')
   for i in range(threads):
     in_queue.put(__process_stop_code__)
 
   # Get results and add them
+  logger.debug('Summing up result matrices')
   score = out_queue.get()
   for i in range(threads - 1):
     score += out_queue.get()
 
+  logger.debug('Printing result')
   if out_fp is not None:
    np.savetxt(out_fp, score, fmt='%d', delimiter=',')
 
-  # Wait for them to finish
+  # Wait for workers to finish
+  logger.debug('Waiting for workers to shutdown')
   for p in p_list:
     p.join()
 
@@ -81,7 +84,7 @@ def process_worker(worker_no, in_queue, out_queue):
   """Create a bam fragment. This is designed to be a worker process for a multiprocessing
   pool, but can be tested without recourse to multiprocessing
 
-  :param worker_no: an id for the work, not really used in computation
+  :param worker_no: an id for the worker, not really used in computation
   :param in_queue:  an object with a get method that returns templates when called with next()
   :param out_queue: a queue to put the results on when done
   :return:
