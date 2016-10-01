@@ -3,6 +3,9 @@ from multiprocessing import Process, Queue
 import logging
 
 import numpy as np
+import matplotlib
+matplotlib.use('Agg')
+import matplotlib.pyplot as plt
 
 import mitty.lib.fastq as fqi
 
@@ -81,7 +84,7 @@ def base_quality(fastq_fp, out_fp=None, threads=2, f_size=None, max_reads=None):
 
 
 def process_worker(worker_no, in_queue, out_queue):
-  """Create a bam fragment. This is designed to be a worker process for a multiprocessing
+  """Process templates as they are distributed. This is designed to be a worker process for a multiprocessing
   pool, but can be tested without recourse to multiprocessing
 
   :param worker_no: an id for the worker, not really used in computation
@@ -98,3 +101,16 @@ def process_worker(worker_no, in_queue, out_queue):
 
   out_queue.put(score)
   logger.debug('Worker {} stopping'.format(worker_no))
+
+
+def plot_bq_metrics(score, out_fname):
+  read_count = score.sum(axis=1)[0]
+  max_rlen = score.sum(axis=1).nonzero()[0][-1] + 1
+  plt.matshow(score[:max_rlen, :].T, cmap=plt.cm.gray_r, origin='lower', interpolation='none')
+  plt.plot(range(max_rlen), np.dot(score, np.arange(100))[:max_rlen] / float(read_count), 'b')
+  plt.gca().xaxis.set_ticks_position('bottom')
+  plt.xlabel('Read bp')
+  plt.ylabel('BQ')
+  plt.xlim(-0.5, max_rlen)
+  plt.ylim(0, score.shape[1])
+  plt.savefig(out_fname)

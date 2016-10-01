@@ -24,12 +24,14 @@ def cli(verbose):
 
 @cli.command('sample-fastq-base-quality')
 @click.argument('fastq', type=click.File('r'))
-@click.argument('out', type=click.File('wb'))  # Opening as ASCII borks numpy for stdout
+@click.argument('outprefix')
 @click.option('-t', '--threads', type=int, default=1, help='Threads to use')
 @click.option('--max-reads', type=int, help='Maximum reads to process')
-def sample_bq(fastq, out, threads, max_reads):
-  """FASTQ -> base-quality-distribution.csv"""
-  bbq.base_quality(fastq_fp=fastq, out_fp=out, threads=threads, f_size=None, max_reads=max_reads)
+def sample_bq(fastq, outprefix, threads, max_reads):
+  """FASTQ -> base-quality-distribution.csv + 2D histogram plot"""
+  with open(outprefix + '.csv', 'wb') as out_fp:
+    score = bbq.base_quality(fastq_fp=fastq, out_fp=out_fp, threads=threads, f_size=None, max_reads=max_reads)
+  bbq.plot_bq_metrics(score, out_fname=outprefix + '.hist.png')
 
 
 @cli.command()
