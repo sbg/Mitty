@@ -46,11 +46,12 @@ def gc_and_coverage_for_chromosome(bam_fname, fasta_fname, chrom_idx, block_len=
   :return: an array of gc and cov values
   """
   bam_fp = pysam.AlignmentFile(bam_fname, mode='rb')
-  reqion_start, region_end = 1, bam_fp.header['SQ'][chrom_idx]['LN']
+  region_start, region_end = 1, bam_fp.header['SQ'][chrom_idx]['LN']
+  logger.debug('Processing {}:{}-{}'.format(bam_fp.header['SQ'][chrom_idx]['SN'], region_start, region_end))
   fasta_fp = pysam.FastaFile(fasta_fname)
   return np.array([
     gc_and_coverage_for_region(bam_fp, fasta_fp, region='{}:{}-{}'.format(bam_fp.header['SQ'][chrom_idx]['SN'], r, r + block_len))
-    for r in range(reqion_start, region_end, block_len)
+    for r in range(region_start, region_end, block_len)
   ], dtype=[('gc', float), ('coverage', float)])
 
 
