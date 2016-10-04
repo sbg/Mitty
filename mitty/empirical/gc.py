@@ -11,6 +11,10 @@ import time
 import pickle
 import logging
 
+import matplotlib
+matplotlib.use('Agg')
+import matplotlib.pyplot as plt
+
 import numpy as np
 import pysam
 
@@ -90,8 +94,35 @@ def process_bam_section_w(args):
     raise e
 
 
-# if __name__ == '__main__':
-#   logging.basicConfig(level=logging.DEBUG)
-#   bam_fname = '/encrypted/data/notebooks/kghose/bqgc/Projects/bcafc5cc-991c-47db-94f0-da890b680356/NA12878.gathered.bam'
-#   fasta_fname = '/encrypted/data/notebooks/kghose/bqgc/Projects/bcafc5cc-991c-47db-94f0-da890b680356/human_g1k_v37_decoy.fasta'
-#   process_bam_parallel(bam_fname, fasta_fname, 'test.pkl', block_len=10000, threads=8)
+def plot_gc_cov(gc_cov, max_cov=60):
+  """Plot a multi panel plot fo GC/cov data
+
+  :param gc_cov:
+  :return:
+  """
+  from matplotlib.colors import LogNorm
+  # TODO: hardcoded for 24 chromosomes, make this data aware?
+  seq = gc_cov['seq_info']
+  fig = plt.figure(figsize=(12, 8))
+  rows, cols = 4, 6
+  gc_lim = [0.0, 1.0]
+  cov_lim = [0.0, max_cov]
+
+  for row in range(rows):
+    for col in range(cols):
+      if row * cols + col > len(seq) - 1: break
+      sn = seq[row * cols + col]['SN']
+      ax = plt.subplot(rows, cols, row * cols + col + 1)
+      x, y = gc_cov[sn]['gc'], gc_cov[sn]['coverage']
+      x, y = x[~(np.isnan(x) | np.isnan(y))], y[~(np.isnan(x) | np.isnan(y))]
+      # plt.plot(x, y, 'k.', ms=0.1)
+      ax.hist2d(x, y, bins=71, range=[gc_lim, cov_lim], cmap=plt.cm.gray_r, norm=LogNorm())
+      plt.title(sn)
+      plt.setp(ax, xlim=gc_lim, ylim=cov_lim)
+
+      if row == rows - 1 and col == 0:
+        ax.set_xlabel('GC content')
+        ax.set_ylabel('Coverage')
+      else:
+        ax.get_xaxis().set_visible(False)
+        ax.get_yaxis().set_visible(False)
