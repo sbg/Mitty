@@ -1,116 +1,113 @@
-"""Given a FASTQ file generate a table of Base Quality scores"""
-from multiprocessing import Process, Queue
+"""Calculates BQ distribution from a BAM.
+
+The task is parallelized by chromosome.
+"""
+from multiprocessing import Pool
+import time
+import pickle
 import logging
 
-import numpy as np
 import matplotlib
 matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 
-import mitty.lib.fastq as fqi
-
+import numpy as np
+import pysam
 
 logger = logging.getLogger(__name__)
-__process_stop_code__ = 'SETECASTRONOMY'
 
 
-# For debugging
-def base_quality_single_threaded(fastq_fp, out_fp=None, f_size=None, max_reads=None):
-  """Given a fastq file, read through the file
+def bq_over_chromosome(bam_fname, chrom):
+  """Return BQ matrix for all reads in this chromosome
 
-  :param fastq_fp:
-  :param out_fp: If supplied, the score matrix will be written as a csv
-  :param f_size: os.stat
-  :param max_reads: Bug out after these many templates have been read
+  :param bam_fname:
+  :param chrom: The chromosome id as stored in the BAM header
+  :return: 500x100 (read base x qual) uint64 array containing counts
+  """
+  logger.debug('Processing {}'.format(chrom))
+  bq_mat = np.zeros((500, 100), dtype=np.uint64)
+  bam_fp = pysam.AlignmentFile(bam_fname, mode='rb')
+  for r in bam_fp.fetch(reference=chrom):
+    if r.flag > 255: continue  # Ignore secondary/split alignments
+    bq_r = r.query_qualities
+    bq_mat[range(len(bq_r)), bq_r] += 1
+
+  return bq_mat
+
+
+def process_bam_parallel(bam_fname, pkl, threads=4):
+  p = Pool(threads)
+  t0 = time.time()
+  bam_fp = pysam.AlignmentFile(bam_fname, mode='rb')
+  max_chroms = min(24, len(bam_fp.header['SQ']))
+  bq_data = {'seq_info': bam_fp.header['SQ']}
+  for chrom_data in p.imap_unordered(
+    process_bam_section_w,
+    ({"bam_fname": bam_fname, "chrom": bam_fp.header['SQ'][i]['SN']}
+     for i in range(0, max_chroms))):
+    bq_data.update({chrom_data[0]: chrom_data[1]})
+    t1 = time.time()
+    logger.debug('Processed {} ({} s)'.format(chrom_data[0], t1 - t0))
+
+  pickle.dump(bq_data, open(pkl, 'wb'))
+
+  return bq_data
+
+
+def process_bam_section_w(args):
+  """A thin wrapper to allow proper tracebacks when things go wrong in a thread
+
+  :param args:
   :return:
   """
-  #                 bp, phred
-  score = np.zeros((500, 100), dtype=np.uint64)
-  for template in fqi.read_fastq(fastq_fp, ipe=False, f_size=f_size, max_templates=max_reads):
-    for n, bq in enumerate(template[0][3]):
-      score[n, ord(bq) - 33] += 1
-
-  if out_fp is not None:
-   np.savetxt(out_fp, score, fmt='%d', delimiter=',')
-
-  return score
+  import traceback
+  try:
+    return args['chrom'], bq_over_chromosome(**args)
+  except Exception as e:
+    traceback.print_exc()
+    print('')
+    raise e
 
 
-def base_quality(fastq_fp, out_fp=None, threads=2, f_size=None, max_reads=None):
-  """Given a fastq file, read through the file
-
-  :param fastq_fp:
-  :param out_fp: If supplied, the score matrix will be written as a csv
-  :param threads: How many 'threads' to use
-  :param f_size: os.stat
-  :param max_reads: Bug out after these many templates have been read
-  :return:
-  """
-
-  in_queue, out_queue = Queue(), Queue()
-
-  # Start worker processes
-  logger.debug('Starting {} threads'.format(threads))
-  p_list = [Process(target=process_worker, args=(i, in_queue, out_queue)) for i in range(threads)]
-  for p in p_list:
-    p.start()
-
-  # Burn through file
-  logger.debug('Starting to read FASTQ file')
-  for template in fqi.read_fastq(fastq_fp, ipe=False, f_size=f_size, max_templates=max_reads):
-    in_queue.put(template)
-
-  # Tell child processes to stop
-  logger.debug('Telling child processes to stop')
-  for i in range(threads):
-    in_queue.put(__process_stop_code__)
-
-  # Get results and add them
-  logger.debug('Summing up result matrices')
-  score = out_queue.get()
-  for i in range(threads - 1):
-    score += out_queue.get()
-
-  logger.debug('Printing result')
-  if out_fp is not None:
-   np.savetxt(out_fp, score, fmt='%d', delimiter=',')
-
-  # Wait for workers to finish
-  logger.debug('Waiting for workers to shutdown')
-  for p in p_list:
-    p.join()
-
-  return score
+from matplotlib.colors import LogNorm
 
 
-def process_worker(worker_no, in_queue, out_queue):
-  """Process templates as they are distributed. This is designed to be a worker process for a multiprocessing
-  pool, but can be tested without recourse to multiprocessing
+def plot_bq_panel(bq_data):
+  # TODO: hardcoded for 24 chromosomes, make this data aware?
+  seq = bq_data['seq_info']
+  fig = plt.figure(figsize=(12, 8))
+  rows, cols = 4, 6
+  # gc_lim = [0.0, 1.0]
+  # cov_lim = [0.0, max_cov]
 
-  :param worker_no: an id for the worker, not really used in computation
-  :param in_queue:  an object with a get method that returns templates when called with next()
-  :param out_queue: a queue to put the results on when done
-  :return:
-  """
-  logger.debug('Worker {} starting'.format(worker_no))
-  #                 bp, phred
-  score = np.zeros((500, 100), dtype=np.uint64)
-  for template in iter(in_queue.get, __process_stop_code__):
-    for n, bq in enumerate(template[0][3]):
-      score[n, ord(bq) - 33] += 1
+  for row in range(rows):
+    for col in range(cols):
+      if row * cols + col > len(seq) - 1: break
+      sn = seq[row * cols + col]['SN']
+      ax = plt.subplot(rows, cols, row * cols + col + 1)
+      plot_bq_metrics(ax, bq_data[sn])
+      plt.title(sn)
+      # plt.setp(ax, xlim=gc_lim, ylim=cov_lim)
 
-  out_queue.put(score)
-  logger.debug('Worker {} stopping'.format(worker_no))
+      if row == rows - 1 and col == 0:
+        ax.set_xlabel('Read bp')
+        ax.set_ylabel('BQ')
+      else:
+        ax.get_xaxis().set_visible(False)
+        ax.get_yaxis().set_visible(False)
 
 
-def plot_bq_metrics(score, out_fname):
+def plot_bq_metrics(ax, score):
   read_count = score.sum(axis=1)[0]
   max_rlen = score.sum(axis=1).nonzero()[0][-1] + 1
-  plt.matshow(score[:max_rlen, :].T, cmap=plt.cm.gray_r, origin='lower', interpolation='none')
-  plt.plot(range(max_rlen), np.dot(score, np.arange(100))[:max_rlen] / float(read_count), 'b')
-  plt.gca().xaxis.set_ticks_position('bottom')
-  plt.xlabel('Read bp')
-  plt.ylabel('BQ')
-  plt.xlim(-0.5, max_rlen)
-  plt.ylim(0, score.shape[1])
-  plt.savefig(out_fname)
+  #ax.matshow(score[:max_rlen, :].T, cmap=plt.cm.gray_r, origin='lower', interpolation='none', norm=LogNorm())
+  ax.pcolormesh(score[:max_rlen, :].T, cmap=plt.cm.gray_r, norm=LogNorm())
+  ax.plot(range(max_rlen), np.dot(score, np.arange(100))[:max_rlen] / float(read_count), 'b')
+  ax.xaxis.set_ticks_position('bottom')
+  plt.setp(ax, xlim=(-0.5, max_rlen), ylim=(0, 60))  # score.shape[1]))
+
+
+# if __name__ == '__main__':
+#   logging.basicConfig(level=logging.DEBUG)
+#   bam_fname = '/encrypted/data/notebooks/kghose/bqgc/Projects/bcafc5cc-991c-47db-94f0-da890b680356/NA12878.gathered.bam'
+#   process_bam_parallel(bam_fname, 'test.pkl', threads=8)
