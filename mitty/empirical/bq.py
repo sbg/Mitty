@@ -97,12 +97,19 @@ def plot_bq_panel(bq_data):
         ax.get_yaxis().set_visible(False)
 
 
+def plot_bq_combined(bq_data):
+  ax = plt.subplot(111)
+  plot_bq_metrics(ax, np.sum(bq_mat for k, bq_mat in bq_data.items() if k != 'seq_info'))
+  plt.title('Combined')
+  ax.set_xlabel('Read bp')
+  ax.set_ylabel('BQ')
+
+
 def plot_bq_metrics(ax, score):
   read_count = score.sum(axis=1)[0]
   max_rlen = score.sum(axis=1).nonzero()[0][-1] + 1
-  #ax.matshow(score[:max_rlen, :].T, cmap=plt.cm.gray_r, origin='lower', interpolation='none', norm=LogNorm())
-  ax.pcolormesh(score[:max_rlen, :].T, cmap=plt.cm.gray_r, norm=LogNorm())
-  ax.plot(range(max_rlen), np.dot(score, np.arange(100))[:max_rlen] / float(read_count), 'y')
+  ax.pcolormesh(score[:max_rlen, :].T, cmap=plt.cm.gray_r)
+  ax.plot(np.arange(max_rlen) + 0.5, np.dot(score, np.arange(100))[:max_rlen] / float(read_count), 'y')
   ax.xaxis.set_ticks_position('bottom')
   plt.setp(ax, xlim=(-20, max_rlen + 20), ylim=(0, 60))  # score.shape[1]))
 
