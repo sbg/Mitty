@@ -5,7 +5,7 @@ import click
 
 
 import mitty.simulation.readgen as rgen
-import mitty.empirical.bq_bam as bbq
+import mitty.empirical.bq as bbq
 import mitty.empirical.gc as megc
 
 
@@ -35,16 +35,13 @@ def gc_cov(bam, fasta, pkl, block_len, threads):
   megc.process_bam_parallel(bam, fasta, pkl, block_len=block_len, threads=threads)
 
 
-@cli.command('sample-fastq-base-quality')
-@click.argument('fastq', type=click.File('r'))
-@click.argument('outprefix')
+@cli.command('bq')
+@click.argument('bam', type=click.File('r'))
+@click.argument('pkl')
 @click.option('-t', '--threads', type=int, default=1, help='Threads to use')
-@click.option('--max-reads', type=int, help='Maximum reads to process')
-def sample_bq(fastq, outprefix, threads, max_reads):
-  """FASTQ -> base-quality-distribution.csv + 2D histogram plot"""
-  with open(outprefix + '.csv', 'wb') as out_fp:
-    score = bbq.base_quality(fastq_fp=fastq, out_fp=out_fp, threads=threads, f_size=None, max_reads=max_reads)
-  bbq.plot_bq_metrics(score, out_fname=outprefix + '.hist.png')
+def sample_bq(bam, pkl, threads):
+  """BQ distribution from BAM"""
+  bbq.process_bam_parallel(bam, pkl, threads=threads)
 
 
 @cli.command()
