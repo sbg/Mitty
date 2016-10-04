@@ -5,7 +5,7 @@ import click
 
 
 import mitty.simulation.readgen as rgen
-import mitty.empirical.bq as bbq
+import mitty.empirical.bq_bam as bbq
 import mitty.empirical.gc as megc
 
 
@@ -28,7 +28,7 @@ def cli(verbose):
 @click.argument('bam', type=click.Path(exists=True))
 @click.argument('fasta', type=click.Path(exists=True))
 @click.argument('pkl')
-@click.option('-b', '--block_len', type=int, default=10000, help='Block size for GC/cov computation')
+@click.option('-b', '--block-len', type=int, default=10000, help='Block size for GC/cov computation')
 @click.option('-t', '--threads', type=int, default=1, help='Threads to use')
 def gc_cov(bam, fasta, pkl, block_len, threads):
   """Calculate GC content vs coverage from a BAM. Save in pickle file"""
