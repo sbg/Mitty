@@ -1,13 +1,11 @@
 """Given a FASTQ file generate a table of Base Quality scores"""
 from multiprocessing import Process, Queue
+import pickle
+import time
 import logging
 
 import numpy as np
-import matplotlib
-matplotlib.use('Agg')
-import matplotlib.pyplot as plt
-
-import mitty.lib.fastq as fqi
+import pysam
 
 
 logger = logging.getLogger(__name__)
@@ -15,39 +13,55 @@ __process_stop_code__ = 'SETECASTRONOMY'
 
 
 # For debugging
-def base_quality_single_threaded(fastq_fp, out_fp=None, f_size=None, max_reads=None):
+def base_quality_single_threaded(fastq, pkl):
   """Given a fastq file, read through the file
 
-  :param fastq_fp:
-  :param out_fp: If supplied, the score matrix will be written as a csv
-  :param f_size: os.stat
-  :param max_reads: Bug out after these many templates have been read
+  :param fastq: name of fastq file
+  :param pkl: name of pickle file to write to
   :return:
   """
   #                 bp, phred
-  score = np.zeros((500, 100), dtype=np.uint64)
-  for template in fqi.read_fastq(fastq_fp, ipe=False, f_size=f_size, max_templates=max_reads):
-    for n, bq in enumerate(template[0][3]):
-      score[n, ord(bq) - 33] += 1
+  bq_mat = np.zeros((500, 100), dtype=np.uint64)
+  idx = list(range(500))
+  for r in pysam.FastqFile(filename=fastq, persist=False):
+    bqa = r.get_quality_array()
+    bq_mat[idx[:len(bqa)], bqa] += 1
 
-  if out_fp is not None:
-   np.savetxt(out_fp, score, fmt='%d', delimiter=',')
+  pickle.dump(bq_mat, open(pkl, 'wb'))
 
-  return score
+  return bq_mat
 
 
-def base_quality(fastq_fp, out_fp=None, threads=2, f_size=None, max_reads=None):
-  """Given a fastq file, read through the file
+def base_quality(fastq1, fastq2, pkl, threads=2):
+  """Given a pair of FASTQs work out the BQ profile for each mate
 
-  :param fastq_fp:
-  :param out_fp: If supplied, the score matrix will be written as a csv
+  :param fastq1: Pair1 and
+  :param fastq2: Pair2 fastqs
+  :param pkl: name of pickle file to write to
   :param threads: How many 'threads' to use
-  :param f_size: os.stat
-  :param max_reads: Bug out after these many templates have been read
+  :return:
+  """
+  bq_mats = [
+    process_one_fastq(fastq1, threads=threads),
+    process_one_fastq(fastq2, threads=threads)
+  ]
+
+  pickle.dump(bq_mats, open(pkl, 'wb'))
+
+  return bq_mats
+
+
+def process_one_fastq(fastq, threads=2, max_reads_in_queue=int(30e6)):
+  """
+
+  :param fastq:
+  :param threads:
+  :param max_reads_in_queue: The default is about 6GB, considering 200 bytes per qual string
   :return:
   """
 
-  in_queue, out_queue = Queue(), Queue()
+  t0 = time.time()
+  in_queue, out_queue = Queue(max_reads_in_queue), Queue()
 
   # Start worker processes
   logger.debug('Starting {} threads'.format(threads))
@@ -57,8 +71,9 @@ def base_quality(fastq_fp, out_fp=None, threads=2, f_size=None, max_reads=None):
 
   # Burn through file
   logger.debug('Starting to read FASTQ file')
-  for template in fqi.read_fastq(fastq_fp, ipe=False, f_size=f_size, max_templates=max_reads):
-    in_queue.put(template)  # TODO: Block when queue gets too big
+  for r in pysam.FastqFile(filename=fastq, persist=False):
+    bqa = r.get_quality_array()
+    in_queue.put(bqa)  # TODO: Block when queue gets too big
 
   # Tell child processes to stop
   logger.debug('Telling child processes to stop')
@@ -67,20 +82,19 @@ def base_quality(fastq_fp, out_fp=None, threads=2, f_size=None, max_reads=None):
 
   # Get results and add them
   logger.debug('Summing up result matrices')
-  score = out_queue.get()
+  bq_mat = out_queue.get()
   for i in range(threads - 1):
-    score += out_queue.get()
-
-  logger.debug('Printing result')
-  if out_fp is not None:
-   np.savetxt(out_fp, score, fmt='%d', delimiter=',')
+    bq_mat += out_queue.get()
 
   # Wait for workers to finish
   logger.debug('Waiting for workers to shutdown')
   for p in p_list:
     p.join()
 
-  return score
+  t1 = time.time()
+  logger.debug('Finished processing FASTQ in {} s'.format(t1 - t0))
+
+  return bq_mat
 
 
 def process_worker(worker_no, in_queue, out_queue):
@@ -94,23 +108,10 @@ def process_worker(worker_no, in_queue, out_queue):
   """
   logger.debug('Worker {} starting'.format(worker_no))
   #                 bp, phred
-  score = np.zeros((500, 100), dtype=np.uint64)
-  for template in iter(in_queue.get, __process_stop_code__):
-    for n, bq in enumerate(template[0][3]):
-      score[n, ord(bq) - 33] += 1
+  bq_mat = np.zeros((500, 100), dtype=np.uint64)
+  idx = list(range(500))
+  for bqa in iter(in_queue.get, __process_stop_code__):
+    bq_mat[idx[:len(bqa)], bqa] += 1
 
-  out_queue.put(score)
+  out_queue.put(bq_mat)
   logger.debug('Worker {} stopping'.format(worker_no))
-
-
-def plot_bq_metrics(score, out_fname):
-  read_count = score.sum(axis=1)[0]
-  max_rlen = score.sum(axis=1).nonzero()[0][-1] + 1
-  plt.matshow(score[:max_rlen, :].T, cmap=plt.cm.gray_r, origin='lower', interpolation='none')
-  plt.plot(range(max_rlen), np.dot(score, np.arange(100))[:max_rlen] / float(read_count), 'b')
-  plt.gca().xaxis.set_ticks_position('bottom')
-  plt.xlabel('Read bp')
-  plt.ylabel('BQ')
-  plt.xlim(-0.5, max_rlen)
-  plt.ylim(0, score.shape[1])
-  plt.savefig(out_fname)

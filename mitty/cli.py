@@ -6,6 +6,7 @@ import click
 
 import mitty.simulation.readgen as rgen
 import mitty.empirical.bq as bbq
+import mitty.empirical.bq_fastq as bbqf
 import mitty.empirical.gc as megc
 
 
@@ -42,6 +43,16 @@ def gc_cov(bam, fasta, pkl, block_len, threads):
 def sample_bq(bam, pkl, threads):
   """BQ distribution from BAM"""
   bbq.process_bam_parallel(bam, pkl, threads=threads)
+
+
+@cli.command('bq-fastq')
+@click.argument('fastq1', type=click.Path(exists=True))
+@click.argument('fastq2', type=click.Path(exists=True))
+@click.argument('pkl')
+@click.option('-t', '--threads', type=int, default=1, help='Threads to use')
+def sample_bq_fastq(fastq1, fastq2, pkl, threads):
+  """BQ distribution from BAM"""
+  bbqf.base_quality(fastq1, fastq2, pkl, threads=threads)
 
 
 @cli.command()
