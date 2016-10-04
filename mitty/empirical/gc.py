@@ -94,7 +94,7 @@ def process_bam_section_w(args):
     raise e
 
 
-def plot_gc_cov(gc_cov, max_cov=60):
+def plot_gc_cov(gc_cov, max_cov=60, title='GC/cov'):
   """Plot a multi panel plot fo GC/cov data
 
   :param gc_cov:
@@ -126,3 +126,5 @@ def plot_gc_cov(gc_cov, max_cov=60):
       else:
         ax.get_xaxis().set_visible(False)
         ax.get_yaxis().set_visible(False)
+
+  fig.suptitle(title)
