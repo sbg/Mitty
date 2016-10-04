@@ -29,7 +29,7 @@ def bq_over_chromosome(bam_fname, chrom):
   bam_fp = pysam.AlignmentFile(bam_fname, mode='rb')
   for r in bam_fp.fetch(reference=chrom):
     if r.flag > 255: continue  # Ignore secondary/split alignments
-    bq_r = r.query_qualities
+    bq_r = r.query_qualities[::-1] if r.flag & 0x10 else r.query_qualities  # Take care of reverse complement
     bq_mat[range(len(bq_r)), bq_r] += 1
 
   return bq_mat
@@ -102,9 +102,9 @@ def plot_bq_metrics(ax, score):
   max_rlen = score.sum(axis=1).nonzero()[0][-1] + 1
   #ax.matshow(score[:max_rlen, :].T, cmap=plt.cm.gray_r, origin='lower', interpolation='none', norm=LogNorm())
   ax.pcolormesh(score[:max_rlen, :].T, cmap=plt.cm.gray_r, norm=LogNorm())
-  ax.plot(range(max_rlen), np.dot(score, np.arange(100))[:max_rlen] / float(read_count), 'b')
+  ax.plot(range(max_rlen), np.dot(score, np.arange(100))[:max_rlen] / float(read_count), 'y')
   ax.xaxis.set_ticks_position('bottom')
-  plt.setp(ax, xlim=(-0.5, max_rlen), ylim=(0, 60))  # score.shape[1]))
+  plt.setp(ax, xlim=(-20, max_rlen + 20), ylim=(0, 60))  # score.shape[1]))
 
 
 # if __name__ == '__main__':
