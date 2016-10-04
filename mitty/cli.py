@@ -11,7 +11,7 @@ import mitty.empirical.gc as megc
 
 @click.group()
 @click.version_option()
-@click.option('-v', '--verbose', count=True)
+@click.option('-v', '--verbose', type=int, default=0)
 def cli(verbose):
   """A genomic data simulator for testing and debugging bio-informatics tools"""
   if verbose == 1:
@@ -36,7 +36,7 @@ def gc_cov(bam, fasta, pkl, block_len, threads):
 
 
 @cli.command('bq')
-@click.argument('bam', type=click.File('r'))
+@click.argument('bam', type=click.Path(exists=True))
 @click.argument('pkl')
 @click.option('-t', '--threads', type=int, default=1, help='Threads to use')
 def sample_bq(bam, pkl, threads):
@@ -74,6 +74,7 @@ def generate_reads(reffasta, paramfile, sample_name, vcf, bed, reference_reads_o
 @cli.command('corrupt-reads', short_help='Apply corruption model to FASTQ file of reads')
 def read_corruption():
   pass
+
 
 def read_bias():
   pass
