@@ -1,0 +1,17 @@
+# Sit at the level of setup.py
+# docker build -f containerization/dockerfile -t images.sbgenomics.com/kghosesbg/mitty3:latest .
+FROM ubuntu:xenial
+
+ENV LC_ALL=C.UTF-8
+ENV LANG=C.UTF-8
+
+ADD . /root/mitty3
+RUN apt-get update && apt-get install -y \
+  python3 \
+  python3-pip \
+  zlib1g-dev
+RUN pip3 install -U pip
+RUN pip3 install /root/mitty3
+
+# You can now test with
+# docker run --rm b6de5278dc29 mitty
