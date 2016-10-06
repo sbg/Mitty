@@ -3,26 +3,26 @@ import os
 
 from nose.tools import assert_raises
 
-import mitty.tests
+import mitty.test
 import mitty.simulation.readgen as rgen
 import mitty.lib.vcfio as vio
 
 
-def v_type_test():
+def test_v_type():
   """Read gen: Flag complex variants in VCF"""
-  df = vio.read_sample_from_vcf(os.path.join(mitty.tests.example_data_dir, 'flawed-tiny.vcf'), 'g0_s0')
+  df = vio.read_sample_from_vcf(os.path.join(mitty.test.example_data_dir, 'flawed-tiny.vcf'), 'g0_s0')
   for _, v in df.iterrows():
     assert_raises(RuntimeError, rgen.get_v_type, v)
 
 
 def load_data():
   """A set of reference and variants for testing read generation."""
-  seq = open(os.path.join(mitty.tests.example_data_dir, 'tiny.fasta')).readlines()[1]
-  df = vio.read_sample_from_vcf(os.path.join(mitty.tests.example_data_dir, 'tiny.vcf'), 'g0_s0')
+  seq = open(os.path.join(mitty.test.example_data_dir, 'tiny.fasta')).readlines()[1]
+  df = vio.read_sample_from_vcf(os.path.join(mitty.test.example_data_dir, 'tiny.vcf'), 'g0_s0')
   return seq, df
 
 
-def snp_expansion_test1():
+def test_snp_expansion1():
   """Read gen: SNP expansion basic"""
   ref_seq, df = load_data()
   v = df.ix[0]
@@ -31,7 +31,7 @@ def snp_expansion_test1():
   assert vl == 0, vl
 
 
-def snp_expansion_test2():
+def test_snp_expansion2():
   """Read gen: SNP expansion: No M section"""
   ref_seq, df = load_data()
   v = df.ix[0]
@@ -46,7 +46,7 @@ def snp_expansion_test2():
   assert n_ref_pos == ref_pos + 1
 
 
-def snp_expansion_test3():
+def test_snp_expansion3():
   """Read gen: SNP expansion: M section"""
   ref_seq, df = load_data()
   v = df.ix[0]
@@ -60,7 +60,7 @@ def snp_expansion_test3():
   assert nodes[1] == (5, 5, 'X', 1, 'T', 0), nodes
 
 
-def ins_expansion_test1():
+def test_ins_expansion1():
   """Read gen: INS expansion basic"""
   ref_seq, df = load_data()
   v = df.ix[1]
@@ -69,7 +69,7 @@ def ins_expansion_test1():
   assert vl == 3, vl
 
 
-def ins_expansion_test2():
+def test_ins_expansion2():
   """Read gen: INS expansion: No M section"""
   ref_seq, df = load_data()
   v = df.ix[1]
@@ -84,7 +84,7 @@ def ins_expansion_test2():
   assert n_ref_pos == ref_pos
 
 
-def ins_expansion_test3():
+def test_ins_expansion3():
   """Read gen: INS expansion: M section"""
   ref_seq, df = load_data()
   v = df.ix[1]
@@ -98,7 +98,7 @@ def ins_expansion_test3():
   assert nodes[1] == (9, 9, 'I', 3, 'TTT', 3), nodes[1]
 
 
-def del_expansion_test1():
+def test_del_expansion1():
   """Read gen: DEL expansion basic"""
   ref_seq, df = load_data()
   v = df.ix[2]
@@ -107,7 +107,7 @@ def del_expansion_test1():
   assert vl == 2, vl
 
 
-def del_expansion_test2():
+def test_del_expansion2():
   """Read gen: DEL expansion: No M section"""
   ref_seq, df = load_data()
   v = df.ix[2]
@@ -122,7 +122,7 @@ def del_expansion_test2():
   assert n_ref_pos == ref_pos + 2, n_ref_pos
 
 
-def del_expansion_test3():
+def test_del_expansion3():
   """Read gen: DEL expansion: M section"""
   ref_seq, df = load_data()
   v = df.ix[2]
@@ -136,8 +136,8 @@ def del_expansion_test3():
   assert nodes[1] == (15, 14, 'D', 2, '', -2), nodes
 
 
-def expand_sequence_test():
-  """Sequence expansion"""
+def test_expand_sequence():
+  """Read gen: Sequence expansion"""
   ref_seq, df = load_data()
   nodes = rgen.create_node_list(ref_seq, ref_start_pos=1, chrom_copy=0b01, vcf=df)
 
@@ -152,3 +152,9 @@ def expand_sequence_test():
   assert nodes[6] == (15, 14, '=', 7, 'GGAGGCG', None)
   assert nodes[7] == (22, 23, 'D', 2, '', -2)
   assert nodes[8] == (22, 23, '=', 3, 'ACC', None)
+
+
+def test_read_gen():
+  """Read gen: Read pos, cigar, v_list and seq"""
+  pass
+
