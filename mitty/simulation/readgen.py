@@ -92,21 +92,22 @@ def create_node_list(ref_seq, ref_start_pos, chrom_copy, vcf):
   # ref_pos is relative to whole sequence, samp_pos is relative to this fragment of the expanded sequence
 
   nodes = []
-  for _, v in vcf.itertuples():
+  for v in vcf.itertuples():
     if v.GT & chrom_copy:  # This variant exists on this chrom copy
+      if v.POS < ref_pos: continue  # We are starting from a later position
       new_nodes, samp_pos, ref_pos = create_nodes(ref_seq, samp_pos, ref_pos, v)
       nodes += new_nodes
 
   delta = ref_pos - ref_start_pos
   if delta <= len(ref_seq):  # Last part of sequence, needs an M
-    nodes.append((samp_pos, ref_pos, 'M', len(ref_seq) - delta, ref_seq[delta:]))
+    nodes.append((samp_pos, ref_pos, '=', len(ref_seq) - delta, ref_seq[delta:]))
 
   return np.array(nodes,
                   dtype=[('ps', np.uint32),
                          ('pr', np.uint32),
-                         ('cigarop', np.ubyte),
+                         ('cigarop', 'c'),
                          ('oplen', np.uint32),
-                         ('seq', str)])
+                         ('seq', object)])
 
 
 def create_nodes(ref_seq, samp_pos, ref_pos, v):
@@ -137,7 +138,7 @@ def get_v_type(v):
   else:
     if l_a > 1:
       raise RuntimeError('Complex variants present in VCF. Please filter or refactor these.')
-    return 'D', l_a - l_r  # Will be negative
+    return 'D', l_r - l_a  # Will be negative
 
 
 def snp(ref_seq, samp_pos, ref_pos, v, vl):
@@ -148,8 +149,8 @@ def snp(ref_seq, samp_pos, ref_pos, v, vl):
     nodes.append((samp_pos, ref_pos, '=', delta, ref_seq[ref_pos - 1:v.POS - 1]))  # M node
     ref_pos = v.POS
     samp_pos += delta
-  #               ps         pr     op  oplen  seq
-  nodes.append((samp_pos, ref_pos, 'X', 0, v.ALT))
+  #               ps         pr    op oplen seq
+  nodes.append((samp_pos, ref_pos, 'X', 1, v.ALT))
   ref_pos += 1
   samp_pos += 1
   return nodes, samp_pos, ref_pos
@@ -161,9 +162,9 @@ def insertion(ref_seq, samp_pos, ref_pos, v, vl):
   if delta > 0:  # Need to make an M node
     #               ps         pr     op   oplen          seq
     nodes.append((samp_pos, ref_pos, '=', delta, ref_seq[ref_pos - 1:v.POS]))  # M node
-    ref_pos = v.POS + 1  # The next ref pos is the ref base just after the insertion
     samp_pos += delta
 
+  ref_pos = v.POS + 1  # The next ref pos is the ref base just after the insertion
   #                ps        pr     op  oplen  seq
   nodes.append((samp_pos, ref_pos, 'I', vl, v.ALT[1:]))
   samp_pos += vl
@@ -176,12 +177,11 @@ def deletion(ref_seq, samp_pos, ref_pos, v, vl):
   if delta > 0:  # Need to make an M node
     #               ps         pr     op   oplen          seq
     nodes.append((samp_pos, ref_pos, '=', delta, ref_seq[ref_pos - 1:v.POS]))  # M node
-    ref_pos = v.POS + 1  # The next ref pos is the ref base just after the insertion
     samp_pos += delta
 
+  ref_pos = v.POS + 1 + vl  # The next ref pos is the ref base just after the deletion
   #                ps        pr     op  oplen  seq
-  nodes.append((samp_pos, ref_pos, 'I', vl, v.ALT[1:]))
-  samp_pos += vl
+  nodes.append((samp_pos, ref_pos, 'D', vl, ''))
   return nodes, samp_pos, ref_pos
 
 
