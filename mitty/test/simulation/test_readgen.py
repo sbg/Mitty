@@ -154,8 +154,8 @@ def test_expand_sequence():
   assert nodes[8] == (22, 23, '=', 3, 'ACC', None)
 
 
-def test_read_gen():
-  """Read gen: Read pos, cigar, v_list and seq"""
+def test_read_gen1():
+  """Read gen: Read pos, cigar, v_list and seq (cpy 1)"""
   ref_seq, df = load_data()
   nodes = rgen.create_node_list(ref_seq, ref_start_pos=1, chrom_copy=0b01, vcf=df)
 
@@ -165,3 +165,33 @@ def test_read_gen():
   assert rgen.generate_read(4, 10, 0, 4, nodes) == (4, '1=1X3=3I2=', [0, 3], 'ATGTATTTTC')
   assert rgen.generate_read(5, 10, 1, 4, nodes) == (5, '1X3=3I3=', [0, 3], 'TGTATTTTCC')
   assert rgen.generate_read(6, 10, 2, 6, nodes) == (6, '3=3I3=2D1=', [3, -2], 'GTATTTTCCG')
+  assert rgen.generate_read(7, 10, 2, 6, nodes) == (7, '2=3I3=2D2=', [3, -2], 'TATTTTCCGG')
+  assert rgen.generate_read(8, 10, 2, 6, nodes) == (8, '1=3I3=2D3=', [3, -2], 'ATTTTCCGGA')
+  assert rgen.generate_read(9, 10, 3, 6, nodes) == (9, '3I3=2D4=', [3, -2], 'TTTTCCGGAG')
+  assert rgen.generate_read(10, 10, 3, 6, nodes) == (9, '2I3=2D5=', [3, -2], 'TTTCCGGAGG')
+  assert rgen.generate_read(11, 10, 3, 6, nodes) == (9, '1I3=2D6=', [3, -2], 'TTCCGGAGGC')
+  assert rgen.generate_read(12, 10, 4, 6, nodes) == (9, '3=2D7=', [-2], 'TCCGGAGGCG')
+  assert rgen.generate_read(13, 10, 4, 8, nodes) == (10, '2=2D7=2D1=', [-2, -2], 'CCGGAGGCGA')
+  assert rgen.generate_read(14, 10, 4, 8, nodes) == (11, '1=2D7=2D2=', [-2, -2], 'CGGAGGCGAC')
+  assert rgen.generate_read(15, 10, 6, 8, nodes) == (14, '7=2D3=', [-2], 'GGAGGCGACC')
+
+
+def test_read_gen2():
+  """Read gen: Read pos, cigar, v_list and seq (cpy 2)"""
+  ref_seq, df = load_data()
+  nodes = rgen.create_node_list(ref_seq, ref_start_pos=1, chrom_copy=0b10, vcf=df)
+
+  assert rgen.generate_read(1, 10, 0, 0, nodes) == (1, '10=', [], 'ATGACGTATC')
+  assert rgen.generate_read(2, 10, 0, 0, nodes) == (2, '10=', [], 'TGACGTATCC')
+  assert rgen.generate_read(4, 10, 0, 0, nodes) == (4, '10=', [], 'ACGTATCCAA')
+  assert rgen.generate_read(5, 10, 0, 1, nodes) == (5, '9=1X', [0], 'CGTATCCAAT')
+  assert rgen.generate_read(6, 10, 0, 2, nodes) == (6, '8=1X1=', [0], 'GTATCCAATG')
+  # TODO. Add more test cases? The core test - whether we take the right variant - is already tested by these cases
+
+
+def test_read_gen_ins():
+  """Read gen: Reads from inside insertion"""
+  ref_seq, df = load_data()
+  nodes = rgen.create_node_list(ref_seq, ref_start_pos=1, chrom_copy=0b01, vcf=df)
+
+  assert rgen.generate_read(9, 2, 3, 3, nodes) == (8, '>0:2I', [3], 'TT')

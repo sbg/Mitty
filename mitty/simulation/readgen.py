@@ -214,17 +214,20 @@ def generate_read(p, l, n0, n1, nodes):
   :param nodes: as returned by create_node_list
   :return:
   """
-
-  if nodes[n0].cigarop == 'I':
-    if n1 > n0:
-      pos = nodes[n0].pr
-    else:
-      # We want to pile up reads from a long insertion at the start of the insertion
-      pos = nodes[n0].pr - 1
-  else:
-    pos = p - nodes[n0].ps + nodes[n0].pr
-
   v_list = [n.v for n in nodes[n0:n1 + 1] if n.v is not None]
   cigar = [str(min(p + l - n.ps, n.oplen) - max(0, p - n.ps)) + n.cigarop for n in nodes[n0:n1 + 1]]
   seq = [n.seq[max(0, p - n.ps):min(p + l - n.ps, n.oplen)] for n in nodes[n0:n1 + 1]]
+
+  if nodes[n0].cigarop == 'I':
+    if n0 == n1:
+      # Special case - read is from inside a long insertion
+      # We want to pile up reads from a long insertion at the start of the insertion
+      # We need to override the CIGAR too
+      pos = nodes[n0].pr - 1
+      cigar = ['>{}:{}I'.format(p - nodes[n0].ps, l)]
+    else:
+      pos = nodes[n0].pr
+  else:
+    pos = p - nodes[n0].ps + nodes[n0].pr
+
   return pos, ''.join(cigar), v_list, ''.join(seq)
