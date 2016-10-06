@@ -68,7 +68,31 @@ where:
  'p' is how many bases into the insertion branch the read starts
  'n' is simply the length of the read
 """
-import numpy as np
+class Node(object):
+  __slots__ = ('ps', 'pr', 'cigarop', 'oplen', 'seq', 'v')
+
+  def __init__(self, ps, pr, cigarop, oplen, seq, v):
+    self.ps = ps
+    self.pr = pr
+    self.cigarop = cigarop
+    self.oplen = oplen
+    self.seq = seq
+    self.v = v  # The variant size code. None for reference matching nodes
+
+  def tuple(self):
+    return self.ps, self.pr, self.cigarop, self.oplen, self.seq, self.v
+
+  def __repr__(self):
+    return self.tuple().__repr__()
+
+  def __eq__(self, other):
+    if isinstance(other, self.__class__):
+      return self.tuple() == other.tuple()
+    else:
+      return self.tuple() == other
+
+  def __ne__(self, other):
+    return not self.__eq__(other)
 
 
 def create_node_list(ref_seq, ref_start_pos, chrom_copy, vcf):
@@ -100,14 +124,9 @@ def create_node_list(ref_seq, ref_start_pos, chrom_copy, vcf):
 
   delta = ref_pos - ref_start_pos
   if delta <= len(ref_seq):  # Last part of sequence, needs an M
-    nodes.append((samp_pos, ref_pos, '=', len(ref_seq) - delta, ref_seq[delta:]))
+    nodes.append(Node(samp_pos, ref_pos, '=', len(ref_seq) - delta, ref_seq[delta:], None))
 
-  return np.array(nodes,
-                  dtype=[('ps', np.uint32),
-                         ('pr', np.uint32),
-                         ('cigarop', 'c'),
-                         ('oplen', np.uint32),
-                         ('seq', object)])
+  return nodes
 
 
 def create_nodes(ref_seq, samp_pos, ref_pos, v):
@@ -130,15 +149,15 @@ def get_v_type(v):
   # Figure out what kind of a variant it is
   if l_r <= l_a:  # SNP or INS
     if l_r > 1:
-      raise RuntimeError('Complex variants present in VCF. Please filter or refactor these.')
+      raise RuntimeError("Complex variants present in VCF. Please filter or refactor these.")
     if l_a > 1:  # INS
       return 'I', l_a - l_r
     else:  # SNP
       return 'X', 0
   else:
     if l_a > 1:
-      raise RuntimeError('Complex variants present in VCF. Please filter or refactor these.')
-    return 'D', l_r - l_a  # Will be negative
+      raise RuntimeError("Complex variants present in VCF. Please filter or refactor these.")
+    return 'D', l_r - l_a
 
 
 def snp(ref_seq, samp_pos, ref_pos, v, vl):
@@ -146,11 +165,11 @@ def snp(ref_seq, samp_pos, ref_pos, v, vl):
   delta = v.POS - ref_pos
   if delta > 0:  # Need to make an M node
     #               ps         pr     op   oplen          seq
-    nodes.append((samp_pos, ref_pos, '=', delta, ref_seq[ref_pos - 1:v.POS - 1]))  # M node
+    nodes.append(Node(samp_pos, ref_pos, '=', delta, ref_seq[ref_pos - 1:v.POS - 1], None))  # M node
     ref_pos = v.POS
     samp_pos += delta
   #               ps         pr    op oplen seq
-  nodes.append((samp_pos, ref_pos, 'X', 1, v.ALT))
+  nodes.append(Node(samp_pos, ref_pos, 'X', 1, v.ALT, 0))
   ref_pos += 1
   samp_pos += 1
   return nodes, samp_pos, ref_pos
@@ -161,12 +180,12 @@ def insertion(ref_seq, samp_pos, ref_pos, v, vl):
   delta = v.POS + 1 - ref_pos  # This is INS, so we include the first base in the M segment
   if delta > 0:  # Need to make an M node
     #               ps         pr     op   oplen          seq
-    nodes.append((samp_pos, ref_pos, '=', delta, ref_seq[ref_pos - 1:v.POS]))  # M node
+    nodes.append(Node(samp_pos, ref_pos, '=', delta, ref_seq[ref_pos - 1:v.POS], None))  # M node
     samp_pos += delta
 
   ref_pos = v.POS + 1  # The next ref pos is the ref base just after the insertion
   #                ps        pr     op  oplen  seq
-  nodes.append((samp_pos, ref_pos, 'I', vl, v.ALT[1:]))
+  nodes.append(Node(samp_pos, ref_pos, 'I', vl, v.ALT[1:], vl))
   samp_pos += vl
   return nodes, samp_pos, ref_pos
 
@@ -176,14 +195,56 @@ def deletion(ref_seq, samp_pos, ref_pos, v, vl):
   delta = v.POS + 1 - ref_pos  # This is DEL, so we include the first base in the M segment
   if delta > 0:  # Need to make an M node
     #               ps         pr     op   oplen          seq
-    nodes.append((samp_pos, ref_pos, '=', delta, ref_seq[ref_pos - 1:v.POS]))  # M node
+    nodes.append(Node(samp_pos, ref_pos, '=', delta, ref_seq[ref_pos - 1:v.POS], None))  # M node
     samp_pos += delta
 
   ref_pos = v.POS + 1 + vl  # The next ref pos is the ref base just after the deletion
   #                ps        pr     op  oplen  seq
-  nodes.append((samp_pos, ref_pos, 'D', vl, ''))
+  nodes.append(Node(samp_pos, ref_pos, 'D', vl, '', -vl))
   return nodes, samp_pos, ref_pos
 
 
-def small_section(ref, variants, p, N):
-  pass
+def generate_read(p, l, s, n0, n1, nodes):
+  """
+
+  :param p: Start position of read in sample coordinates
+  :param l: Length of read
+  :param s: strand 0 = forward, 1 = reverse
+  :param n0: starting node
+  :param n1: ending node
+  :param nodes: as returned by create_node_list
+  :return:
+  """
+  if n0 == n1:  # Kind of an exception
+    if nodes[n0]['cigarop'] == 'I':  # This is a read completely in an insertion
+      pos = nodes[n0]['pr'] - 1  # pr refers to the next base
+      cigar = ['>{}:{}I'.format(p - nodes[n0]['ps'], l)]
+      v_list = [nodes[n0]['oplen']]
+    else:
+      pos = p - nodes[n0]['ps'] + nodes[n0]['pr']
+      cigar = ['{}{}'.format(l, nodes[n0]['cigarop'])]
+      v_list = []  # OK, if you take a 1 bp read from a SNP you got me here.
+  else:
+    # Initial node has to be treated specially
+    if nodes[n0]['cigarop'] in ['=', 'X']:
+      pos = p - nodes[n0]['ps'] + nodes[n0]['pr']
+      cigar = ['{}{}'.format(nodes[n0]['oplen'] - p - nodes[n0]['ps'], nodes[n0]['cigarop'])]
+      v_list = [] if nodes[n0]['cigarop'] == '=' else [0]
+    else:  # It's I
+      pos = nodes[n0]['pr']  # For I the node pr value is the next ref base
+      cigar = ['{}I'.format(nodes[n0]['oplen'] - p - nodes[n0]['ps'])]
+      v_list = [nodes[n0]['oplen']]
+
+    # Middle nodes are simple to treat
+    for node in nodes[n0 + 1:n1]:
+      cigar += ['{}{}'.format(node['oplen'], node['cigarop'])]
+      v_list += [node['oplen'] * (-1 if node['cigarop'] == 'D' else 1)]
+
+    # Final node has to be treated specially
+    if nodes[n0]['cigarop'] in ['=', 'X']:
+      cigar = ['{}{}'.format(nodes[n0]['oplen'] - p - nodes[n0]['ps'], nodes[n0]['cigarop'])]
+      v_list += [] if nodes[n0]['cigarop'] == '=' else []
+    else:  # It's I
+      pos = nodes[n0]['pr']  # For I the node pr value is the next ref base
+      cigar = ['{}I'.format(nodes[n0]['oplen'] - p - nodes[n0]['ps'])]
+      v_list = [nodes[n0]['oplen']]
