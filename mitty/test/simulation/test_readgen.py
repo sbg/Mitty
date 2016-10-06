@@ -117,7 +117,7 @@ def test_del_expansion2():
   nodes, n_samp_pos, n_ref_pos = rgen.deletion(ref_seq, samp_pos, ref_pos, v, vl)
 
   assert len(nodes) == 1, nodes
-  assert nodes[0] == (12, 14, 'D', 2, '', -2), nodes[0]
+  assert nodes[0] == (11, 14, 'D', 2, '', -2), nodes[0]
   assert n_samp_pos == samp_pos, n_samp_pos
   assert n_ref_pos == ref_pos + 2, n_ref_pos
 
@@ -133,7 +133,7 @@ def test_del_expansion3():
 
   assert len(nodes) == 2, nodes
   assert nodes[0] == (12, 9, '=', 3, 'TCC', None), nodes
-  assert nodes[1] == (15, 14, 'D', 2, '', -2), nodes
+  assert nodes[1] == (14, 14, 'D', 2, '', -2), nodes
 
 
 def test_expand_sequence():
@@ -148,13 +148,20 @@ def test_expand_sequence():
   assert nodes[2] == (6, 6, '=', 3, 'GTA', None)
   assert nodes[3] == (9, 9, 'I', 3, 'TTT', 3)
   assert nodes[4] == (12, 9, '=', 3, 'TCC', None)
-  assert nodes[5] == (15, 14, 'D', 2, '', -2)
+  assert nodes[5] == (14, 14, 'D', 2, '', -2)
   assert nodes[6] == (15, 14, '=', 7, 'GGAGGCG', None)
-  assert nodes[7] == (22, 23, 'D', 2, '', -2)
+  assert nodes[7] == (21, 23, 'D', 2, '', -2)
   assert nodes[8] == (22, 23, '=', 3, 'ACC', None)
 
 
 def test_read_gen():
   """Read gen: Read pos, cigar, v_list and seq"""
-  pass
+  ref_seq, df = load_data()
+  nodes = rgen.create_node_list(ref_seq, ref_start_pos=1, chrom_copy=0b01, vcf=df)
 
+  assert rgen.generate_read(1, 10, 0, 3, nodes) == (1, '4=1X3=2I', [0, 3], 'ATGATGTATT')
+  assert rgen.generate_read(2, 10, 0, 3, nodes) == (2, '3=1X3=3I', [0, 3], 'TGATGTATTT')
+  assert rgen.generate_read(3, 10, 0, 4, nodes) == (3, '2=1X3=3I1=', [0, 3], 'GATGTATTTT')
+  assert rgen.generate_read(4, 10, 0, 4, nodes) == (4, '1=1X3=3I2=', [0, 3], 'ATGTATTTTC')
+  assert rgen.generate_read(5, 10, 1, 4, nodes) == (5, '1X3=3I3=', [0, 3], 'TGTATTTTCC')
+  assert rgen.generate_read(6, 10, 2, 6, nodes) == (6, '3=3I3=2D1=', [3, -2], 'GTATTTTCCG')

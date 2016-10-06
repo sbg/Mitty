@@ -199,52 +199,32 @@ def deletion(ref_seq, samp_pos, ref_pos, v, vl):
     samp_pos += delta
 
   ref_pos = v.POS + 1 + vl  # The next ref pos is the ref base just after the deletion
-  #                ps        pr     op  oplen  seq
-  nodes.append(Node(samp_pos, ref_pos, 'D', vl, '', -vl))
+  #                    ps           pr     op  oplen    seq
+  nodes.append(Node(samp_pos - 1, ref_pos, 'D', vl, '', -vl))
   return nodes, samp_pos, ref_pos
 
 
-def generate_read(p, l, s, n0, n1, nodes):
+def generate_read(p, l, n0, n1, nodes):
   """
 
   :param p: Start position of read in sample coordinates
   :param l: Length of read
-  :param s: strand 0 = forward, 1 = reverse
   :param n0: starting node
   :param n1: ending node
   :param nodes: as returned by create_node_list
   :return:
   """
-  if n0 == n1:  # Kind of an exception
-    if nodes[n0]['cigarop'] == 'I':  # This is a read completely in an insertion
-      pos = nodes[n0]['pr'] - 1  # pr refers to the next base
-      cigar = ['>{}:{}I'.format(p - nodes[n0]['ps'], l)]
-      v_list = [nodes[n0]['oplen']]
+
+  if nodes[n0].cigarop == 'I':
+    if n1 > n0:
+      pos = nodes[n0].pr
     else:
-      pos = p - nodes[n0]['ps'] + nodes[n0]['pr']
-      cigar = ['{}{}'.format(l, nodes[n0]['cigarop'])]
-      v_list = []  # OK, if you take a 1 bp read from a SNP you got me here.
+      # We want to pile up reads from a long insertion at the start of the insertion
+      pos = nodes[n0].pr - 1
   else:
-    # Initial node has to be treated specially
-    if nodes[n0]['cigarop'] in ['=', 'X']:
-      pos = p - nodes[n0]['ps'] + nodes[n0]['pr']
-      cigar = ['{}{}'.format(nodes[n0]['oplen'] - p - nodes[n0]['ps'], nodes[n0]['cigarop'])]
-      v_list = [] if nodes[n0]['cigarop'] == '=' else [0]
-    else:  # It's I
-      pos = nodes[n0]['pr']  # For I the node pr value is the next ref base
-      cigar = ['{}I'.format(nodes[n0]['oplen'] - p - nodes[n0]['ps'])]
-      v_list = [nodes[n0]['oplen']]
+    pos = p - nodes[n0].ps + nodes[n0].pr
 
-    # Middle nodes are simple to treat
-    for node in nodes[n0 + 1:n1]:
-      cigar += ['{}{}'.format(node['oplen'], node['cigarop'])]
-      v_list += [node['oplen'] * (-1 if node['cigarop'] == 'D' else 1)]
-
-    # Final node has to be treated specially
-    if nodes[n0]['cigarop'] in ['=', 'X']:
-      cigar = ['{}{}'.format(nodes[n0]['oplen'] - p - nodes[n0]['ps'], nodes[n0]['cigarop'])]
-      v_list += [] if nodes[n0]['cigarop'] == '=' else []
-    else:  # It's I
-      pos = nodes[n0]['pr']  # For I the node pr value is the next ref base
-      cigar = ['{}I'.format(nodes[n0]['oplen'] - p - nodes[n0]['ps'])]
-      v_list = [nodes[n0]['oplen']]
+  v_list = [n.v for n in nodes[n0:n1 + 1] if n.v is not None]
+  cigar = [str(min(p + l - n.ps, n.oplen) - max(0, p - n.ps)) + n.cigarop for n in nodes[n0:n1 + 1]]
+  seq = [n.seq[max(0, p - n.ps):min(p + l - n.ps, n.oplen)] for n in nodes[n0:n1 + 1]]
+  return pos, ''.join(cigar), v_list, ''.join(seq)
