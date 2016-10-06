@@ -13,5 +13,9 @@ RUN apt-get update && apt-get install -y \
 RUN pip3 install -U pip
 RUN pip3 install /root/mitty3
 
+# This will do any compilation/initialization we need
+RUN mitty
+RUN mitty --version
+
 # You can now test with
 # docker run --rm b6de5278dc29 mitty
