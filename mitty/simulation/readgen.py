@@ -1,39 +1,4 @@
 """Algorithms for read generation"""
-
-__qname_format__ = '@read_serial|chrom|copy|strand|pos|rlen|cigar|vs1,vs2,...|strand|pos|rlen|cigar|vs1,vs2,...'
-__qname_format_details__ = """
-@read_serial|chrom|copy|strand|pos|rlen|cigar|vs1,vs2,...|strand|pos|rlen|cigar|vs1,vs2,...
-    |          |     |    |     |    |    |        |         |                      |
- unique        |     |    |     | read    |        |         ---- repeated for ------
- number for    |     |    |     | len     |        |          other read in template
- template      |     |    |     |         |        |
-               |     |    |     |     cigar    comma separated
-      chrom read     |    |     |              list of sizes of
-  was taken from     |    |     |              variants this read
-       One based     |    |     |              covers
-                     |    |     |
-                     |    |     |
-    copy of chrom read    |     |
-  was taken from (1,2)    |     |
-                          |     |
-         forward strand (0)     |
-      or reverse strand (1)     |
-                                |
-                      pos of read
-                        One based
-
-The chrom and pos are one based to make comparing qname info in genome browser easier
-
-For reads from inside a long insertion the CIGAR has the following format:
-
-  '>p:nI'
-
-where:
-
- '>' is the unique key that indicates a read inside a long insertion
- 'p' is how many bases into the insertion branch the read starts
- 'n' is simply the length of the read
-"""
 import numpy as np
 
 
@@ -176,8 +141,8 @@ def deletion(ref_seq, samp_pos, ref_pos, v, vl):
 def get_begin_end_nodes(pl, ll, nodes):
   """Given a list of read positions and lengths return us a list of start and end nodes
 
-  :param pl:  should be np.array so we can sum pl and ll
-  :param ll:             "
+  :param pl:  Positions of reads. should be np.array so we can sum pl and ll
+  :param ll:  Lengths of reads.           "
   :param nodes:
   :return: n0, n1 each is a list of nodes
   """
@@ -215,10 +180,3 @@ def generate_read(p, l, n0, n1, nodes):
     pos = p - nodes[n0].ps + nodes[n0].pr
 
   return pos, ''.join(cigar), v_list, ''.join(seq)
-
-
-DNA_complement = str.maketrans('ATCGN', 'TAGCN')
-
-
-def foo():
-  pass
