@@ -6,7 +6,7 @@ import numpy as np
 from numpy.testing import assert_array_equal
 
 import mitty.test
-import mitty.simulation.readgen as rgen
+import mitty.simulation.rpc as rgen
 import mitty.lib.vcfio as vio
 
 
