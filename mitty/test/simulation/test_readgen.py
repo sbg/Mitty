@@ -1,7 +1,9 @@
 """Tests for the generation of reads by applying variants to a reference"""
 import os
 
-from nose.tools import assert_raises
+from nose.tools import assert_raises, assert_sequence_equal
+import numpy as np
+from numpy.testing import assert_array_equal
 
 import mitty.test
 import mitty.simulation.readgen as rgen
@@ -152,6 +154,18 @@ def test_expand_sequence():
   assert nodes[6] == (15, 14, '=', 7, 'GGAGGCG', None)
   assert nodes[7] == (21, 23, 'D', 2, '', -2)
   assert nodes[8] == (22, 23, '=', 3, 'ACC', None)
+
+
+def test_get_begin_end_nodes():
+  """Read gen: find start and stop nodes for reads"""
+  ref_seq, df = load_data()
+  nodes = rgen.create_node_list(ref_seq, ref_start_pos=1, chrom_copy=0b01, vcf=df)
+
+  pl = np.arange(1, 16, dtype=int)
+  ll = 10
+  n0, n1 = rgen.get_begin_end_nodes(pl, ll, nodes)
+  assert_array_equal(n0, np.array([0, 0, 0, 0, 1, 2 , 2, 2, 3, 3, 3, 4, 4, 4, 6]))
+  assert_array_equal(n1, np.array([3, 3, 4, 4, 4, 6, 6, 6, 6, 6, 6, 6, 8, 8, 8]))
 
 
 def test_read_gen1():

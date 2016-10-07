@@ -68,6 +68,9 @@ where:
  'p' is how many bases into the insertion branch the read starts
  'n' is simply the length of the read
 """
+import numpy as np
+
+
 class Node(object):
   __slots__ = ('ps', 'pr', 'cigarop', 'oplen', 'seq', 'v')
 
@@ -204,6 +207,20 @@ def deletion(ref_seq, samp_pos, ref_pos, v, vl):
   return nodes, samp_pos, ref_pos
 
 
+def get_begin_end_nodes(pl, ll, nodes):
+  """Given a list of read positions and lengths return us a list of start and end nodes
+
+  :param pl:  should be np.array so we can sum pl and ll
+  :param ll:             "
+  :param nodes:
+  :return: n0, n1 each is a list of nodes
+  """
+  ps = np.array([n.ps if n.cigarop != 'D' else n.ps + 1 for n in nodes], dtype=np.uint64)
+  # D nodes .ps values are set to last base before deletion. We increment this by one so
+  # we can get proper start/stop node computation
+  return ps.searchsorted(pl, 'right') - 1, ps.searchsorted(pl + ll - 1, 'right') - 1
+
+
 def generate_read(p, l, n0, n1, nodes):
   """
 
@@ -212,7 +229,8 @@ def generate_read(p, l, n0, n1, nodes):
   :param n0: starting node
   :param n1: ending node
   :param nodes: as returned by create_node_list
-  :return:
+  :return: (pos, cigar, v_list, seq)
+           v_list = [-d, +i, 0] -> a list of ints indicating size of variants carried by read
   """
   v_list = [n.v for n in nodes[n0:n1 + 1] if n.v is not None]
   cigar = [str(min(p + l - n.ps, n.oplen) - max(0, p - n.ps)) + n.cigarop for n in nodes[n0:n1 + 1]]
