@@ -1,38 +1,4 @@
-"""
-Algorithms:
-
-Read location selection:
-
-Given p and N generate a coverage of pN = C by taking a section of the
-reference sequence + VCF and running the read generation algorithm N times with
-a probability of success p each time.
-
-Pos and CIGAR computation:
-
-The sample sequence is represented as a list of nodes
-
-(vertex, (vertex, vertex))
-   |         |       |
-   |         |       --------- vertex for chrom copy 2
-   |         ----------------- vertex for chrom copy 1
-   --------------------------- current vertex
-
-vertex = (pos, cigarop, seq)
-           |       |     |
-           |       |     ----- sequence. None for deletions
-           |       ----------- cigarop  'M', 'I' 'D' or 'X'
-           ------------------- pos on ref branch for start of node
-                               None for D and I
-
-offset = (vertex, offset)
-             |      |
-             |      ---------- relative to start of vertex.
-             ----------------- can't be a D vertex
-
-
-
-
-"""
+"""Algorithms for read generation"""
 
 __qname_format__ = '@read_serial|chrom|copy|strand|pos|rlen|cigar|vs1,vs2,...|strand|pos|rlen|cigar|vs1,vs2,...'
 __qname_format_details__ = """
@@ -249,3 +215,10 @@ def generate_read(p, l, n0, n1, nodes):
     pos = p - nodes[n0].ps + nodes[n0].pr
 
   return pos, ''.join(cigar), v_list, ''.join(seq)
+
+
+DNA_complement = str.maketrans('ATCGN', 'TAGCN')
+
+
+def foo():
+  pass
