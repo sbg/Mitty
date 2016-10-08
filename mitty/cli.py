@@ -4,7 +4,8 @@ import os
 import click
 
 
-import mitty.simulation.readgen as rgen
+import mitty.lib.vcfio as mvio
+import mitty.simulation.reads as reads
 import mitty.empirical.bq as bbq
 import mitty.empirical.bq_fastq as bbqf
 import mitty.empirical.gc as megc
@@ -23,6 +24,17 @@ def cli(verbose):
     logging.basicConfig(level=logging.INFO)
   elif verbose >= 4:
     logging.basicConfig(level=logging.DEBUG)
+
+
+@cli.command('filter-variants', short_help='Remove complex variants from VCF')
+@click.argument('vcfin', type=click.Path(exists=True))
+@click.argument('sample')
+@click.argument('bed')
+@click.argument('vcfout', type=click.Path())
+def filter_vcf(vcfin, sample, bed, vcfout):
+  """Subset VCF for given sample, apply BED file and filter out complex variants
+   making it suitable to use for read generation"""
+  mvio.prepare_variant_file(vcfin, sample, bed, vcfout)
 
 
 @cli.command('gc-cov')
@@ -58,13 +70,13 @@ def sample_bq_fastq(fastq1, fastq2, pkl, threads):
 @cli.command()
 def qname():
   """Display qname format"""
-  click.echo(rgen.__qname_format_details__)
+  click.echo(reads.__qname_format_details__)
 
 
 def print_qname(ctx, param, value):
   if not value or ctx.resilient_parsing:
     return
-  click.echo(rgen.__qname_format_details__)
+  click.echo(reads.__qname_format_details__)
   ctx.exit()
 
 

@@ -1,8 +1,12 @@
 import gzip
+import time
 
 import pysam
 import numpy as np
 import pandas as pd
+
+import logging
+logger = logging.getLogger(__name__)
 
 
 _gt_dict = {
@@ -64,7 +68,7 @@ def parse_variant_file(fname, sample):
 
   :param fname:
   :param sample:
-  :return: list of numpy recarrays
+  :return: dict of numpy recarrays
   """
   mode = 'rb' if fname.endswith('bcf') else 'r'
   vcf_fp = pysam.VariantFile(fname, mode)
@@ -105,7 +109,7 @@ def parse_variant(v, cpy):
   alt = var.alleles[cpy]
   if v.rlen > 1 and len(alt) > 1:
     raise ValueError('Complex variants can not be handled due to ambiguity in creating CIGARs. '
-                     'Please filter out: p:{}, ref:{}, alt:{}'.format(v.pos, v.ref, var.alleles))
+                     'Please filter out: {}:{} ref:{}, alt:{}'.format(v.contig, v.pos, v.ref, var.alleles))
 
   vtype, vlen = 'X', 0
   if v.rlen > 1:
@@ -115,3 +119,43 @@ def parse_variant(v, cpy):
 
   return v.pos, v.stop, vtype, vlen, alt
   # v.stop is in 0 based indecies, but because it's exclusive we don't need to add 1
+
+
+def prepare_variant_file(fname_in, sample, bed_fname, fname_out, write_mode='w'):
+  """Prepare a variant file with only the given sample, complex variant calls filtered out, restricted to the given bed file
+
+  :param fname_in:
+  :param sample:
+  :param bed_fname:
+  :param fname_out:
+  :return: - output is to file
+  """
+  def _complex_variant(_v):
+    var = _v.samples.values()[0]
+    for alt in var.alleles:
+      if _v.rlen > 1 and len(alt) > 1:
+        if _v.ref != alt:
+          logger.debug('Filtered out {}:{} {} -> {}'.format(_v.contig, _v.pos, _v.ref, var.alleles))
+          return True
+    return False
+
+  logger.debug('Starting filtering ...')
+  t0 = time.time()
+
+  mode = 'rb' if fname_in.endswith('bcf') else 'r'
+  vcf_in = pysam.VariantFile(fname_in, mode)
+  vcf_in.subset_samples([sample])
+  vcf_out = pysam.VariantFile(fname_out, mode=write_mode, header=vcf_in.header)
+  bed = list(map(lambda x: (x[0], int(x[1]), int(x[2])), map(lambda x: x.split(), open(bed_fname, 'r').readlines())))
+  fltr_cnt = 0
+  for region in bed:
+    logger.debug('Filtering {}'.format(region))
+    for v in vcf_in.fetch(contig=region[0], start=region[1], stop=region[2]):
+      if _complex_variant(v):
+        fltr_cnt += 1
+        continue
+      vcf_out.write(v)
+
+  logger.debug('Filtered out {} complex variants'.format(fltr_cnt))
+  t1 = time.time()
+  logger.debug('Took {} s'.format(t1 - t0))
