@@ -84,11 +84,12 @@ def parse_contig(vcf_fp, contig_name):
   :return:
   """
   var_list = [v for v in vcf_fp.fetch(contig=contig_name)]
-  return [
-    np.recarray(list(filter(None, (parse_variant(v, cpy) for v in var_list))),
-                dtype=[('pos', 'u4'), ('stop', 'u4'), ('type', 'c'), ('len', 'u4'), ('alt', str)])
-    for cpy in [0, 1]
-  ]
+  return {
+    gt: np.array(list(filter(None, (parse_variant(v, cpy) for v in var_list))),
+             dtype=[('pos', 'u4'), ('stop', 'u4'), ('type', 'c'), ('len', 'u4'), ('alt', object)])
+    for cpy, gt in zip([0, 1], ['1|0', '0|1'])
+  }
+  # The only way I could remember which was which was to explicitly write down 1|0 or 0|1
 
 
 def parse_variant(v, cpy):
@@ -98,7 +99,6 @@ def parse_variant(v, cpy):
   :return:
   """
   var = v.samples.values()[0]
-  print(var)
   if var['GT'][cpy] == 0:  # Does not exist on this copy
     return None  # To be filtered out
 
@@ -109,9 +109,9 @@ def parse_variant(v, cpy):
 
   vtype, vlen = 'X', 0
   if v.rlen > 1:
-    vtype, vlen = 'D', v.rlen - 1
+    vtype, vlen, alt = 'D', v.rlen - 1, ''
   elif len(alt) > 1:
-    vtype, vlen = 'I', len(alt) - 1
+    vtype, vlen, alt = 'I', len(alt) - 1, alt[1:]
 
   return v.pos, v.stop, vtype, vlen, alt
   # v.stop is in 0 based indecies, but because it's exclusive we don't need to add 1
