@@ -10,37 +10,24 @@ import mitty.simulation.rpc as rgen
 import mitty.lib.vcfio as vio
 
 
-def test_v_type():
-  """Read gen: Flag complex variants in VCF"""
-  df = vio.read_sample_from_vcf(os.path.join(mitty.test.example_data_dir, 'flawed-tiny.vcf'), 'g0_s0')
-  for _, v in df.iterrows():
-    assert_raises(RuntimeError, rgen.get_v_type, v)
-
-
 def load_data():
   """A set of reference and variants for testing read generation."""
   seq = open(os.path.join(mitty.test.example_data_dir, 'tiny.fasta')).readlines()[1]
-  df = vio.read_sample_from_vcf(os.path.join(mitty.test.example_data_dir, 'tiny.vcf'), 'g0_s0')
+  # df = vio.read_sample_from_vcf(os.path.join(mitty.test.example_data_dir, 'tiny.vcf'), 'g0_s0')
+  df = vio.load_variant_file(
+    os.path.join(mitty.test.example_data_dir, 'tiny.vcf.gz'),
+    'g0_s0',
+    os.path.join(mitty.test.example_data_dir, 'tiny.whole.bed'))
   return seq, df
-
-
-def test_snp_expansion1():
-  """Read gen: SNP expansion basic"""
-  ref_seq, df = load_data()
-  v = df.ix[0]
-  vt, vl = rgen.get_v_type(v)
-  assert vt == 'X', vt
-  assert vl == 0, vl
 
 
 def test_snp_expansion2():
   """Read gen: SNP expansion: No M section"""
-  ref_seq, df = load_data()
-  v = df.ix[0]
+  ref_seq, vcf = load_data()
+  v = vcf[0]['0|1'][0]
   samp_pos = 1
   ref_pos = 5
-  vt, vl = rgen.get_v_type(v)
-  nodes, n_samp_pos, n_ref_pos = rgen.snp(ref_seq, samp_pos, ref_pos, v, vl)
+  nodes, n_samp_pos, n_ref_pos = rgen.snp(ref_seq, samp_pos, ref_pos, v)
 
   assert len(nodes) == 1, nodes
   assert nodes[0] == (1, 5, 'X', 1, 'T', 0), nodes[0]
@@ -50,35 +37,24 @@ def test_snp_expansion2():
 
 def test_snp_expansion3():
   """Read gen: SNP expansion: M section"""
-  ref_seq, df = load_data()
-  v = df.ix[0]
+  ref_seq, vcf = load_data()
+  v = vcf[0]['0|1'][0]
   samp_pos = 1
   ref_pos = 1
-  vt, vl = rgen.get_v_type(v)
-  nodes, samp_pos, ref_pos = rgen.snp(ref_seq, samp_pos, ref_pos, v, vl)
+  nodes, samp_pos, ref_pos = rgen.snp(ref_seq, samp_pos, ref_pos, v)
 
   assert len(nodes) == 2, nodes
   assert nodes[0] == (1, 1, '=', 4, 'ATGA', None), nodes
   assert nodes[1] == (5, 5, 'X', 1, 'T', 0), nodes
 
 
-def test_ins_expansion1():
-  """Read gen: INS expansion basic"""
-  ref_seq, df = load_data()
-  v = df.ix[1]
-  vt, vl = rgen.get_v_type(v)
-  assert vt == 'I', vt
-  assert vl == 3, vl
-
-
 def test_ins_expansion2():
   """Read gen: INS expansion: No M section"""
-  ref_seq, df = load_data()
-  v = df.ix[1]
+  ref_seq, vcf = load_data()
+  v = vcf[0]['0|1'][1]
   samp_pos = 9
   ref_pos = 9
-  vt, vl = rgen.get_v_type(v)
-  nodes, n_samp_pos, n_ref_pos = rgen.insertion(ref_seq, samp_pos, ref_pos, v, vl)
+  nodes, n_samp_pos, n_ref_pos = rgen.insertion(ref_seq, samp_pos, ref_pos, v)
 
   assert len(nodes) == 1, nodes
   assert nodes[0] == (9, 9, 'I', 3, 'TTT', 3), nodes[0]
@@ -88,35 +64,24 @@ def test_ins_expansion2():
 
 def test_ins_expansion3():
   """Read gen: INS expansion: M section"""
-  ref_seq, df = load_data()
-  v = df.ix[1]
+  ref_seq, vcf = load_data()
+  v = vcf[0]['0|1'][1]
   samp_pos = 6
   ref_pos = 6
-  vt, vl = rgen.get_v_type(v)
-  nodes, samp_pos, ref_pos = rgen.insertion(ref_seq, samp_pos, ref_pos, v, vl)
+  nodes, samp_pos, ref_pos = rgen.insertion(ref_seq, samp_pos, ref_pos, v)
 
   assert len(nodes) == 2, nodes
   assert nodes[0] == (6, 6, '=', 3, 'GTA', None), nodes[0]
   assert nodes[1] == (9, 9, 'I', 3, 'TTT', 3), nodes[1]
 
 
-def test_del_expansion1():
-  """Read gen: DEL expansion basic"""
-  ref_seq, df = load_data()
-  v = df.ix[2]
-  vt, vl = rgen.get_v_type(v)
-  assert vt == 'D', vt
-  assert vl == 2, vl
-
-
 def test_del_expansion2():
   """Read gen: DEL expansion: No M section"""
-  ref_seq, df = load_data()
-  v = df.ix[2]
+  ref_seq, vcf = load_data()
+  v = vcf[0]['0|1'][2]
   samp_pos = 12
   ref_pos = 12
-  vt, vl = rgen.get_v_type(v)
-  nodes, n_samp_pos, n_ref_pos = rgen.deletion(ref_seq, samp_pos, ref_pos, v, vl)
+  nodes, n_samp_pos, n_ref_pos = rgen.deletion(ref_seq, samp_pos, ref_pos, v)
 
   assert len(nodes) == 1, nodes
   assert nodes[0] == (11, 14, 'D', 2, '', -2), nodes[0]
@@ -126,12 +91,11 @@ def test_del_expansion2():
 
 def test_del_expansion3():
   """Read gen: DEL expansion: M section"""
-  ref_seq, df = load_data()
-  v = df.ix[2]
+  ref_seq, vcf = load_data()
+  v = vcf[0]['0|1'][2]
   samp_pos = 12
   ref_pos = 9
-  vt, vl = rgen.get_v_type(v)
-  nodes, samp_pos, ref_pos = rgen.deletion(ref_seq, samp_pos, ref_pos, v, vl)
+  nodes, samp_pos, ref_pos = rgen.deletion(ref_seq, samp_pos, ref_pos, v)
 
   assert len(nodes) == 2, nodes
   assert nodes[0] == (12, 9, '=', 3, 'TCC', None), nodes
@@ -140,8 +104,8 @@ def test_del_expansion3():
 
 def test_expand_sequence():
   """Read gen: Sequence expansion"""
-  ref_seq, df = load_data()
-  nodes = rgen.create_node_list(ref_seq, ref_start_pos=1, chrom_copy=0b01, vcf=df)
+  ref_seq, vcf = load_data()
+  nodes = rgen.create_node_list(ref_seq, ref_start_pos=1, vl=vcf[0]['0|1'])
 
   assert len(nodes) == 9
   #                   ps pr op l seq
@@ -158,20 +122,20 @@ def test_expand_sequence():
 
 def test_get_begin_end_nodes():
   """Read gen: find start and stop nodes for reads"""
-  ref_seq, df = load_data()
-  nodes = rgen.create_node_list(ref_seq, ref_start_pos=1, chrom_copy=0b01, vcf=df)
+  ref_seq, vcf = load_data()
+  nodes = rgen.create_node_list(ref_seq, ref_start_pos=1, vl=vcf[0]['0|1'])
 
   pl = np.arange(1, 16, dtype=int)
   ll = 10
   n0, n1 = rgen.get_begin_end_nodes(pl, ll, nodes)
-  assert_array_equal(n0, np.array([0, 0, 0, 0, 1, 2 , 2, 2, 3, 3, 3, 4, 4, 4, 6]))
+  assert_array_equal(n0, np.array([0, 0, 0, 0, 1, 2, 2, 2, 3, 3, 3, 4, 4, 4, 6]))
   assert_array_equal(n1, np.array([3, 3, 4, 4, 4, 6, 6, 6, 6, 6, 6, 6, 8, 8, 8]))
 
 
 def test_read_gen1():
   """Read gen: Read pos, cigar, v_list and seq (cpy 1)"""
-  ref_seq, df = load_data()
-  nodes = rgen.create_node_list(ref_seq, ref_start_pos=1, chrom_copy=0b01, vcf=df)
+  ref_seq, vcf = load_data()
+  nodes = rgen.create_node_list(ref_seq, ref_start_pos=1, vl=vcf[0]['0|1'])
 
   assert rgen.generate_read(1, 10, 0, 3, nodes) == (1, '4=1X3=2I', [0, 3], 'ATGATGTATT')
   assert rgen.generate_read(2, 10, 0, 3, nodes) == (2, '3=1X3=3I', [0, 3], 'TGATGTATTT')
@@ -192,8 +156,8 @@ def test_read_gen1():
 
 def test_read_gen2():
   """Read gen: Read pos, cigar, v_list and seq (cpy 2)"""
-  ref_seq, df = load_data()
-  nodes = rgen.create_node_list(ref_seq, ref_start_pos=1, chrom_copy=0b10, vcf=df)
+  ref_seq, vcf = load_data()
+  nodes = rgen.create_node_list(ref_seq, ref_start_pos=1, vl=vcf[0]['1|0'])
 
   assert rgen.generate_read(1, 10, 0, 0, nodes) == (1, '10=', [], 'ATGACGTATC')
   assert rgen.generate_read(2, 10, 0, 0, nodes) == (2, '10=', [], 'TGACGTATCC')
@@ -205,7 +169,7 @@ def test_read_gen2():
 
 def test_read_gen_ins():
   """Read gen: Reads from inside insertion"""
-  ref_seq, df = load_data()
-  nodes = rgen.create_node_list(ref_seq, ref_start_pos=1, chrom_copy=0b01, vcf=df)
+  ref_seq, vcf = load_data()
+  nodes = rgen.create_node_list(ref_seq, ref_start_pos=1, vl=vcf[0]['0|1'])
 
   assert rgen.generate_read(9, 2, 3, 3, nodes) == (8, '>0:2I', [3], 'TT')

@@ -5,13 +5,19 @@ import numpy as np
 class Node(object):
   __slots__ = ('ps', 'pr', 'cigarop', 'oplen', 'seq', 'v')
 
-  def __init__(self, ps, pr, cigarop, oplen, seq, v):
+  def __init__(self, ps, pr, cigarop, oplen, seq):
     self.ps = ps
     self.pr = pr
     self.cigarop = cigarop
     self.oplen = oplen
     self.seq = seq
-    self.v = v  # The variant size code. None for reference matching nodes
+    # The variant size code. None for reference matching nodes
+    self.v = {
+      '=': None,
+      'X': 0,
+      'I': oplen,
+      'D': -oplen
+    }[cigarop]
 
   def tuple(self):
     return self.ps, self.pr, self.cigarop, self.oplen, self.seq, self.v
@@ -29,19 +35,14 @@ class Node(object):
     return not self.__eq__(other)
 
 
-def create_node_list(ref_seq, ref_start_pos, chrom_copy, vcf):
+def create_node_list(ref_seq, ref_start_pos, vl):
   """Apply the apropriate variants (i.e. those that are on this copy of the
   chromosome) to the reference sequence and create the sequence of nodes which
   other functions use to generate reads and alignment metadata.
 
   :param ref_seq: Reference sequence
   :param ref_start_pos: position where this part of the reference sequence starts from. 1 indexed
-  :param chrom_copy: b01, b10, b11
-  :param vcf: variant information, same format as VCF file
-              Should be from correct chrom.
-              Restricting the list of variants to just those
-              covering the passed sequence speeds up processing
-
+  :param vl: list of Variant objects in order
   :return:
 
   """
@@ -50,91 +51,68 @@ def create_node_list(ref_seq, ref_start_pos, chrom_copy, vcf):
   # ref_pos is relative to whole sequence, samp_pos is relative to this fragment of the expanded sequence
 
   nodes = []
-  for v in vcf.itertuples():
-    if v.GT & chrom_copy:  # This variant exists on this chrom copy
-      if v.POS < ref_pos: continue  # We are starting from a later position
-      new_nodes, samp_pos, ref_pos = create_nodes(ref_seq, samp_pos, ref_pos, v)
-      nodes += new_nodes
+  for v in vl:
+    if v.pos < ref_pos: continue  # We are starting from a later position
+    new_nodes, samp_pos, ref_pos = create_nodes(ref_seq, samp_pos, ref_pos, v)
+    nodes += new_nodes
 
   delta = ref_pos - ref_start_pos
   if delta <= len(ref_seq):  # Last part of sequence, needs an M
-    nodes.append(Node(samp_pos, ref_pos, '=', len(ref_seq) - delta, ref_seq[delta:], None))
+    nodes.append(Node(samp_pos, ref_pos, '=', len(ref_seq) - delta, ref_seq[delta:]))
 
   return nodes
 
 
 def create_nodes(ref_seq, samp_pos, ref_pos, v):
-  vt, vl = get_v_type(v)
-  if vt == 'X':
-    return snp(ref_seq, samp_pos, ref_pos, v, vl)
-  elif vt == 'I':
-    return insertion(ref_seq, samp_pos, ref_pos, v, vl)
+  if v.cigarop == 'X':
+    return snp(ref_seq, samp_pos, ref_pos, v)
+  elif v.cigarop == 'I':
+    return insertion(ref_seq, samp_pos, ref_pos, v)
   else:
-    return deletion(ref_seq, samp_pos, ref_pos, v, vl)
+    return deletion(ref_seq, samp_pos, ref_pos, v)
 
 
-def get_v_type(v):
-  """Return us the variant type and size
-
-  :param v:
-  :return:
-  """
-  l_r, l_a = len(v.REF), len(v.ALT)
-  # Figure out what kind of a variant it is
-  if l_r <= l_a:  # SNP or INS
-    if l_r > 1:
-      raise RuntimeError("Complex variants present in VCF. Please filter or refactor these.")
-    if l_a > 1:  # INS
-      return 'I', l_a - l_r
-    else:  # SNP
-      return 'X', 0
-  else:
-    if l_a > 1:
-      raise RuntimeError("Complex variants present in VCF. Please filter or refactor these.")
-    return 'D', l_r - l_a
-
-
-def snp(ref_seq, samp_pos, ref_pos, v, vl):
+def snp(ref_seq, samp_pos, ref_pos, v):
   nodes = []
-  delta = v.POS - ref_pos
+  delta = v.pos - ref_pos
   if delta > 0:  # Need to make an M node
     #               ps         pr     op   oplen          seq
-    nodes.append(Node(samp_pos, ref_pos, '=', delta, ref_seq[ref_pos - 1:v.POS - 1], None))  # M node
-    ref_pos = v.POS
+    nodes.append(Node(samp_pos, ref_pos, '=', delta, ref_seq[ref_pos - 1:v.pos - 1]))  # M node
+    ref_pos = v.pos
     samp_pos += delta
   #               ps         pr    op oplen seq
-  nodes.append(Node(samp_pos, ref_pos, 'X', 1, v.ALT, 0))
+  nodes.append(Node(samp_pos, ref_pos, 'X', 1, v.alt))
   ref_pos += 1
   samp_pos += 1
   return nodes, samp_pos, ref_pos
 
 
-def insertion(ref_seq, samp_pos, ref_pos, v, vl):
+def insertion(ref_seq, samp_pos, ref_pos, v):
   nodes = []
-  delta = v.POS + 1 - ref_pos  # This is INS, so we include the first base in the M segment
+  delta = v.pos + 1 - ref_pos  # This is INS, so we include the first base in the M segment
   if delta > 0:  # Need to make an M node
     #               ps         pr     op   oplen          seq
-    nodes.append(Node(samp_pos, ref_pos, '=', delta, ref_seq[ref_pos - 1:v.POS], None))  # M node
+    nodes.append(Node(samp_pos, ref_pos, '=', delta, ref_seq[ref_pos - 1:v.pos]))  # M node
     samp_pos += delta
 
-  ref_pos = v.POS + 1  # The next ref pos is the ref base just after the insertion
+  ref_pos = v.pos + 1  # The next ref pos is the ref base just after the insertion
   #                ps        pr     op  oplen  seq
-  nodes.append(Node(samp_pos, ref_pos, 'I', vl, v.ALT[1:], vl))
-  samp_pos += vl
+  nodes.append(Node(samp_pos, ref_pos, 'I', v.oplen, v.alt[1:]))
+  samp_pos += v.oplen
   return nodes, samp_pos, ref_pos
 
 
-def deletion(ref_seq, samp_pos, ref_pos, v, vl):
+def deletion(ref_seq, samp_pos, ref_pos, v):
   nodes = []
-  delta = v.POS + 1 - ref_pos  # This is DEL, so we include the first base in the M segment
+  delta = v.pos + 1 - ref_pos  # This is DEL, so we include the first base in the M segment
   if delta > 0:  # Need to make an M node
     #               ps         pr     op   oplen          seq
-    nodes.append(Node(samp_pos, ref_pos, '=', delta, ref_seq[ref_pos - 1:v.POS], None))  # M node
+    nodes.append(Node(samp_pos, ref_pos, '=', delta, ref_seq[ref_pos - 1:v.pos]))  # M node
     samp_pos += delta
 
-  ref_pos = v.POS + 1 + vl  # The next ref pos is the ref base just after the deletion
+  ref_pos = v.pos + 1 + v.oplen  # The next ref pos is the ref base just after the deletion
   #                    ps           pr     op  oplen    seq
-  nodes.append(Node(samp_pos - 1, ref_pos, 'D', vl, '', -vl))
+  nodes.append(Node(samp_pos - 1, ref_pos, 'D', v.oplen, ''))
   return nodes, samp_pos, ref_pos
 
 

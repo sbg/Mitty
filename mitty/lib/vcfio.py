@@ -1,70 +1,54 @@
-import gzip
 import time
 
 import pysam
 import numpy as np
-import pandas as pd
 
 import logging
 logger = logging.getLogger(__name__)
 
 
-_gt_dict = {
-  '0|0': 0,
-  '0|1': 1,
-  '1|0': 2,
-  '1|1': 3,
-  '0/1': 4,  # We will alternate copy for this
-  '1/1': 2
-}
-
-def _convert_gt(gt_string):
-  """Function that converts the gt string (0|1, 1|0, 1|1) to a
-  two bit genotype code. If the data is het un-phased it is
-  alternately assigned a chromosome.
-
-  :param row:
-  :return:
-  """
-  gt = _gt_dict.get(gt_string[:3])  # We assume the GT value is the first entry in FORMAT
-  if gt == 4:
-    gt = _convert_gt.copy + 1
-    _convert_gt.copy = not _convert_gt.copy
-  return gt
+# NOTE TO SELF: Though it seems like we could convert the psyam variant handling structures to something
+# that looks like it is more useful for us re: read generation, it is not worth the effort and the loss
+# in modularity and maintainability. It is better to simply have functions that convert the VCF records
+# to the structure used by read generation at a later stage.
 
 
-def read_sample_from_vcf(fname, sample):
-  gz = fname.endswith('gz')
-  my_open = gzip.open if gz else open
-  with my_open(fname, 'r') as f:
-    for n, line in enumerate(f):
-      if gz:
-        line = line.decode()  # gzip returns bytes
-      if line.startswith('#CHROM'):
-        if sample not in line:
-          raise RuntimeError('Sample {} does not exist in {}'.format(sample, fname))
-        break
-    else:
-      raise RuntimeError('Malformed VCF {}'.format(fname))
+# The pysam variant class is a little too convoluted for our use, so we simplify the fields to this
+# and add some useful information
+# Note the absence of the CHROM field
+class Variant(object):
+  __slots__ = ('pos', 'ref', 'alt', 'cigarop', 'oplen')
 
-  # TODO: handle large CSV files in chunks?
-  return pd.read_csv(
-    fname, delimiter='\t', header=n,
-    usecols=['#CHROM', 'POS', 'ID', 'REF', 'ALT', 'QUAL', 'FILTER', 'INFO', 'FORMAT', sample],
-    converters={sample: _convert_gt},
-    dtype={'POS': np.uint32}).rename(columns={'#CHROM': 'CHROM', sample: 'GT'})
+  def __init__(self, pos, ref, alt, cigarop, oplen):
+    self.pos = pos
+    self.ref = ref
+    self.alt = alt
+    self.cigarop = cigarop
+    self.oplen = oplen
+
+  def tuple(self):
+    return self.pos, self.ref, self.alt, self.cigarop, self.oplen
+
+  def __repr__(self):
+    return self.tuple().__repr__()
 
 
-# This loads a whole file into memory.
-# Right now, unphased variants always go into chrom copy 0|1
-# TODO: Consider random assignment - but this really is a function of the truth VCF
-def parse_variant_file(fname, sample):
-  """Use pysam to read in a VCF file and create a recarray data structure suitable for read generation
-  The salient features are
-   - Separate arrays are created for each chromosome copy
-   - The array contains not only the start reference base (traditional VCF POS) but also the
-     last affected reference base. For SNP and INS this is the same as POS but for DEL this is the
-     last base of the deletion. We need this when expanding sections of the genome
+# Follows standard BED convention: https://genome.ucsc.edu/FAQ/FAQformat#format1
+# chrom - The name of the chromosome (e.g. chr3, chrY, chr2_random) or scaffold (e.g. scaffold10671).
+# chromStart - The starting position of the feature in the chromosome or scaffold.
+#              The first base in a chromosome is numbered 0.
+# chromEnd - The ending position of the feature in the chromosome or scaffold.
+#            The chromEnd base is not included in the display of the feature.
+#
+# For example, the first 100 bases of a chromosome are defined as chromStart=0, chromEnd=100,
+# and span the bases numbered 0-99.
+def read_bed(bed_fname):
+  return list(map(lambda x: (x[0], int(x[1]), int(x[2])), map(lambda x: x.split(), open(bed_fname, 'r').readlines())))
+
+
+# Unphased variants always go into chrom copy 0|1
+def load_variant_file(fname, sample, bed_fname):
+  """Use pysam to read in a VCF file and convert it into a form suitable for use in Mitty
 
   :param fname:
   :param sample:
@@ -73,56 +57,54 @@ def parse_variant_file(fname, sample):
   mode = 'rb' if fname.endswith('bcf') else 'r'
   vcf_fp = pysam.VariantFile(fname, mode)
   vcf_fp.subset_samples([sample])
-  return {
-    k: parse_contig(vcf_fp, k)
-    for k in vcf_fp.header.contigs.keys()
-  }
+  return [
+    split_copies(region, [v for v in vcf_fp.fetch(contig=region[0], start=region[1], stop=region[2])])
+    for region in read_bed(bed_fname)
+  ]
 
 
-# Hardcoded to diploid genomes for now.
-def parse_contig(vcf_fp, contig_name):
+def split_copies(region, vl):
+  """Given a list of pysam.cbcf.VariantRecord split it into two lists, one for each chromosome copy
+
+  :param vl:
+  :return: [c1|0, c0|1]
   """
+  return dict(
+    [('region', region)] +
+    [
+      (gt, list(filter(None, (parse(v, cpy=cpy) for v in vl))))
+      for cpy, gt in zip([0, 1], ['1|0', '0|1'])
+    ]
+  )
 
-  :param vcf_fp:  pysam.VariantFile with .subset_samples applied, so we only get one sample
-  :param contig_name:
-  :return:
+
+def parse(v, cpy):
+  """Take a pysam.cbcf.VariantRecord and convert it into a Variant object
+
+  :param v: variant
+  :param cpy: 0 = 1|0 1 = 0|1
+  :return: Variant(object)
   """
-  var_list = [v for v in vcf_fp.fetch(contig=contig_name)]
-  return {
-    gt: np.array(list(filter(None, (parse_variant(v, cpy) for v in var_list))),
-             dtype=[('pos', 'u4'), ('stop', 'u4'), ('type', 'c'), ('len', 'u4'), ('alt', object)])
-    for cpy, gt in zip([0, 1], ['1|0', '0|1'])
-  }
-  # The only way I could remember which was which was to explicitly write down 1|0 or 0|1
+  if v.samples[0]['GT'][cpy] == 0:  # Not present in this copy
+    return None
+  alt = v.samples[0].alleles[cpy]
+  l_r, l_a = len(v.ref), len(alt)
+  if l_r == 1:
+    if l_a == 1:
+      op, op_len = 'X', 0
+    else:
+      op, op_len = 'I', l_a - l_r
+  elif l_a == 1:
+    op, op_len = 'D', l_r - l_a
+  else:
+    raise ValueError("Complex variants present in VCF. Please filter or refactor these.")
 
-
-def parse_variant(v, cpy):
-  """
-
-  :param v:
-  :return:
-  """
-  var = v.samples.values()[0]
-  if var['GT'][cpy] == 0:  # Does not exist on this copy
-    return None  # To be filtered out
-
-  alt = var.alleles[cpy]
-  if v.rlen > 1 and len(alt) > 1:
-    raise ValueError('Complex variants can not be handled due to ambiguity in creating CIGARs. '
-                     'Please filter out: {}:{} ref:{}, alt:{}'.format(v.contig, v.pos, v.ref, var.alleles))
-
-  vtype, vlen = 'X', 0
-  if v.rlen > 1:
-    vtype, vlen, alt = 'D', v.rlen - 1, ''
-  elif len(alt) > 1:
-    vtype, vlen, alt = 'I', len(alt) - 1, alt[1:]
-
-  return v.pos, v.stop, vtype, vlen, alt
-  # v.stop is in 0 based indecies, but because it's exclusive we don't need to add 1
+  return Variant(v.pos, v.ref, v.samples[0].alleles[cpy], op, op_len)
 
 
 def prepare_variant_file(fname_in, sample, bed_fname, fname_out, write_mode='w'):
-  """Prepare a variant file with only the given sample, complex variant calls filtered out, restricted to the given bed file
+  """Prepare a variant file with only the given sample, complex variant calls filtered out,
+  and restricted to the given bed file
 
   :param fname_in:
   :param sample:
@@ -146,16 +128,18 @@ def prepare_variant_file(fname_in, sample, bed_fname, fname_out, write_mode='w')
   vcf_in = pysam.VariantFile(fname_in, mode)
   vcf_in.subset_samples([sample])
   vcf_out = pysam.VariantFile(fname_out, mode=write_mode, header=vcf_in.header)
-  bed = list(map(lambda x: (x[0], int(x[1]), int(x[2])), map(lambda x: x.split(), open(bed_fname, 'r').readlines())))
-  fltr_cnt = 0
-  for region in bed:
+  v_cnt, fltr_cnt = 0, 0
+  for region in read_bed(bed_fname):
     logger.debug('Filtering {}'.format(region))
-    for v in vcf_in.fetch(contig=region[0], start=region[1], stop=region[2]):
+    n = 0
+    for n, v in enumerate(vcf_in.fetch(contig=region[0], start=region[1], stop=region[2])):
       if _complex_variant(v):
         fltr_cnt += 1
         continue
       vcf_out.write(v)
+    v_cnt += n
 
+  logger.debug('Processed {} variants'.format(v_cnt))
   logger.debug('Filtered out {} complex variants'.format(fltr_cnt))
   t1 = time.time()
   logger.debug('Took {} s'.format(t1 - t0))
