@@ -127,9 +127,9 @@ def test_get_begin_end_nodes():
 
   pl = np.arange(1, 16, dtype=int)
   ll = 10
-  n0, n1 = rgen.get_begin_end_nodes(pl, ll, nodes)
-  assert_array_equal(n0, np.array([0, 0, 0, 0, 1, 2, 2, 2, 3, 3, 3, 4, 4, 4, 6]))
-  assert_array_equal(n1, np.array([3, 3, 4, 4, 4, 6, 6, 6, 6, 6, 6, 6, 8, 8, 8]))
+  nse = rgen.get_begin_end_nodes(pl, ll, nodes)
+  assert_array_equal(nse[0, :], np.array([0, 0, 0, 0, 1, 2, 2, 2, 3, 3, 3, 4, 4, 4, 6]))
+  assert_array_equal(nse[1, :], np.array([3, 3, 4, 4, 4, 6, 6, 6, 6, 6, 6, 6, 8, 8, 8]))
 
 
 def test_read_gen1():

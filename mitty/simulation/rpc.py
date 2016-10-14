@@ -36,7 +36,7 @@ class Node(object):
 
 
 def create_node_list(ref_seq, ref_start_pos, vl):
-  """Apply the apropriate variants (i.e. those that are on this copy of the
+  """Apply the appropriate variants (i.e. those that are on this copy of the
   chromosome) to the reference sequence and create the sequence of nodes which
   other functions use to generate reads and alignment metadata.
 
@@ -122,12 +122,12 @@ def get_begin_end_nodes(pl, ll, nodes):
   :param pl:  Positions of reads. should be np.array so we can sum pl and ll
   :param ll:  Lengths of reads.           "
   :param nodes:
-  :return: n0, n1 each is a list of nodes
+  :return: nse 2 x N np.array (N = len(pl)
   """
   ps = np.array([n.ps if n.cigarop != 'D' else n.ps + 1 for n in nodes], dtype=np.uint64)
   # D nodes .ps values are set to last base before deletion. We increment this by one so
   # we can get proper start/stop node computation
-  return ps.searchsorted(pl, 'right') - 1, ps.searchsorted(pl + ll - 1, 'right') - 1
+  return np.vstack((ps.searchsorted(pl, 'right') - 1, ps.searchsorted(pl + ll - 1, 'right') - 1))
 
 
 def generate_read(p, l, n0, n1, nodes):
