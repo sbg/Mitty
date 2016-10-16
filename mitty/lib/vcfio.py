@@ -47,6 +47,7 @@ def read_bed(bed_fname):
 
 
 # Unphased variants always go into chrom copy 0|1
+# We get results in the form of a ploid_bed
 def load_variant_file(fname, sample, bed_fname):
   """Use pysam to read in a VCF file and convert it into a form suitable for use in Mitty
 
@@ -64,18 +65,33 @@ def load_variant_file(fname, sample, bed_fname):
 
 
 def split_copies(region, vl):
-  """Given a list of pysam.cbcf.VariantRecord split it into two lists, one for each chromosome copy
+  """Given a list of pysam.cbcf.VariantRecord split it into multiple lists, one for each chromosome copy
 
   :param vl:
   :return: [c1|0, c0|1]
   """
-  return dict(
-    [('region', region)] +
-    [
-      (gt, list(filter(None, (parse(v, cpy=cpy) for v in vl))))
-      for cpy, gt in zip([0, 1], ['1|0', '0|1'])
-    ]
-  )
+  # Sniff out the ploidy
+  if len(vl) == 0:
+    logger.warning('Empty region ({}), assuming diploid'.format(region))
+    ploidy = 2
+  else:
+    ploidy = len(vl[0].samples[0]['GT'])
+    logger.debug('Region: {}, ploidy: {}'.format(region, ploidy))
+
+  cpy_l = [
+    (cpy, '|'.join(['0'] * cpy + ['1'] + ['0'] * (ploidy - 1 - cpy)))
+    for cpy in range(ploidy)
+  ]
+
+  return {
+    'region': region,
+    'v': dict(
+      [
+        (gt, list(filter(None, (parse(v, cpy=cpy) for v in vl))))
+        for cpy, gt in cpy_l
+        ]
+    )
+  }
 
 
 def parse(v, cpy):
