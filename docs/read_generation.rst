@@ -1,30 +1,62 @@
 Read Generation Algorithms
 ++++++++++++++++++++++++++
 
+Overview
+--------
+The algorithms are designed to load up only the parts of the reference and sample variants designated by a
+supplied BED file. This allows us scale simulations smoothly in terms of memory and compute time requirements.
+For example, for quick tests, we can take high coverage data from a small part of the genome, using modest
+memory and time requirements. By simply switching out the BED file we can then generate a whole genome high
+coverage read file.
 
-Perfect read generation
------------------------
 
-(Depending on memory available we may repeat the following process multiple times to achieve desired coverage)
 
-1. For each copy of the chromosome
-2. Apply the read location model to the reference and generate as many read descriptions as needed for
-   desired coverage. A read description can be a pair of reads if PE reads are being generated
-3. Pull sections from the reference randomly, generate reads, write them out
+Behavior at region edges
+........................
+If the start of a region (defined in reference coordinates) falls in the middle of a deletion, the actual start of
+the region is shifted to be the first base before the deletion. This allows reads generated to be consistent with
+a VCF that has been cut using that BED file [#bedfile]_. If the end of a region cuts a deletion the actual end
+is shifted to the first base after the deletion so reads capture that deletion. **If there is a SNP on
+that base, it will be included in the reads and this is not consistent with a VCF cut with that BED file** It is best
+to ensure this second case does not happen by altering the BED file to either stop before the deletion, or include
+the neighboring SNP.
+
+.. [#bedfile] This behavior is got 'for free' from htslib and I consider this to be the correct behavior
+
+
+1. Generate template (pos, len) across whole genome
+
+   - These positions respect BED file if passed
+   - Though they take their limits from the reference, they are interpreted in sample coordinates
+   - This is the step at which to apply GC-bias and any other coverage model
+   - **templates are generated starting at both ends of a region to remove edge bias**
+
+2. Sort the templates by pos value and put them into roughly equal sized bins that divide the genome into N parts
+
+3. Shuffle the bins
+
+4. Pick bins one by one and pass to workers operating in parallel
+
+   - The worker expands the relevant section of the genome, generates the reads and passes them
+     back to the main thread for writing.
+
+This sequence of operations is chosen to reduce serial order bias in the generated reads. The file should be
+shuffled further with other tools if the residual serial order is considered an issue.
+
+*Depending on available memory we may repeat this process multiple times to achieve desired coverage*
 
 
 Read bias
 ---------
 
-1. For each read pair produced, consider the reference region and discard with probability p, depending
+1. For each template produced, consider the reference region and discard with probability p, depending
    on GC bias coefficient of model
-2. Write out reads not discarded
 
 
 Read corruption
 ---------------
 
-1. For each read produced apply read corruption model
+1. For each read, apply read corruption model
 2. Write out reads
 
 
@@ -32,23 +64,10 @@ All steps are designed so we can perform streaming (via pipes). For read corrupt
 preserve the original, uncorrupted file.
 
 
-Reducing bias in read location
-------------------------------
-
-- Read positions and lengths over the whole genome are pre-generated and stored in an array
-
-  - This can be done repeatedly if main memory is not sufficient to store all the required data
-- Chromosomes are broken up into small segments (lowerbound on size is governed by the maximum length of read)
-- These segments are fed in a scrambled order to parallel threads
-
-  - the read list is checked to find appropriate reads that can be generated for the segment
-  - the templates/reads are fed to the output in the order they return.
-  - The multi-threading creates some uncontrolled randomness to the order and the scrambling of the segments
-    adds some controlled randomness to the order of the reads generated
-
-
 Generation of Pos and CIGAR strings
 -----------------------------------
+
+(The implementation of this algorithm is in :mod:`mitty.simulation.rpc`)
 
 Variants are applied to the reference sequence to generate a sequence of nodes.
 Each node carries a sequence fragment and we can concatenate the sequence fragments
