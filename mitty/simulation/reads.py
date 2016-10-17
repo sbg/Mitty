@@ -185,17 +185,18 @@ def read_generating_worker(worker_id, fasta_fname, sample_name, read_module, rea
     region = vcf_df[r_idx]['region']
     ref_seq = fasta.fetch(reference=region[0], start=region[1], end=region[2])
     # The structure needed to generate read sequences, pos and CIGAR strings
-    node_list = rpc.create_node_list(ref_seq, ref_start_pos=region[1], vl=vcf_df[r_idx]['v'][cpy])
+    # + 1 because BED is 0-indexed and our convention is 1-indexed as is what is displayed in genome browsers
+    node_list = rpc.create_node_list(ref_seq, ref_start_pos=region[1] + 1, vl=vcf_df[r_idx]['v'][cpy])
     r_info_l = read_module.generate_reads(read_model, region, rng_seed)
 
     qname_serial_stub = '{}:{}:{}'.format(sample_name, worker_id, ps)
     t0 = time.time()
     n = 0
     for n, template in enumerate(zip(
-      *[zip(*([r_info[k] for k in ['strand', 'file_order', 'pos', 'len']] +
+      *[zip(*([r_info[k] for k in ['file_order', 'pos', 'len']] +
                 rpc.get_begin_end_nodes(r_info['pos'], r_info['len'], node_list))) for r_info in r_info_l])):
       reads = [None] * len(template)
-      for s, fo, p, l, ns, ne in template:
+      for s, (fo, p, l, ns, ne) in enumerate(template):
         pos, cigar, v_list, seq = rpc.generate_read(p, l, ns, ne, node_list)
         if s == 1:
           seq = seq.translate(DNA_complement)[::-1]
@@ -204,7 +205,7 @@ def read_generating_worker(worker_id, fasta_fname, sample_name, read_module, rea
       out_queue.put(fastq_lines('{}:{}'.format(qname_serial_stub, n), region[0], cpy, reads))
 
     t1 = time.time()
-    logger.debug('Wrote {} templates in {}s ({} t/s)'.format(n, t1 - t0, n/(t1 - t0)))
+    logger.debug('Worker {} ({}): {} templates in {}s ({} t/s)'.format(worker_id, region, n, t1 - t0, n/(t1 - t0)))
 
 
 # @read_serial|chrom|copy|strand|pos|rlen|cigar|vs1,vs2,...|strand|pos|rlen|cigar|vs1,vs2,...
