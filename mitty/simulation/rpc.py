@@ -46,7 +46,7 @@ def create_node_list(ref_seq, ref_start_pos, vl):
   :return:
 
   """
-  samp_pos, ref_pos = 1, ref_start_pos  # 1 indexed
+  samp_pos, ref_pos = ref_start_pos, ref_start_pos  # 1 indexed
   # These are both 1 indexed.
   # ref_pos is relative to whole sequence, samp_pos is relative to this fragment of the expanded sequence
 
