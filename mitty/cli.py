@@ -1,5 +1,6 @@
 import logging
 import os
+import json
 
 import click
 
@@ -9,6 +10,8 @@ import mitty.simulation.reads as reads
 import mitty.empirical.bq as bbq
 import mitty.empirical.bq_fastq as bbqf
 import mitty.empirical.gc as megc
+
+import mitty.simulation.illumina  # Hard coded for now, might use entry points like before to pip install models
 
 
 @click.group()
@@ -81,17 +84,24 @@ def print_qname(ctx, param, value):
 
 
 @cli.command('generate-reads', short_help='Generate simulated reads.')
-@click.argument('reffasta')
-@click.argument('paramfile')
+@click.argument('modelfile')
+@click.argument('fasta')
+@click.argument('vcf')
+@click.argument('sample_name')
+@click.argument('bed')
+@click.argument('seed', type=int)
+@click.option('--fastq1')
+@click.option('--fastq2')
+@click.option('--threads', default=2)
 @click.option('--qname', is_flag=True, callback=print_qname, expose_value=False, is_eager=True, help='Print documentation for information encoded in qname')
-@click.option('--seed', default=7, help='Seed for RNG')
-@click.option('--reference-reads-only', is_flag=True, help='If this is set, only reference reads will be generated')
-@click.option('--sample-name', '-s', type=str, help='Name of sample to put in reads')
-@click.option('--vcf', type=click.Path(exists=True), help='Path to vcf file representing sample')
-@click.option('--bed', type=click.Path(exists=True), help='Bed file restricting regions reads are taken from')
-def generate_reads(reffasta, paramfile, sample_name, vcf, bed, reference_reads_only):
-  """Generate simulated reads and write them to stdout"""
-  pass
+def generate_reads(modelfile, fasta, vcf, sample_name, bed, seed, fastq1, fastq2, threads):
+  """Generate simulated reads"""
+  read_module = mitty.simulation.illumina
+  # hard coded for now. In the future this will be read from the modelfile as before
+  model_params = json.load(open(modelfile, 'r'))
+  reads.process_multi_threaded(
+    fasta, vcf, sample_name, bed, read_module, model_params,
+    fastq1, fastq2, threads=threads, seed=seed)
 
 
 @cli.command('corrupt-reads', short_help='Apply corruption model to FASTQ file of reads')
