@@ -53,31 +53,31 @@ def create_node_list(ref_seq, ref_start_pos, vl):
   nodes = []
   for v in vl:
     if v.pos < ref_pos: continue  # We are starting from a later position
-    new_nodes, samp_pos, ref_pos = create_nodes(ref_seq, samp_pos, ref_pos, v)
+    new_nodes, samp_pos, ref_pos = create_nodes(ref_seq, samp_pos, ref_pos, v, ref_start_pos)
     nodes += new_nodes
 
-  delta = ref_pos - ref_start_pos
-  if delta <= len(ref_seq):  # Last part of sequence, needs an M
-    nodes.append(Node(samp_pos, ref_pos, '=', len(ref_seq) - delta, ref_seq[delta:]))
+  offset = ref_pos - ref_start_pos
+  if offset <= len(ref_seq):  # Last part of sequence, needs an M
+    nodes.append(Node(samp_pos, ref_pos, '=', len(ref_seq) - offset, ref_seq[offset:]))
 
   return nodes
 
 
-def create_nodes(ref_seq, samp_pos, ref_pos, v):
+def create_nodes(ref_seq, samp_pos, ref_pos, v, ref_start_pos):
   if v.cigarop == 'X':
-    return snp(ref_seq, samp_pos, ref_pos, v)
+    return snp(ref_seq, samp_pos, ref_pos, v, ref_start_pos)
   elif v.cigarop == 'I':
-    return insertion(ref_seq, samp_pos, ref_pos, v)
+    return insertion(ref_seq, samp_pos, ref_pos, v, ref_start_pos)
   else:
-    return deletion(ref_seq, samp_pos, ref_pos, v)
+    return deletion(ref_seq, samp_pos, ref_pos, v, ref_start_pos)
 
 
-def snp(ref_seq, samp_pos, ref_pos, v):
+def snp(ref_seq, samp_pos, ref_pos, v, ref_start_pos):
   nodes = []
   delta = v.pos - ref_pos
   if delta > 0:  # Need to make an M node
     #               ps         pr     op   oplen          seq
-    nodes.append(Node(samp_pos, ref_pos, '=', delta, ref_seq[ref_pos - 1:v.pos - 1]))  # M node
+    nodes.append(Node(samp_pos, ref_pos, '=', delta, ref_seq[ref_pos - ref_start_pos:v.pos - ref_start_pos]))  # M node
     ref_pos = v.pos
     samp_pos += delta
   #               ps         pr    op oplen seq
@@ -87,12 +87,12 @@ def snp(ref_seq, samp_pos, ref_pos, v):
   return nodes, samp_pos, ref_pos
 
 
-def insertion(ref_seq, samp_pos, ref_pos, v):
+def insertion(ref_seq, samp_pos, ref_pos, v, ref_start_pos):
   nodes = []
   delta = v.pos + 1 - ref_pos  # This is INS, so we include the first base in the M segment
   if delta > 0:  # Need to make an M node
     #               ps         pr     op   oplen          seq
-    nodes.append(Node(samp_pos, ref_pos, '=', delta, ref_seq[ref_pos - 1:v.pos]))  # M node
+    nodes.append(Node(samp_pos, ref_pos, '=', delta, ref_seq[ref_pos - ref_start_pos:v.pos + 1 - ref_start_pos]))  # M node
     samp_pos += delta
 
   ref_pos = v.pos + 1  # The next ref pos is the ref base just after the insertion
@@ -102,12 +102,12 @@ def insertion(ref_seq, samp_pos, ref_pos, v):
   return nodes, samp_pos, ref_pos
 
 
-def deletion(ref_seq, samp_pos, ref_pos, v):
+def deletion(ref_seq, samp_pos, ref_pos, v, ref_start_pos):
   nodes = []
   delta = v.pos + 1 - ref_pos  # This is DEL, so we include the first base in the M segment
   if delta > 0:  # Need to make an M node
     #               ps         pr     op   oplen          seq
-    nodes.append(Node(samp_pos, ref_pos, '=', delta, ref_seq[ref_pos - 1:v.pos]))  # M node
+    nodes.append(Node(samp_pos, ref_pos, '=', delta, ref_seq[ref_pos - ref_start_pos:v.pos + 1 - ref_start_pos]))  # M node
     samp_pos += delta
 
   ref_pos = v.pos + 1 + v.oplen  # The next ref pos is the ref base just after the deletion

@@ -27,7 +27,8 @@ def test_snp_expansion2():
   v = vcf[0]['v'][1][0]
   samp_pos = 1
   ref_pos = 5
-  nodes, n_samp_pos, n_ref_pos = rgen.snp(ref_seq, samp_pos, ref_pos, v)
+  ref_start_pos = 1
+  nodes, n_samp_pos, n_ref_pos = rgen.snp(ref_seq, samp_pos, ref_pos, v, ref_start_pos)
 
   assert len(nodes) == 1, nodes
   assert nodes[0] == (1, 5, 'X', 1, 'T', 0), nodes[0]
@@ -41,7 +42,8 @@ def test_snp_expansion3():
   v = vcf[0]['v'][1][0]
   samp_pos = 1
   ref_pos = 1
-  nodes, samp_pos, ref_pos = rgen.snp(ref_seq, samp_pos, ref_pos, v)
+  ref_start_pos = 1
+  nodes, samp_pos, ref_pos = rgen.snp(ref_seq, samp_pos, ref_pos, v, ref_start_pos)
 
   assert len(nodes) == 2, nodes
   assert nodes[0] == (1, 1, '=', 4, 'ATGA', None), nodes
@@ -54,7 +56,8 @@ def test_ins_expansion2():
   v = vcf[0]['v'][1][1]
   samp_pos = 9
   ref_pos = 9
-  nodes, n_samp_pos, n_ref_pos = rgen.insertion(ref_seq, samp_pos, ref_pos, v)
+  ref_start_pos = 1
+  nodes, n_samp_pos, n_ref_pos = rgen.insertion(ref_seq, samp_pos, ref_pos, v, ref_start_pos)
 
   assert len(nodes) == 1, nodes
   assert nodes[0] == (9, 9, 'I', 3, 'TTT', 3), nodes[0]
@@ -68,7 +71,8 @@ def test_ins_expansion3():
   v = vcf[0]['v'][1][1]
   samp_pos = 6
   ref_pos = 6
-  nodes, samp_pos, ref_pos = rgen.insertion(ref_seq, samp_pos, ref_pos, v)
+  ref_start_pos = 1
+  nodes, samp_pos, ref_pos = rgen.insertion(ref_seq, samp_pos, ref_pos, v, ref_start_pos)
 
   assert len(nodes) == 2, nodes
   assert nodes[0] == (6, 6, '=', 3, 'GTA', None), nodes[0]
@@ -81,7 +85,8 @@ def test_del_expansion2():
   v = vcf[0]['v'][1][2]
   samp_pos = 12
   ref_pos = 12
-  nodes, n_samp_pos, n_ref_pos = rgen.deletion(ref_seq, samp_pos, ref_pos, v)
+  ref_start_pos = 1
+  nodes, n_samp_pos, n_ref_pos = rgen.deletion(ref_seq, samp_pos, ref_pos, v, ref_start_pos)
 
   assert len(nodes) == 1, nodes
   assert nodes[0] == (11, 14, 'D', 2, '', -2), nodes[0]
@@ -95,7 +100,8 @@ def test_del_expansion3():
   v = vcf[0]['v'][1][2]
   samp_pos = 12
   ref_pos = 9
-  nodes, samp_pos, ref_pos = rgen.deletion(ref_seq, samp_pos, ref_pos, v)
+  ref_start_pos = 1
+  nodes, samp_pos, ref_pos = rgen.deletion(ref_seq, samp_pos, ref_pos, v, ref_start_pos)
 
   assert len(nodes) == 2, nodes
   assert nodes[0] == (12, 9, '=', 3, 'TCC', None), nodes
