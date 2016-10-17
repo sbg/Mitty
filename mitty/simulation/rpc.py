@@ -127,7 +127,7 @@ def get_begin_end_nodes(pl, ll, nodes):
   ps = np.array([n.ps if n.cigarop != 'D' else n.ps + 1 for n in nodes], dtype=np.uint64)
   # D nodes .ps values are set to last base before deletion. We increment this by one so
   # we can get proper start/stop node computation
-  return np.vstack((ps.searchsorted(pl, 'right') - 1, ps.searchsorted(pl + ll - 1, 'right') - 1))
+  return [ps.searchsorted(pl, 'right') - 1, ps.searchsorted(pl + ll - 1, 'right') - 1]
 
 
 def generate_read(p, l, n0, n1, nodes):
