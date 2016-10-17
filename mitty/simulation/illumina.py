@@ -27,7 +27,7 @@ def read_model_params(gc_bias=None, rlen=150, tlen=500, tlen_std=30, diploid_cov
   # p = P / (2 * passes)
   # p = coverage / (2 * rlen * passes)
   p = 1.0
-  passes = 2
+  passes = 1
   while p > 0.01:
     passes *= 2
     p = 0.5 * diploid_coverage / (2 * rlen * passes)
