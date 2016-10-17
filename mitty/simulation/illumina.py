@@ -9,14 +9,14 @@ import numpy as np
 SEED_MAX = (1 << 32) - 1  # Used for seeding rng
 
 
-def read_model_params(gc_bias=None, rlen=150, tlen=500, tlen_std=30, coverage=30.0):
+def read_model_params(gc_bias=None, rlen=150, tlen=500, tlen_std=30, diploid_coverage=30.0):
   """
 
   :param gc_bias:
   :param rlen:
   :param tlen:
   :param tlen_std:
-  :param coverage:
+  :param diploid_coverage: Coverage we expect from a diploid genome
   :return: dict of params,
            passes -> how many times we should call generate reads for each region
   """
@@ -30,10 +30,10 @@ def read_model_params(gc_bias=None, rlen=150, tlen=500, tlen_std=30, coverage=30
   passes = 2
   while p > 0.01:
     passes *= 2
-    p = coverage / (2 * rlen * passes)
+    p = 0.5 * diploid_coverage / (2 * rlen * passes)
 
   return {
-    'coverage': coverage,
+    'diploid_coverage': diploid_coverage,
     'rlen': rlen,
     'tlen': tlen,
     'tlen_std': tlen_std,
