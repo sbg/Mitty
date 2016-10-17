@@ -54,11 +54,11 @@ def generate_reads(model, region, seed=7):
     raise ValueError('Seed value {} is out of range 0 - {}'.format(seed, SEED_MAX))
 
   seed_rng = np.random.RandomState(seed)
-  tloc_rng, tlen_rng, rstrand_rng, file_order_rng = \
-    [np.random.RandomState(s) for s in seed_rng.randint(SEED_MAX, size=4)]
+  tloc_rng, tlen_rng, file_order_rng = \
+    [np.random.RandomState(s) for s in seed_rng.randint(SEED_MAX, size=3)]
 
   return _reads_for_template_in_region(
-        model['rlen'], rstrand_rng, file_order_rng,
+        model['rlen'], file_order_rng,
         *_templates_for_region(
           region, model['p'], model['rlen'], model['tlen'], model['tlen_std'], tloc_rng, tlen_rng))
 
@@ -74,20 +74,15 @@ def _templates_for_region(region, p, rlen, tlen, tlen_std, tloc_rng, tlen_rng):
   return ts[idx], te[idx]
 
 
-def _reads_for_template_in_region(rlen, rstrand_rng, file_order_rng, ts, te):
+def _reads_for_template_in_region(rlen, file_order_rng, ts, te):
   """
 
   :param rlen: Fixed - Illumina reads
-  :param rstrand_rng: Decides whether read comes from forward or reverse strand
-  :param file_order_rng: Decides whether this read goes in first or second place in file
-                         Basically means read
+  :param file_order_rng: Decides which one of the pair (F or R) comes first in the file (or goes in file1 of the pair)
   :param ts: Start of template
   :param te: End of template
   :return:
   """
-  r0s = rstrand_rng.randint(2, size=ts.size, dtype='i1')
-  r1s = 1 - r0s
-
   r0l = np.full(ts.size, rlen, dtype=np.uint32)
   r1l = np.full(ts.size, rlen, dtype=np.uint32)
 
@@ -99,13 +94,11 @@ def _reads_for_template_in_region(rlen, rstrand_rng, file_order_rng, ts, te):
 
   return [
     {
-      'strand': r0s,
       'file_order': r0fo,
       'pos': r0p,
       'len': r0l
     },
     {
-      'strand': r1s,
       'file_order': r1fo,
       'pos': r1p,
       'len': r1l
