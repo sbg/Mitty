@@ -78,19 +78,27 @@ def split_copies(region, vl):
     ploidy = len(vl[0].samples[0]['GT'])
     logger.debug('Region: {}, ploidy: {}'.format(region, ploidy))
 
-  cpy_l = [
-    (cpy, '|'.join(['0'] * cpy + ['1'] + ['0'] * (ploidy - 1 - cpy)))
-    for cpy in range(ploidy)
-  ]
+  # cpy_l = [
+  #   (cpy, '|'.join(['0'] * cpy + ['1'] + ['0'] * (ploidy - 1 - cpy)))
+  #   for cpy in range(ploidy)
+  # ]
+  #
+  # return {
+  #   'region': region,
+  #   'v': dict(
+  #     [
+  #       (gt, list(filter(None, (parse(v, cpy=cpy) for v in vl))))
+  #       for cpy, gt in cpy_l
+  #     ]
+  #   )
+  # }
 
   return {
     'region': region,
-    'v': dict(
-      [
-        (gt, list(filter(None, (parse(v, cpy=cpy) for v in vl))))
-        for cpy, gt in cpy_l
-        ]
-    )
+    'v': [
+        list(filter(None, (parse(v, cpy=cpy) for v in vl)))
+        for cpy in range(ploidy)
+    ]
   }
 
 

@@ -13,9 +13,9 @@ def test_basic():
     os.path.join(mitty.test.example_data_dir, 'tiny.8-14.bed'))
 
   # A test of pysam properly filtering variants to region
-  assert v[0]['v']['0|1'][0].tuple() == (11, 'CAA', 'C', 'D', 2), v[0]['0|1']
-  assert v[0]['v']['1|0'][0].tuple() == (14, 'G', 'T', 'X', 0), v[0]['1|0']
-  assert len(v[0]['v']['0|1']) == 1
+  assert v[0]['v'][1][0].tuple() == (11, 'CAA', 'C', 'D', 2), v[0]['v']
+  assert v[0]['v'][0][0].tuple() == (14, 'G', 'T', 'X', 0), v[0]['v']
+  assert len(v[0]['v'][0]) == 1
 
 
 def test_complex_variant_error():
@@ -41,7 +41,7 @@ def load_data():
 def test_snp_expansion1():
   """I/O: SNP expansion basic"""
   ref_seq, vcf = load_data()
-  v = vcf[0]['v']['0|1'][0]
+  v = vcf[0]['v'][1][0]
   assert v.cigarop == 'X', v
   assert v.oplen == 0, v
 
@@ -49,7 +49,7 @@ def test_snp_expansion1():
 def test_ins_expansion1():
   """I/O: INS expansion basic"""
   ref_seq, vcf = load_data()
-  v = vcf[0]['v']['0|1'][1]
+  v = vcf[0]['v'][1][1]
   assert v.cigarop == 'I', v
   assert v.oplen == 3, v
 
@@ -57,6 +57,6 @@ def test_ins_expansion1():
 def test_del_expansion1():
   """I/O: DEL expansion basic"""
   ref_seq, vcf = load_data()
-  v = vcf[0]['v']['0|1'][2]
+  v = vcf[0]['v'][1][2]
   assert v.cigarop == 'D', v
   assert v.oplen == 2, v
