@@ -40,7 +40,7 @@ setup(
     'numpy>=1.9.0',
     'docopt>=0.6.2',
     'click>=3.3',
-    'pysam==0.8.4',  # 0.9.0 gives a StringIO error. 0.8.3 is confused by some set_tag operations
+    'pysam',
     'h5py>=2.5.0',
     'matplotlib>=1.3.0',
     'scipy',
