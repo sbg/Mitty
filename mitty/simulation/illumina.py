@@ -42,10 +42,12 @@ def read_model_params(gc_bias=None, rlen=150, tlen=500, tlen_std=30, diploid_cov
   }
 
 
-def generate_reads(model, region, seed=7):
+def generate_reads(model, p_min, p_max, seed=7):
   """
 
   :param model: dict as returned by read_model_params
+  :param p_min: Start of reads
+  :param p_max: End of reads
   :param region: ('1', 10001, 103863906) Like the BED file
   :param seed:
   :return:
@@ -60,17 +62,17 @@ def generate_reads(model, region, seed=7):
   return _reads_for_template_in_region(
         model['rlen'], file_order_rng,
         *_templates_for_region(
-          region, model['p'], model['rlen'], model['tlen'], model['tlen_std'], tloc_rng, tlen_rng))
+          p_min, p_max, model['p'], model['rlen'], model['tlen'], model['tlen_std'], tloc_rng, tlen_rng))
 
 
-def _templates_for_region(region, p, rlen, tlen, tlen_std, tloc_rng, tlen_rng):
+def _templates_for_region(p_min, p_max, p, rlen, tlen, tlen_std, tloc_rng, tlen_rng):
   # TODO: GC-bias goes here
-  est_block_size = int((region[2] - region[1]) * p * 1.2)
-  ts = tloc_rng.geometric(p=p, size=est_block_size).cumsum() + region[1]
-  tl = (tlen_rng.randn(ts.size) * tlen_std + tlen).astype(int)
+  est_block_size = int((p_max - p_min) * p * 1.2)
+  ts = tloc_rng.geometric(p=p, size=est_block_size).cumsum() + p_min + 1
+  tl = (tlen_rng.randn(ts.shape[0]) * tlen_std + tlen).astype(int)
   np.clip(tl, rlen, tlen + 5 * tlen_std, out=tl)
   te = ts + tl
-  idx = (te < region[2])
+  idx = (te < p_max)
   return ts[idx], te[idx]
 
 

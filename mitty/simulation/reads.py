@@ -184,10 +184,13 @@ def read_generating_worker(worker_id, fasta_fname, sample_name, read_module, rea
     r_idx, cpy, rng_seed = wd['region_idx'], wd['region_cpy'], wd['rng_seed']
     region = vcf_df[r_idx]['region']
     ref_seq = fasta.fetch(reference=region[0], start=region[1], end=region[2])
+
     # The structure needed to generate read sequences, pos and CIGAR strings
     # + 1 because BED is 0-indexed and our convention is 1-indexed as is what is displayed in genome browsers
     node_list = rpc.create_node_list(ref_seq, ref_start_pos=region[1] + 1, vl=vcf_df[r_idx]['v'][cpy])
-    r_info_l = read_module.generate_reads(read_model, region, rng_seed)
+
+    p_min, p_max = node_list[0].ps, node_list[-1].ps + node_list[-1].oplen  # We never end with a deletion
+    r_info_l = read_module.generate_reads(read_model, p_min, p_max, rng_seed)
 
     qname_serial_stub = '{}:{}:{}'.format(sample_name, worker_id, ps)
     t0 = time.time()
