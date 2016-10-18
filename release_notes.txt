@@ -1,0 +1,39 @@
+Release Notes
+=============
+
+
+2.4.0 (Internal testing release)
+
+Algorithm changes
+-----------------
+
+- Read POS and CIGAR generation algorithm redesigned
+- Ploidy of genome now inferred from VCF file.
+  Simulation will properly handle XY chromosomes and polyploidy IF the VCF GT is properly set
+- Standard BED file is used to select regions
+  - BED file should avoid 'NNN' regions
+- Read generation order is much less serial
+
+Data changes
+------------
+
+- qname contains list of variant sizes carried by read
+  This makes variant bases analyses of alignments easier
+- CIGAR for reads from inside long insertion properly handled
+- Name of sample included in read
+  - Can mix in viral contamination
+  - Can do tumor/normal mixes
+
+
+Program design changes
+----------------------
+
+- Written for Python 3
+- One entry command ('mitty')
+  This allows us convenient access to all mitty commands
+- Better support for UNIX paradigms such as pipes and process substitution
+- Better parallelization
+
+
+
+
