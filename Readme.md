@@ -4,7 +4,9 @@ Quickstart
 Run tests
 ---------
 
+```
 nosetests mitty.test -v
+```
 
 Prepare VCF file for taking reads from
 --------------------------------------
