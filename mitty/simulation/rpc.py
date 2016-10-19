@@ -142,7 +142,7 @@ def generate_read(p, l, n0, n1, nodes):
            v_list = [-d, +i, 0] -> a list of ints indicating size of variants carried by read
   """
   v_list = [n.v for n in nodes[n0:n1 + 1] if n.v is not None]
-  cigar = [str(min(p + l - n.ps, n.oplen) - max(0, p - n.ps)) + n.cigarop for n in nodes[n0:n1 + 1]]
+  cigar = [str((min(p + l - n.ps, n.oplen) - max(0, p - n.ps)) if n.cigarop != 'D' else n.oplen) + n.cigarop for n in nodes[n0:n1 + 1]]
   seq = [n.seq[max(0, p - n.ps):min(p + l - n.ps, n.oplen)] for n in nodes[n0:n1 + 1]]
 
   if nodes[n0].cigarop == 'I':
