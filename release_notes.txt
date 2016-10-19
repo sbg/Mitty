@@ -2,6 +2,11 @@ Release Notes
 =============
 
 
+2.5.0 (Internal testing release)
+
+- Added god-aligner
+
+
 2.4.0 (Internal testing release)
 
 Algorithm changes
@@ -18,7 +23,7 @@ Data changes
 ------------
 
 - qname contains list of variant sizes carried by read
-  This makes variant bases analyses of alignments easier
+  This makes variant based analyses of alignments easier
 - CIGAR for reads from inside long insertion properly handled
 - Name of sample included in read
   - Can mix in viral contamination

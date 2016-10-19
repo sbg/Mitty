@@ -68,6 +68,15 @@ samtools sort out.bam > sorted.bam
 samtools index sorted.bam
 ```
 
+Perfect BAM (God aligner)
+-------------------------
+
+```
+mitty -v4 god-aligner ~/Data/human_g1k_v37_decoy.fasta r1.fq.gz perfect.bam --fastq2 r2.fq.gz --threads 4
+```
+
+
+
 Empirical Base Quality Score
 ----------------------------
 

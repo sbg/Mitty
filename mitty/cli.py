@@ -6,12 +6,14 @@ import click
 
 
 import mitty.lib.vcfio as mvio
-import mitty.simulation.reads as reads
 import mitty.empirical.bq as bbq
 import mitty.empirical.bq_fastq as bbqf
 import mitty.empirical.gc as megc
 
+import mitty.simulation.reads as reads
 import mitty.simulation.illumina  # Hard coded for now, might use entry points like before to pip install models
+
+import mitty.benchmarking.god_aligner as god
 
 
 @click.group()
@@ -130,3 +132,22 @@ def uninterleave_fastq(fastq):
 def genomes():
   """Functions for sample/population simulations"""
   pass
+
+
+@cli.command('god-aligner', short_help='Create a perfect BAM from simulated FASTQs')
+@click.argument('fasta', type=click.Path(exists=True))
+@click.argument('fastq1', type=click.Path(exists=True))
+@click.argument('bam')
+@click.option('--fastq2', type=click.Path(exists=True))
+@click.option('--sample-name')
+@click.option('--max-templates', type=int)
+@click.option('--threads', default=2)
+def god_aligner(fasta, bam, sample_name, fastq1, fastq2, max_templates, threads):
+  """Given a FASTA.ann file and FASTQ made of simulated reads,
+     construct a perfectly aligned "god" BAM from them.
+
+     This is useful for testing variant callers.
+
+     The program uses the fasta.ann file to construct the BAM header"""
+  god.process_multi_threaded(
+    fasta, bam, fastq1, fastq2, threads, max_templates, sample_name)
