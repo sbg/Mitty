@@ -5,7 +5,7 @@ __qname_format_details__ = """
 @read_serial|chrom|copy|strand|pos|rlen|cigar|vs1,vs2,...|strand|pos|rlen|cigar|vs1,vs2,...
     |          |     |    |     |    |    |        |         |                      |
  unique        |     |    |     | read    |        |         ---- repeated for ------
- number for    |     |    |     | len     |        |          other read in template
+ code for      |     |    |     | len     |        |          other read in template
  template      |     |    |     |         |        |
                |     |    |     |     cigar    comma separated
       chrom read     |    |     |              list of sizes of
@@ -37,6 +37,7 @@ where:
 import time
 from multiprocessing import Process, Queue
 import queue
+from collections import namedtuple
 
 import pysam
 import numpy as np
@@ -220,6 +221,44 @@ def fastq_lines(n, chrom, cpy, reads):
   return [
     qname + '\n' + r[5] + '\n+\n' + '~' * r[2] + '\n'
     for r in reads
+  ]
+
+
+ri = namedtuple('ReadInfo', ['sample', 'rid', 'chrom', 'cpy', 'strand', 'pos', 'rlen', 'cigar', 'special_cigar', 'v_list'])
+
+
+def parse_qname(qname):
+  """Given a Mitty qname return us the POS and CIGAR as we would put in a BAM. There is also a special_cigar
+  which is set for reads completely inside long insertions
+
+  :param qname:
+  :return: pos, cigar, special_cigar
+  """
+  def _parse_(_cigar, _v_list):
+    """
+    Parse cigar to extract special_cigar if needed
+    Parse v_list
+
+    :param _cigar:
+    :param _v_list:
+    :return:
+    """
+    if _cigar[0] == '>':  # This is a special_cigar for a read from inside an insertion
+      _special_cigar = _cigar
+      _cigar = _cigar.split(':')[-1]
+    else:
+      _special_cigar = None
+
+    return _cigar, _special_cigar, [int(v) for v in _v_list.split(',') if v is not '']
+
+  d = qname.split('|')
+  rid, chrom, cpy = d[:3]
+  sample, _ = rid.split(':', 1)
+  cpy = int(cpy)
+
+  return [
+    ri(sample, rid, chrom, cpy, int(strand), int(pos), int(rlen), *_parse_(cigar, v_list))
+    for strand, pos, rlen, cigar, v_list in zip(d[3::5], d[4::5], d[5::5], d[6::5], d[7::5])
   ]
 
 
