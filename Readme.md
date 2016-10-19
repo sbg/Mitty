@@ -75,6 +75,18 @@ Perfect BAM (God aligner)
 mitty -v4 god-aligner ~/Data/human_g1k_v37_decoy.fasta r1.fq.gz perfect.bam --fastq2 r2.fq.gz --threads 4
 ```
 
+Find differences in BAM
+-----------------------
+(This requires bamUtils to be installed. I found release 1.0.14 to work, but repository head NOT to)
+
+```
+bam diff --in1 sorted.bam --in2 perfect.bam --out diffd.unsorted.bam
+samtools sort diffd.unsorted.bam > diffd.bam
+samtools index diffd.bam
+```
+
+
+
 
 
 Empirical Base Quality Score
