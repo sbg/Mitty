@@ -121,7 +121,7 @@ def process_multi_threaded(fasta_fname, vcf_fname, sample_name, bed_fname,
         if all(not p.is_alive() for p in workers):
           break
   t1 = time.time()
-  logger.debug('... finished writing {} templates in {}s ({} t/s)'.format(cnt, t1 - t0, cnt/(t1 - t0)))
+  logger.debug('... finished writing {} templates in {:0.2f}s ({:0.2f} t/s)'.format(cnt, t1 - t0, cnt/(t1 - t0)))
 
   for w in workers:
     w.join()
@@ -209,7 +209,7 @@ def read_generating_worker(worker_id, fasta_fname, sample_name, read_module, rea
       out_queue.put(fastq_lines('{}:{}'.format(qname_serial_stub, n), region[0], cpy, reads))
 
     t1 = time.time()
-    logger.debug('Worker {} ({}): {} templates in {}s ({} t/s)'.format(worker_id, region, n, t1 - t0, n/(t1 - t0)))
+    logger.debug('Worker {} ({}): {} templates in {:0.2f}s ({:0.2f} t/s)'.format(worker_id, region, n, t1 - t0, n/(t1 - t0)))
 
 
 # @read_serial|chrom|copy|strand|pos|rlen|cigar|vs1,vs2,...|strand|pos|rlen|cigar|vs1,vs2,...
