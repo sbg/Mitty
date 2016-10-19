@@ -216,7 +216,7 @@ def read_generating_worker(worker_id, fasta_fname, sample_name, read_module, rea
 def fastq_lines(n, chrom, cpy, reads):
   qname = '@{}|{}|{}'.format(n, chrom, cpy)
   for r in reads:
-    qname += '|{}|{}|{}|{}|{}'.format(r[0], r[1], r[2], r[3], str(r[4])[1:-1])
+    qname += '|{}|{}|{}|{}|{}'.format(r[0], r[1], r[2], r[3], str(r[4])[1:-1].replace(' ',''))
 
   return [
     qname + '\n' + r[5] + '\n+\n' + '~' * r[2] + '\n'
