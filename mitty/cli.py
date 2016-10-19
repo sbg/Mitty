@@ -151,3 +151,9 @@ def god_aligner(fasta, bam, sample_name, fastq1, fastq2, max_templates, threads)
      The program uses the fasta.ann file to construct the BAM header"""
   god.process_multi_threaded(
     fasta, bam, fastq1, fastq2, threads, max_templates, sample_name)
+
+
+@cli.command('mq-plot', short_help='Create MQ plot from BAM')
+def mq_plot():
+  """Given a BAM from simulated reads, construct an MQ plot"""
+  pass
