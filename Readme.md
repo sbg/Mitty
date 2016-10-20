@@ -68,6 +68,17 @@ samtools sort out.bam > sorted.bam
 samtools index sorted.bam
 ```
 
+
+Alignment diagnostics
+---------------------
+
+## Mapping quality
+```
+mitty -v4 mq-plot bwa.bam bwa.mq.csv bwa.mq.png
+```
+
+
+
 Perfect BAM (God aligner)
 -------------------------
 
@@ -84,9 +95,6 @@ bam diff --in1 sorted.bam --in2 perfect.bam --out diffd.unsorted.bam
 samtools sort diffd.unsorted.bam > diffd.bam
 samtools index diffd.bam
 ```
-
-
-
 
 
 Empirical Base Quality Score

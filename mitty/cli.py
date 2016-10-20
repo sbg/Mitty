@@ -154,6 +154,13 @@ def god_aligner(fasta, bam, sample_name, fastq1, fastq2, max_templates, threads)
 
 
 @cli.command('mq-plot', short_help='Create MQ plot from BAM')
-def mq_plot():
+@click.argument('bam', type=click.Path(exists=True))
+@click.argument('csv')
+@click.argument('plot')
+@click.option('--max-d', type=int, default=200, help='Range of d_err to consider')
+@click.option('--threads', default=2)
+def mq_plot(bam, csv, plot, max_d, threads):
   """Given a BAM from simulated reads, construct an MQ plot"""
-  pass
+  import mitty.benchmarking.mq as mq
+  mq_mat = mq.process_bam(bam, max_d, threads, csv)
+  mq.plot_mq(mq_mat, plot)
