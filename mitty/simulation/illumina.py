@@ -28,7 +28,7 @@ def read_model_params(gc_bias=None, rlen=150, tlen=500, tlen_std=30, diploid_cov
   # p = coverage / (2 * rlen * passes)
   p = 1.0
   passes = 1
-  while p > 0.01:
+  while p > 0.1:
     passes *= 2
     p = 0.5 * diploid_coverage / (2 * rlen * passes)
 
@@ -56,19 +56,20 @@ def generate_reads(model, p_min, p_max, seed=7):
     raise ValueError('Seed value {} is out of range 0 - {}'.format(seed, SEED_MAX))
 
   seed_rng = np.random.RandomState(seed)
-  tloc_rng, tlen_rng, file_order_rng = \
-    [np.random.RandomState(s) for s in seed_rng.randint(SEED_MAX, size=3)]
+  tloc_rng, tlen_rng, shuffle_rng, file_order_rng = \
+    [np.random.RandomState(s) for s in seed_rng.randint(SEED_MAX, size=4)]
 
   return _reads_for_template_in_region(
         model['rlen'], file_order_rng,
         *_templates_for_region(
-          p_min, p_max, model['p'], model['rlen'], model['tlen'], model['tlen_std'], tloc_rng, tlen_rng))
+          p_min, p_max, model['p'], model['rlen'], model['tlen'], model['tlen_std'], tloc_rng, tlen_rng, shuffle_rng))
 
 
-def _templates_for_region(p_min, p_max, p, rlen, tlen, tlen_std, tloc_rng, tlen_rng):
+def _templates_for_region(p_min, p_max, p, rlen, tlen, tlen_std, tloc_rng, tlen_rng, shuffle_rng):
   # TODO: GC-bias goes here
   est_block_size = int((p_max - p_min) * p * 1.2)
   ts = tloc_rng.geometric(p=p, size=est_block_size).cumsum() + p_min + 1
+  shuffle_rng.shuffle(ts)
   tl = (tlen_rng.randn(ts.shape[0]) * tlen_std + tlen).astype(int)
   np.clip(tl, rlen, tlen + 5 * tlen_std, out=tl)
   te = ts + tl
