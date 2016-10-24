@@ -122,8 +122,8 @@ def test_expand_sequence():
   assert nodes[4] == (12, 9, '=', 3, 'TCC', None)
   assert nodes[5] == (14, 14, 'D', 2, '', -2)
   assert nodes[6] == (15, 14, '=', 7, 'GGAGGCG', None)
-  assert nodes[7] == (21, 23, 'D', 2, '', -2)
-  assert nodes[8] == (22, 23, '=', 3, 'ACC', None)
+  assert nodes[7] == (21, 25, 'D', 4, '', -4), nodes
+  assert nodes[8] == (22, 25, '=', 1, 'C', None), nodes
 
 
 def test_get_begin_end_nodes():
@@ -155,9 +155,9 @@ def test_read_gen1():
   assert rgen.generate_read(10, 10, 3, 6, nodes) == (9, '2I3=2D5=', [3, -2], 'TTTCCGGAGG')
   assert rgen.generate_read(11, 10, 3, 6, nodes) == (9, '1I3=2D6=', [3, -2], 'TTCCGGAGGC')
   assert rgen.generate_read(12, 10, 4, 6, nodes) == (9, '3=2D7=', [-2], 'TCCGGAGGCG')
-  assert rgen.generate_read(13, 10, 4, 8, nodes) == (10, '2=2D7=2D1=', [-2, -2], 'CCGGAGGCGA')
-  assert rgen.generate_read(14, 10, 4, 8, nodes) == (11, '1=2D7=2D2=', [-2, -2], 'CGGAGGCGAC')
-  assert rgen.generate_read(15, 10, 6, 8, nodes) == (14, '7=2D3=', [-2], 'GGAGGCGACC')
+  assert rgen.generate_read(13, 10, 4, 8, nodes) == (10, '2=2D7=4D1=', [-2, -4], 'CCGGAGGCGC')
+  assert rgen.generate_read(14, 9, 4, 8, nodes) == (11, '1=2D7=4D1=', [-2, -4], 'CGGAGGCGC')
+  assert rgen.generate_read(15, 8, 6, 8, nodes) == (14, '7=4D1=', [-4], 'GGAGGCGC')
 
 
 def test_read_gen2():
