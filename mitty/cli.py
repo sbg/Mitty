@@ -164,3 +164,17 @@ def mq_plot(bam, csv, plot, max_d, threads):
   import mitty.benchmarking.mq as mq
   mq_mat = mq.process_bam(bam, max_d, threads, csv)
   mq.plot_mq(mq_mat, plot)
+
+
+@cli.command('derr-plot', short_help='Create alignment error plot from BAM')
+@click.argument('bam', type=click.Path(exists=True))
+@click.argument('csv')
+@click.argument('plot')
+@click.option('--max-v', type=int, default=200, help='Range of variant sizes to consider (51 min)')
+@click.option('--max-d', type=int, default=200, help='Range of d_err to consider')
+@click.option('--threads', default=2)
+def mq_plot(bam, csv, plot, max_v, max_d, threads):
+  """Given a BAM from simulated reads, show pattern of alignment errors"""
+  import mitty.benchmarking.derr as derr
+  derr_mat = derr.process_bam(bam, max_v, max_d, threads, csv)
+  derr.plot_derr(derr_mat, plot)

@@ -77,6 +77,10 @@ Alignment diagnostics
 mitty -v4 mq-plot bwa.bam bwa.mq.csv bwa.mq.png
 ```
 
+## Aignment error analysis
+```
+mitty -v4 derr-plot bwa.bam bwa.derr.csv bwa.derr.png
+```
 
 
 Perfect BAM (God aligner)

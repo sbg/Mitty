@@ -5,6 +5,7 @@ Release Notes
 2.6.0 (Internal testing release)
 
 - MQ plots
+- D_err plots
 
 2.5.0 (Internal testing release)
 
