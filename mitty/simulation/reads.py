@@ -72,7 +72,7 @@ vcf_df = None
 
 
 def process_multi_threaded(fasta_fname, vcf_fname, sample_name, bed_fname,
-                           read_module, model_params,
+                           read_module, model, coverage,
                            fastq1_fname, fastq2_fname, threads=2, seed=7):
   """
 
@@ -80,13 +80,15 @@ def process_multi_threaded(fasta_fname, vcf_fname, sample_name, bed_fname,
   :param vcf_fname:
   :param sample_name:
   :param bed_fname:
-  :param read_model:
+  :param read_module:
+  :param model:
+  :param coverage:
   :param threads:
   :param seed:
   :return:
   """
 
-  read_model = read_module.read_model_params(**model_params)
+  read_model = read_module.read_model_params(model, coverage)
 
   global vcf_df
   vcf_df = vio.load_variant_file(vcf_fname, sample_name, bed_fname)
