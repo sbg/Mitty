@@ -3,23 +3,23 @@
 TODO: Figure out the logistics of having diffrent models and loading GC-bias, sequencing error etc.
 
 """
+import pickle
+
 import numpy as np
 
 
 SEED_MAX = (1 << 32) - 1  # Used for seeding rng
 
 
-def read_model_params(gc_bias=None, rlen=150, tlen=500, tlen_std=30, diploid_coverage=30.0):
+def read_model_params(model, diploid_coverage=30.0):
   """
 
-  :param gc_bias:
-  :param rlen:
-  :param tlen:
-  :param tlen_std:
+  :param model
   :param diploid_coverage: Coverage we expect from a diploid genome
   :return: dict of params,
            passes -> how many times we should call generate reads for each region
   """
+  rlen = model['mean_rlen']
   # coverage = read count * read len / genome len
   # coverage = P * read len P = expected number of reads per base
   # P = p * passes    p = probability of read per pass
@@ -34,11 +34,11 @@ def read_model_params(gc_bias=None, rlen=150, tlen=500, tlen_std=30, diploid_cov
 
   return {
     'diploid_coverage': diploid_coverage,
-    'rlen': rlen,
-    'tlen': tlen,
-    'tlen_std': tlen_std,
     'p': p,
-    'passes': passes
+    'passes': passes,
+    'rlen': rlen,
+    'cum_tlen': model['cum_tlen'],
+    'cum_bq_mat': model['cum_bq_mat']
   }
 
 
@@ -60,24 +60,26 @@ def generate_reads(model, p_min, p_max, seed=7):
     [np.random.RandomState(s) for s in seed_rng.randint(SEED_MAX, size=4)]
 
   return _reads_for_template_in_region(
-        model['rlen'], file_order_rng,
+        model, file_order_rng,
         *_templates_for_region(
-          p_min, p_max, model['p'], model['rlen'], model['tlen'], model['tlen_std'], tloc_rng, tlen_rng, shuffle_rng))
+          p_min, p_max, model, tloc_rng, tlen_rng, shuffle_rng))
 
 
-def _templates_for_region(p_min, p_max, p, rlen, tlen, tlen_std, tloc_rng, tlen_rng, shuffle_rng):
+def _templates_for_region(p_min, p_max, model, tloc_rng, tlen_rng, shuffle_rng):
   # TODO: GC-bias goes here
+  p, rlen = model['p'], model['rlen']
   est_block_size = int((p_max - p_min) * p * 1.2)
   ts = tloc_rng.geometric(p=p, size=est_block_size).cumsum() + p_min + 1
   shuffle_rng.shuffle(ts)
-  tl = (tlen_rng.randn(ts.shape[0]) * tlen_std + tlen).astype(int)
-  np.clip(tl, rlen, tlen + 5 * tlen_std, out=tl)
+  tl = np.searchsorted(model['cum_tlen'], tlen_rng.rand(ts.shape[0]))
+  # tl = (tlen_rng.randn(ts.shape[0]) * tlen_std + tlen).astype(int)
+  tl.clip(rlen)
   te = ts + tl
   idx = (te < p_max)
   return ts[idx], te[idx]
 
 
-def _reads_for_template_in_region(rlen, file_order_rng, ts, te):
+def _reads_for_template_in_region(model, file_order_rng, ts, te):
   """
 
   :param rlen: Fixed - Illumina reads
@@ -86,6 +88,8 @@ def _reads_for_template_in_region(rlen, file_order_rng, ts, te):
   :param te: End of template
   :return:
   """
+  rlen = model['rlen']
+
   r0l = np.full(ts.size, rlen, dtype=np.uint32)
   r1l = np.full(ts.size, rlen, dtype=np.uint32)
 
@@ -107,3 +111,12 @@ def _reads_for_template_in_region(rlen, file_order_rng, ts, te):
       'len': r1l
     }
   ]
+
+
+def describe_model(model_fname):
+  """Plot a few panels describing what the model looks like
+
+  :param model_fname:
+  :return:
+  """
+  pass
