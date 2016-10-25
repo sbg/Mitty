@@ -113,10 +113,46 @@ def _reads_for_template_in_region(model, file_order_rng, ts, te):
   ]
 
 
-def describe_model(model_fname):
+def describe_model(model, figfile):
   """Plot a few panels describing what the model looks like
 
-  :param model_fname:
+  :param model:
   :return:
   """
-  pass
+  import matplotlib
+  matplotlib.use('Agg')
+  import matplotlib.pyplot as plt
+
+  fig = plt.figure(figsize=(6, 15))
+  plt.subplots_adjust(bottom=0.05, top=0.97)
+
+  ax = plt.subplot(4,1,1)
+  ax.text(0.01, 0.99, 'Model description:\n\n' + model['model_description'], va='top', wrap='True')
+  plt.setp(ax, xlim=(0, 1), ylim=(0, 1), xticks=[], yticks=[])
+
+  ax = plt.subplot(4,1,2)
+  plot_template_length_distribution(model, ax, plt)
+
+  ax = plt.subplot(4,1,3)
+  plot_BQ_heatmap(model, 0, ax, plt)
+
+  ax = plt.subplot(4,1,4)
+  plot_BQ_heatmap(model, 1, ax, plt)
+
+  plt.savefig(figfile)
+
+
+def plot_template_length_distribution(model, ax, plt):
+  ax.plot(model['tlen'])
+  ax.text(len(model['tlen']), plt.getp(ax, 'ylim')[1], 'n={}'.format(model['r_cnt']), ha='right', va='top')
+  plt.setp(ax, xlabel='Template length (bp)', ylabel='Read count')
+
+
+def plot_BQ_heatmap(model, mate, ax, plt):
+  plt.imshow(model['bq_mat'][mate, :65, :model['max_rlen']].T,
+             extent=(1, model['max_rlen'], 1, 65),
+             aspect='auto',
+             origin='lower', cmap=plt.cm.gray_r)
+  ax.text(plt.getp(ax, 'xlim')[1], plt.getp(ax, 'ylim')[1], 'Mate {}'.format(mate + 1),
+          ha='right', va='top')
+  plt.setp(ax, xlabel='Position on read (bp)', ylabel='BQ value')
