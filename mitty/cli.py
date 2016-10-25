@@ -1,4 +1,5 @@
 import logging
+import pkg_resources
 import os
 import json
 
@@ -7,11 +8,7 @@ import click
 
 import mitty.lib.vcfio as mvio
 import mitty.empirical.bq as bbq
-import mitty.empirical.bq_fastq as bbqf
 import mitty.empirical.gc as megc
-
-import mitty.simulation.reads as reads
-import mitty.simulation.illumina  # Hard coded for now, might use entry points like before to pip install models
 
 import mitty.benchmarking.god_aligner as god
 
@@ -62,23 +59,64 @@ def sample_bq(bam, pkl, threads):
   bbq.process_bam_parallel(bam, pkl, threads=threads)
 
 
-@cli.command('bq-fastq')
-@click.argument('fastq1', type=click.Path(exists=True))
-@click.argument('fastq2', type=click.Path(exists=True))
+@cli.command('bam2illumina', short_help='Create read model from BAM file')
+@click.argument('bam', type=click.Path(exists=True))
 @click.argument('pkl')
-@click.option('-t', '--threads', type=int, default=1, help='Threads to use')
-def sample_bq_fastq(fastq1, fastq2, pkl, threads):
-  """BQ distribution from BAM"""
-  bbqf.base_quality(fastq1, fastq2, pkl, threads=threads)
+@click.argument('desc')
+@click.option('--every', type=int, default=1, help='Sample every nth read')
+@click.option('-t', '--threads', type=int, default=2, help='Threads to use')
+@click.option('--max-bp', type=int, default=300, help='Maximum length of read')
+@click.option('--max-tlen', type=int, default=1000, help='Maximum size of insert')
+def bam2illumina(bam, pkl, desc, every, threads, max_bp, max_tlen):
+  """Create read model from BAM file"""
+  import mitty.empirical.bam2illumina as b2m
+  b2m.process_bam_parallel(bam, pkl, model_description=desc, every=every, threads=threads, max_bq=94, max_bp=max_bp, max_tlen=max_tlen)
+
+
+@cli.command('list-read-models')
+@click.option('-d', type=click.Path(exists=True), help='List models in this directory')
+def list_read_models(d):
+  """List read models"""
+  import pickle
+  import glob
+
+  if d is None:
+    if not pkg_resources.resource_isdir(__name__, 'data/readmodels/'):
+      logging.error('Read model directory not found in distribution!')
+      raise FileNotFoundError
+    model_list = [
+      pkg_resources.resource_filename(__name__, 'data/readmodels/' + model)
+      for model in pkg_resources.resource_listdir(__name__, 'data/readmodels/')]
+  else:
+    model_list = glob.glob(os.path.join(d, '*'))
+
+  for mod_fname in model_list:
+    try:
+      mod_data = pickle.load(open(mod_fname, 'rb'))
+      click.echo('{}: {}'.format(os.path.basename(mod_fname), mod_data['model_description']))
+    except:
+      logging.debug('Skipping {}. Not a read model file'.format(mod_fname))
+
+
+@cli.command('describe-read-model')
+@click.argument('modelfile')
+@click.argument('figfile')
+def describe_read_model(modelfile, figfile):
+  """Plot panels describing this model"""
+  read_module, model = get_read_model(modelfile)
+  read_module.describe_model(model, figfile)
 
 
 @cli.command()
 def qname():
   """Display qname format"""
+  import mitty.simulation.reads as reads
   click.echo(reads.__qname_format_details__)
 
 
 def print_qname(ctx, param, value):
+  import mitty.simulation.reads as reads
+
   if not value or ctx.resilient_parsing:
     return
   click.echo(reads.__qname_format_details__)
@@ -86,23 +124,24 @@ def print_qname(ctx, param, value):
 
 
 @cli.command('generate-reads', short_help='Generate simulated reads.')
-@click.argument('modelfile')
 @click.argument('fasta')
 @click.argument('vcf')
 @click.argument('sample_name')
 @click.argument('bed')
+@click.argument('modelfile')
+@click.argument('coverage', type=float)
 @click.argument('seed', type=int)
-@click.option('--fastq1')
-@click.option('--fastq2')
+@click.argument('fastq1', type=click.Path())
+@click.option('--fastq2', type=click.Path())
 @click.option('--threads', default=2)
 @click.option('--qname', is_flag=True, callback=print_qname, expose_value=False, is_eager=True, help='Print documentation for information encoded in qname')
-def generate_reads(modelfile, fasta, vcf, sample_name, bed, seed, fastq1, fastq2, threads):
+def generate_reads(fasta, vcf, sample_name, bed, modelfile, coverage, seed, fastq1, fastq2, threads):
   """Generate simulated reads"""
-  read_module = mitty.simulation.illumina
-  # hard coded for now. In the future this will be read from the modelfile as before
-  model_params = json.load(open(modelfile, 'r'))
+  import mitty.simulation.reads as reads
+
+  read_module, model = get_read_model(modelfile)
   reads.process_multi_threaded(
-    fasta, vcf, sample_name, bed, read_module, model_params,
+    fasta, vcf, sample_name, bed, read_module, model, coverage,
     fastq1, fastq2, threads=threads, seed=seed)
 
 
@@ -178,3 +217,28 @@ def mq_plot(bam, csv, plot, max_v, max_d, threads):
   import mitty.benchmarking.derr as derr
   derr_mat = derr.process_bam(bam, max_v, max_d, threads, csv)
   derr.plot_derr(derr_mat, plot)
+
+
+def get_read_model(modelfile):
+  """Return read module and model data given modelfile
+
+  :param modelfile:
+  :return:
+  """
+  import pickle
+
+  import mitty.simulation.illumina  # Hard coded for now, might use entry points like before to pip install models
+
+  if pkg_resources.resource_exists(__name__, 'data/readmodels/' + modelfile):
+    logging.debug('Found model {} in builtins'.format(modelfile))
+    mod_fname = pkg_resources.resource_filename(__name__, 'data/readmodels/' + modelfile)
+  else:
+    logging.debug('Treating {} as literal path to model file'.format(modelfile))
+    mod_fname = modelfile  # treat this as a literal file path
+
+  model = pickle.load(open(mod_fname, 'rb'))
+  read_module = {
+    'illumina': mitty.simulation.illumina
+  }.get(model['model_class'])
+
+  return read_module, model

@@ -38,26 +38,48 @@ tabix -p vcf NA12878.filtered.vcf.gz
 **NOTE: If the BED file is not sorted, the output file needs to be sorted again.**
 
 
+Listing read models
+-------------------
+
+Listing Mitty's built in models
+```
+mitty list-read-models
+```
+
+Listing additional custom models stored in a folder somewhere
+```
+mitty list-read-models -d ../../mitty/data/readmodels/
+```
+
+
+Prepare a Illumina type read model from a BAM
+---------------------------------------------
+**This is only needed if one of the existing read models does not match your requirements. This allows you to 
+sample reads from a BAM and build an empirical read model for Illumina**
+
+
+```
+mitty -v4 bam2illumina ~/Downloads/G26234.HCC1187_1M.aligned.bam ./my-test-model.pkl "G26234.HCC1187_1M" --every 5
+```
+
+
+  
 Taking reads
 ------------
-
-The Illumina parameters are stored in a `.json file` and look like:
-
 ```
-  {
-    "gc_bias": null,
-    "rlen": 150,
-    "tlen": 500,
-    "tlen_std": 30,
-    "diploid_coverage": 1
-  }
+mitty -v4 generate-reads ~/Data/human_g1k_v37_decoy.fasta NA12878.filtered.vcf.gz NA12878 hg19_10_breakpoints.bed test-illumina.pkl 1 7 >(gzip > r1.fq.gz) --fastq2 >(gzip > r2.fq.gz) --threads 2
 ```
-  
-Taking reads looks like::
+
+
+_(When you supply a model file name to the read generator it will first look among the builtin
+read models to see if the file name is a match (typically these are in the `mitty/data/readmodels`
+folder). It will then treat the model file name as a path and try and load that from your file system.)_
 
 ```
-mitty -v4 generate-reads illumina150x500.json ~/Data/human_g1k_v37_decoy.fasta NA12878.filtered.vcf.gz NA12878 hg19_10_breakpoints.bed 7 --fastq1 >(gzip > r1.fq.gz) --fastq2 >(gzip > r2.fq.gz) --threads 2
+mitty -v4 generate-reads ~/Data/human_g1k_v37_decoy.fasta NA12878.filtered.vcf.gz NA12878 hg19_10_breakpoints.bed ./my-test-model.pkl 0.1 7 >(gzip > r1.fq.gz) --fastq2 >(gzip > r2.fq.gz) --threads 2
 ```
+
+
 
 Alignment with BWA
 ------------------
