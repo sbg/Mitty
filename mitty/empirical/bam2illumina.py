@@ -98,6 +98,7 @@ def process_bam_parallel(bam_fname, pkl, model_description='Test model', every=1
     'bq_mat': bq_mat,
     'cum_bq_mat': cum_bq_mat,
     'tlen': tlen_mat,
+    'r_cnt': r_cnt,
     'cum_tlen': tlen_mat.cumsum() / tlen_mat.sum(),  # This array can similarly be used as np.searchsorted(ct, r)
     'mean_rlen': int(rlen_sum / max(1, r_cnt)),  # This is needed for coverage calculations
     'min_rlen': min_rlen,
