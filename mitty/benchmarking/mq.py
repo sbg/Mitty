@@ -11,7 +11,7 @@ matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 # from matplotlib.colors import LogNorm
 
-from mitty.simulation.reads import parse_qname
+from mitty.simulation.readgenerate import parse_qname
 
 
 logger = logging.getLogger(__name__)

@@ -7,7 +7,7 @@ import os
 
 import pysam
 
-from mitty.simulation.reads import parse_qname, DNA_complement
+from mitty.simulation.readgenerate import parse_qname, DNA_complement
 from mitty.version import __version__
 
 

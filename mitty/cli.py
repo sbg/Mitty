@@ -110,12 +110,12 @@ def describe_read_model(modelfile, figfile):
 @cli.command()
 def qname():
   """Display qname format"""
-  import mitty.simulation.reads as reads
+  import mitty.simulation.readgenerate as reads
   click.echo(reads.__qname_format_details__)
 
 
 def print_qname(ctx, param, value):
-  import mitty.simulation.reads as reads
+  import mitty.simulation.readgenerate as reads
 
   if not value or ctx.resilient_parsing:
     return
@@ -137,7 +137,7 @@ def print_qname(ctx, param, value):
 @click.option('--qname', is_flag=True, callback=print_qname, expose_value=False, is_eager=True, help='Print documentation for information encoded in qname')
 def generate_reads(fasta, vcf, sample_name, bed, modelfile, coverage, seed, fastq1, fastq2, threads):
   """Generate simulated reads"""
-  import mitty.simulation.reads as reads
+  import mitty.simulation.readgenerate as reads
 
   read_module, model = get_read_model(modelfile)
   reads.process_multi_threaded(
