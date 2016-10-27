@@ -3,8 +3,6 @@
 TODO: Figure out the logistics of having diffrent models and loading GC-bias, sequencing error etc.
 
 """
-import pickle
-
 import numpy as np
 
 
@@ -111,6 +109,58 @@ def _reads_for_template_in_region(model, file_order_rng, ts, te):
       'len': r1l
     }
   ]
+
+
+def corrupt_template(model, template, corrupt_rng):
+  """Given a pair of read sequences, return a corrupted read pair
+
+  :param model:
+  :param template: [qname, seq, seq]
+  :param corrupt_rng:
+  :return: [(qname, seq, bq), (qname, seq, bq)]
+
+  This function does not use the qname, but conceivably we could have models (like pacbio) that may need this
+  information and the original reference info
+  """
+  bq_mat = model['cum_bq_mat']
+  return [
+    (template[0],) + corrupt_single_read(seq, bq_mat[mate, :, :], corrupt_rng)
+    for seq, mate in zip(template[1:], [0, 1])
+  ]
+
+
+base_rot = {
+  'A': 'CTG',
+  'C': 'ATG',
+  'T': 'ACG',
+  'G': 'ACT'
+}  # We use this for creating base call errors
+phred_p = 10 ** (-np.arange(100)/10)
+
+
+def corrupt_single_read(seq, bq_mat, corrupt_rng):
+  """Given a sequence, BQ model and rng, add errors to the sequence and return us a BQ quality array
+
+  :param seq:
+  :param bq_mat:
+  :param corrupt_rng:
+  :return:
+  """
+  rlen = len(seq)
+  corrupt_seq = list(seq)
+  bq_seq = [0] * rlen  # Just an initializer
+  bq_rnd = corrupt_rng.rand(rlen)
+  base_call_rnd = corrupt_rng.rand(rlen)
+  base_rnd = corrupt_rng.randint(0, 3, size=rlen)
+
+  for n in range(rlen):
+    bq_seq[n] = bq = min(np.searchsorted(bq_mat[n, :], bq_rnd[n]), 93)
+    # This min should only ever be invoked if our BQ model matrix is smaller than the read length
+    # Since we extract read length and BQ model from the same BAM this should not happen
+    if base_call_rnd[n] < phred_p[bq]:
+      corrupt_seq[n] = base_rot.get(seq[n], 'NNN')[base_rnd[n]]
+
+  return ''.join(corrupt_seq), ''.join([chr(b + 33) for b in bq_seq])
 
 
 def describe_model(model, figfile):
