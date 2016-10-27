@@ -8,6 +8,7 @@ Release Notes
 - D_err plots
 - New read model format
 - Tool to extract read model from BAM
+- Read corruption
 
 2.5.0 (Internal testing release)
 
