@@ -1,5 +1,5 @@
-import os
+import pkg_resources
 
-# These need to be available to the rest of the test suite
-source_tree_root = os.path.join(os.path.dirname(__file__))
-example_data_dir = os.path.join(source_tree_root, 'data')
+# These test files need to be available to the rest of the test suite
+# They are included in MANIFEST.in
+example_data_dir = pkg_resources.resource_filename(__name__, 'data')
