@@ -24,6 +24,7 @@ setup(
     'scipy',
     'pandas>=0.18.1',
     'tables>=3.2.2'
+    'nose'
   ],
   test_suite='nose.collector',
   tests_require=['nose'],
