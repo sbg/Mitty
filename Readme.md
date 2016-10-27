@@ -6,7 +6,7 @@ Install
 ```
 conda create -n mymitty python=3.5
 ```
-* Using a virtual env is reccomended, but it's a personal choice
+* Using a virtual env is recommended, but it's a personal choice
 * Mitty requires Python3 to run
 
 For external users, please use the public repository
