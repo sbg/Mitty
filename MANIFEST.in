@@ -1,2 +1,2 @@
-include mitty/data/readmodels *
-include mitty/test/data *
+recursive-include mitty/data/readmodels *
+recursive-include mitty/test/data *
