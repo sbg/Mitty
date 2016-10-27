@@ -11,13 +11,13 @@ matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 # from matplotlib.colors import LogNorm
 
-from mitty.simulation.readgenerate import parse_qname
+from mitty.simulation.readgenerate import parse_qname, score_alignment_error
 
 
 logger = logging.getLogger(__name__)
 
 
-def process_bam(bam_fname, max_d=200, processes=2, out_csv=None):
+def process_bam(bam_fname, max_d=200, strict=False, processes=2, out_csv=None):
   bam_fp = pysam.AlignmentFile(bam_fname)
 
   p = Pool(processes=processes)
@@ -25,7 +25,7 @@ def process_bam(bam_fname, max_d=200, processes=2, out_csv=None):
   t_st = t0 = time.time()
   tot_rd = 0
   for shard in p.imap_unordered(process_bam_part_w,
-                                ((bam_fname, s['SN'], max_d) for s in bam_fp.header['SQ'])):
+                                ((bam_fname, s['SN'], max_d, strict) for s in bam_fp.header['SQ'])):
     rd_cnt = shard.sum()
     tot_rd += rd_cnt
     mq_mat += shard
@@ -47,7 +47,7 @@ def process_bam_part_w(args):
   return process_bam_part(*args)
 
 
-def process_bam_part(bam_fname, reference, max_d=200):
+def process_bam_part(bam_fname, reference, max_d=200, strict=False):
   """Work out MQ and D for
 
   :param bam_fname:
@@ -59,7 +59,8 @@ def process_bam_part(bam_fname, reference, max_d=200):
   bam_fp = pysam.AlignmentFile(bam_fname)
   for r in bam_fp.fetch(reference=reference):
     ri = parse_qname(r.qname)[1 if r.is_read2 else 0]  # TODO: Will this work for SE reads?
-    d_err = max(min((r.pos + 1 - ri.pos if r.reference_name == ri.chrom else max_d), max_d), -max_d)
+    d_err = score_alignment_error(r, ri, max_d=max_d,
+                                  strict=strict)  # d_err = max(min((r.pos + 1 - ri.pos if r.reference_name == ri.chrom else max_d), max_d), -max_d)
     mq_mat[r.mapq, d_err + max_d] += 1
   return mq_mat
 

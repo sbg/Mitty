@@ -10,13 +10,13 @@ matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 # from matplotlib.colors import LogNorm
 
-from mitty.simulation.readgenerate import parse_qname
+from mitty.simulation.readgenerate import parse_qname, score_alignment_error
 
 
 logger = logging.getLogger(__name__)
 
 
-def process_bam(bam_fname, max_v_len=200, max_d=200, processes=2, out_csv=None):
+def process_bam(bam_fname, max_v_len=200, max_d=200, strict=False, processes=2, out_csv=None):
   bam_fp = pysam.AlignmentFile(bam_fname)
   if max_v_len < 51:
     logger.warning('Setting max_v_len to 51')
@@ -28,7 +28,7 @@ def process_bam(bam_fname, max_v_len=200, max_d=200, processes=2, out_csv=None):
   tot_rd = 0
   p = Pool(processes=processes)
   for shard in p.imap_unordered(process_bam_part_w,
-                                ((bam_fname, s['SN'], max_v_len, max_d) for s in bam_fp.header['SQ'])):
+                                ((bam_fname, s['SN'], max_v_len, max_d, strict) for s in bam_fp.header['SQ'])):
     rd_cnt = shard.sum()
     tot_rd += rd_cnt
     d_err_mat += shard
@@ -50,7 +50,7 @@ def process_bam_part_w(args):
   return process_bam_part(*args)
 
 
-def process_bam_part(bam_fname, reference, max_v_len=200, max_d=200):
+def process_bam_part(bam_fname, reference, max_v_len=200, max_d=200, strict=False):
   """Work out MQ and D for
 
   :param bam_fname:
@@ -63,7 +63,7 @@ def process_bam_part(bam_fname, reference, max_v_len=200, max_d=200):
   bam_fp = pysam.AlignmentFile(bam_fname)
   for r in bam_fp.fetch(reference=reference):
     ri = parse_qname(r.qname)[1 if r.is_read2 else 0]  # TODO: Will this work for SE reads?
-    d_err = max(min((r.pos + 1 - ri.pos if r.reference_name == ri.chrom else max_d), max_d), -max_d)
+    d_err = score_alignment_error(r, ri, max_d=max_d, strict=strict)  # max(min((r.pos + 1 - ri.pos if r.reference_name == ri.chrom else max_d), max_d), -max_d)
     if len(ri.v_list):
       for v in ri.v_list:
         if 0 <= max_v_len + v < 2 * max_v_len + 1:
@@ -109,13 +109,16 @@ def plot_derr(derr_mat, plot):
 def plot_derr_for_v(derr_mat, vcat, ax, xlabel=None, ylabel=None):
   derr_max = (derr_mat.shape[1] - 1)/2
   x = np.arange(-derr_max, derr_max + 1, dtype=int)
-
   rd_cnt = derr_mat[vcat[1][0]:vcat[1][1], :].sum()
-  ax.plot(x, derr_mat[vcat[1][0]:vcat[1][1], :].sum(axis=0) / max(1, rd_cnt))
+  if rd_cnt > 0:
+    ax.plot(x, derr_mat[vcat[1][0]:vcat[1][1], :].sum(axis=0) / max(1, rd_cnt))
+  else:
+    ax.plot(x, np.ones(x.size))
+    ax.text(0, 1e-3, 'No data')
   plt.setp(ax, yscale='log', ylim=[1e-5, 1.0])
   if xlabel is not None:
     plt.xlabel(xlabel)
     plt.ylabel(ylabel)
   else:
     plt.setp(ax, xticklabels=[], yticklabels=[])
-  ax.text(x[-1], 0.9, vcat[0], va='top', ha='right')
+  ax.text(x[-1], 0.8, vcat[0], va='top', ha='right')

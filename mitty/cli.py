@@ -161,27 +161,27 @@ def read_corruption(modelfile, fastq1_in, fastq1_out, seed, fastq2_in, fastq2_ou
   rc.multi_process(read_module, read_model, fastq1_in, fastq1_out, fastq2_in, fastq2_out, processes=threads, seed=seed)
 
 
-def read_bias():
-  pass
-
-
-@cli.command('unpair-fastq', short_help='PE -> SE')
-def unpair_fastq(fastq):
-  """Rewrite qnames from interleaved PE FASTQ so file can be run as SE. Output to stdout"""
-  pass
-
-
-@cli.command('uninterleave-fastq', short_help='Interleaved PE 3> PE_1 4> PE_2')
-@click.argument('fastq')
-def uninterleave_fastq(fastq):
-  """Given an interleaved paired-end FASTQ, split it out into two FASTQ files, written to streams 3 and 4"""
-  pass
-
-
-@cli.command()
-def genomes():
-  """Functions for sample/population simulations"""
-  pass
+# def read_bias():
+#   pass
+#
+#
+# @cli.command('unpair-fastq', short_help='PE -> SE')
+# def unpair_fastq(fastq):
+#   """Rewrite qnames from interleaved PE FASTQ so file can be run as SE. Output to stdout"""
+#   pass
+#
+#
+# @cli.command('uninterleave-fastq', short_help='Interleaved PE 3> PE_1 4> PE_2')
+# @click.argument('fastq')
+# def uninterleave_fastq(fastq):
+#   """Given an interleaved paired-end FASTQ, split it out into two FASTQ files, written to streams 3 and 4"""
+#   pass
+#
+#
+# @cli.command()
+# def genomes():
+#   """Functions for sample/population simulations"""
+#   pass
 
 
 @cli.command('god-aligner', short_help='Create a perfect BAM from simulated FASTQs')
@@ -208,11 +208,12 @@ def god_aligner(fasta, bam, sample_name, fastq1, fastq2, max_templates, threads)
 @click.argument('csv')
 @click.argument('plot')
 @click.option('--max-d', type=int, default=200, help='Range of d_err to consider')
+@click.option('--strict-scoring', is_flag=True, help="Don't consider breakpoints when scoring alignment")
 @click.option('--threads', default=2)
-def mq_plot(bam, csv, plot, max_d, threads):
+def mq_plot(bam, csv, plot, max_d, strict_scoring, threads):
   """Given a BAM from simulated reads, construct an MQ plot"""
   import mitty.benchmarking.mq as mq
-  mq_mat = mq.process_bam(bam, max_d, threads, csv)
+  mq_mat = mq.process_bam(bam, max_d, strict_scoring, threads, csv)
   mq.plot_mq(mq_mat, plot)
 
 
@@ -222,11 +223,12 @@ def mq_plot(bam, csv, plot, max_d, threads):
 @click.argument('plot')
 @click.option('--max-v', type=int, default=200, help='Range of variant sizes to consider (51 min)')
 @click.option('--max-d', type=int, default=200, help='Range of d_err to consider')
+@click.option('--strict-scoring', is_flag=True, help="Don't consider breakpoints when scoring alignment")
 @click.option('--threads', default=2)
-def mq_plot(bam, csv, plot, max_v, max_d, threads):
+def mq_plot(bam, csv, plot, max_v, max_d, strict_scoring, threads):
   """Given a BAM from simulated reads, show pattern of alignment errors"""
   import mitty.benchmarking.derr as derr
-  derr_mat = derr.process_bam(bam, max_v, max_d, threads, csv)
+  derr_mat = derr.process_bam(bam, max_v, max_d, strict_scoring, threads, csv)
   derr.plot_derr(derr_mat, plot)
 
 
