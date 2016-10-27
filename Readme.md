@@ -65,8 +65,8 @@ The file `hg001.filt.vcf.gz` can now be used to generate reads and will serve as
 
 
 
-Listing read models
--------------------
+Listing and inspecting read models
+----------------------------------
 
 Listing Mitty's built in models
 ```
@@ -77,6 +77,13 @@ Listing additional custom models stored in a folder somewhere
 ```
 mitty list-read-models -d ./
 ```
+
+The model statistics can be inspected
+```
+mitty describe-read-model ./rd-model.pkl model.png
+```
+
+![Example of model statistics](docs/images/model.png?raw=true "Example of model statistics")
 
 
 Prepare a Illumina type read model from a BAM
@@ -156,18 +163,32 @@ Alignment diagnostics
 mitty -v4 mq-plot bwac.bam bwac.mq.csv bwac.mq.png
 ```
 
+![MQ analysis](docs/images/bwac.mq.png?raw=true "MQ analysis")
+
 
 ### Strict scoring
+The normal alignment scoring mode is to compute the difference between the aligned read position and each breakpoint in
+the correct read alignment and then take the minimum of these differences. This gives credit for a 'partial' alignment
+Typically this happens when the read covers a larg(er) insertion or deletion and the aligner is able to correctly place
+one anchor (side of the read), but not the other one.
+
+If strict scoring is turned on then only the first breakpoint i.e. the perfectly correct alignment is considered.
+
+
 ```
 mitty -v4 mq-plot bwac.bam bwac.mq.csv bwac.mq.png --strict-scoring
 ```
 
+![MQ analysis](docs/images/bwac.mq-strict.png?raw=true "MQ analysis")
 
 
-## Aignment error analysis
+## Alignment error analysis
 ```
 mitty -v4 derr-plot bwac.bam bwac.derr.csv bwac.derr.png
 ```
+
+![Alignment analysis](docs/images/bwac.derr.png?raw=true "Alignment analysis")
+
 
 
 Perfect BAM (God aligner)
