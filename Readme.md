@@ -1,6 +1,30 @@
 Quickstart
 ==========
 
+Install
+-------
+```
+conda create -n mymitty python=3.5
+```
+* Using a virtual env is reccomended, but it's a personal choice
+* Mitty requires Python3 to run
+
+For external users, please use the public repository
+
+```
+pip install git+https://github.com/sbg/Mitty.git
+```
+
+
+For internal users testing beta, unreleased versions, please use the internal bitbucket repository
+
+```
+pip install git+https://kghose@bitbucket.sbgenomics.com/scm/ben/mitty3.git
+```
+
+Don't forget to replace 'kghose' with your username
+
+
 Run tests
 ---------
 
@@ -105,8 +129,8 @@ mitty -v4 generate-reads ~/Data/human_g1k_v37_decoy.fasta hg001.filt.vcf.gz INTE
 
 _(When you supply a model file name to the read generator it will first look among the builtin
 read models to see if the file name is a match (typically these are in the `mitty/data/readmodels`
-folder). It will then treat the model file name as a path and try and load that from your file system 
-- which is the case in this particular example.)_
+folder). It will then treat the model file name as a path and try and load that from your 
+file system - which is the case in this particular example.)_
 
 
 Corrupting reads
