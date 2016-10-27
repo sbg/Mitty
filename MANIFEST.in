@@ -1,1 +1,2 @@
 include mitty/data/readmodels *
+include mitty/test/data *
