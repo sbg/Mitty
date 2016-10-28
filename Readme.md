@@ -1,5 +1,5 @@
 Mitty is a data simulator meant to help debug aligners and variant callers. 
-It is released under the [Apache](docs/LICENSE.txt) license.
+It is released under the [Apache](LICENSE.txt) license.
 
 ![Mitty read simulation](docs/images/mitty-reads.png?raw=true)
 
