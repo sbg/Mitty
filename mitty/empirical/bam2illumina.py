@@ -14,7 +14,18 @@ import logging
 logger = logging.getLogger(__name__)
 
 
-def process_bam_section(bam_fname, reference, every=1, max_bq=94, max_bp=300, max_tlen=1000):
+def process_bam_section(bam_fname, reference, every=1, min_mq=0, max_bq=94, max_bp=300, max_tlen=1000):
+  """
+
+  :param bam_fname:
+  :param reference:
+  :param every:
+  :param min_mq:
+  :param max_bq:
+  :param max_bp:
+  :param max_tlen:
+  :return:
+  """
   bq_mat = np.zeros((2, max_bp, max_bq), dtype=np.uint64)
   tlen_mat = np.zeros(max_tlen, dtype=np.uint64)
   t0 = time.time()
@@ -22,6 +33,8 @@ def process_bam_section(bam_fname, reference, every=1, max_bq=94, max_bp=300, ma
   for n, r in enumerate(pysam.AlignmentFile(bam_fname, 'rb').fetch(reference=reference)):
     if n % every != 0: continue
     if r.flag > 255: continue  # Ignore secondary/split alignments
+    if r.mapq == 255: continue
+    if r.mapq < min_mq: continue
     if min_rlen > r.rlen: min_rlen = r.rlen
     if max_rlen < r.rlen: max_rlen = r.rlen
     rlen_sum += r.rlen
@@ -46,11 +59,15 @@ def process_bam_section_w(kwargs):
   return process_bam_section(**kwargs)
 
 
-def process_bam_parallel(bam_fname, pkl, model_description='Test model', every=1, threads=4, max_bq=94, max_bp=300, max_tlen=1000):
+def process_bam_parallel(bam_fname, pkl, model_description='Test model', every=1, min_mq=0,
+                         threads=4, max_bq=94, max_bp=300, max_tlen=1000):
   """
 
   :param bam_fname:
   :param pkl:
+  :param model_description:
+  :param every:
+  :param min_mq:
   :param threads:
   :param max_bq:
   :param max_bp:
@@ -70,6 +87,7 @@ def process_bam_parallel(bam_fname, pkl, model_description='Test model', every=1
     ({"bam_fname": bam_fname,
       "reference": ref,
       "every": every,
+      "min_mq": min_mq,
       "max_bq": max_bq,
       "max_bp": max_bp,
       "max_tlen": max_tlen}

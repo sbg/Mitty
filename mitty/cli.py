@@ -64,13 +64,15 @@ def sample_bq(bam, pkl, threads):
 @click.argument('pkl')
 @click.argument('desc')
 @click.option('--every', type=int, default=1, help='Sample every nth read')
+@click.option('--min-mq', type=int, default=0, help='Discard reads with MQ less than this')
 @click.option('-t', '--threads', type=int, default=2, help='Threads to use')
 @click.option('--max-bp', type=int, default=300, help='Maximum length of read')
 @click.option('--max-tlen', type=int, default=1000, help='Maximum size of insert')
-def bam2illumina(bam, pkl, desc, every, threads, max_bp, max_tlen):
+def bam2illumina(bam, pkl, desc, every, min_mq, threads, max_bp, max_tlen):
   """Create read model from BAM file"""
   import mitty.empirical.bam2illumina as b2m
-  b2m.process_bam_parallel(bam, pkl, model_description=desc, every=every, threads=threads, max_bq=94, max_bp=max_bp, max_tlen=max_tlen)
+  b2m.process_bam_parallel(bam, pkl, model_description=desc, every=every, min_mq=min_mq,
+                           threads=threads, max_bq=94, max_bp=max_bp, max_tlen=max_tlen)
 
 
 @cli.command('list-read-models')
