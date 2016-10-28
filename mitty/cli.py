@@ -211,11 +211,12 @@ def god_aligner(fasta, bam, sample_name, fastq1, fastq2, max_templates, threads)
 @click.argument('plot')
 @click.option('--max-d', type=int, default=200, help='Range of d_err to consider')
 @click.option('--strict-scoring', is_flag=True, help="Don't consider breakpoints when scoring alignment")
+@click.option('--sample-name', help='If the FASTQ contains multiple samples, process reads from only this sample')
 @click.option('--threads', default=2)
-def mq_plot(bam, csv, plot, max_d, strict_scoring, threads):
+def mq_plot(bam, csv, plot, max_d, strict_scoring, sample_name, threads):
   """Given a BAM from simulated reads, construct an MQ plot"""
   import mitty.benchmarking.mq as mq
-  mq_mat = mq.process_bam(bam, max_d, strict_scoring, threads, csv)
+  mq_mat = mq.process_bam(bam, max_d, strict_scoring, sample_name, threads, csv)
   mq.plot_mq(mq_mat, plot)
 
 
@@ -226,11 +227,12 @@ def mq_plot(bam, csv, plot, max_d, strict_scoring, threads):
 @click.option('--max-v', type=int, default=200, help='Range of variant sizes to consider (51 min)')
 @click.option('--max-d', type=int, default=200, help='Range of d_err to consider')
 @click.option('--strict-scoring', is_flag=True, help="Don't consider breakpoints when scoring alignment")
+@click.option('--sample-name', help='If the FASTQ contains multiple samples, process reads from only this sample')
 @click.option('--threads', default=2)
-def mq_plot(bam, csv, plot, max_v, max_d, strict_scoring, threads):
+def derr_plot(bam, csv, plot, max_v, max_d, strict_scoring, sample_name, threads):
   """Given a BAM from simulated reads, show pattern of alignment errors"""
   import mitty.benchmarking.derr as derr
-  derr_mat = derr.process_bam(bam, max_v, max_d, strict_scoring, threads, csv)
+  derr_mat = derr.process_bam(bam, max_v, max_d, strict_scoring, sample_name, threads, csv)
   derr.plot_derr(derr_mat, plot)
 
 

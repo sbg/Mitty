@@ -16,7 +16,7 @@ from mitty.simulation.readgenerate import parse_qname, score_alignment_error
 logger = logging.getLogger(__name__)
 
 
-def process_bam(bam_fname, max_v_len=200, max_d=200, strict=False, processes=2, out_csv=None):
+def process_bam(bam_fname, max_v_len=200, max_d=200, strict=False, sample_name=None, processes=2, out_csv=None):
   bam_fp = pysam.AlignmentFile(bam_fname)
   if max_v_len < 51:
     logger.warning('Setting max_v_len to 51')
@@ -28,7 +28,7 @@ def process_bam(bam_fname, max_v_len=200, max_d=200, strict=False, processes=2, 
   tot_rd = 0
   p = Pool(processes=processes)
   for shard in p.imap_unordered(process_bam_part_w,
-                                ((bam_fname, s['SN'], max_v_len, max_d, strict) for s in bam_fp.header['SQ'])):
+                                ((bam_fname, s['SN'], max_v_len, max_d, strict, sample_name) for s in bam_fp.header['SQ'])):
     rd_cnt = shard.sum()
     tot_rd += rd_cnt
     d_err_mat += shard
@@ -50,18 +50,21 @@ def process_bam_part_w(args):
   return process_bam_part(*args)
 
 
-def process_bam_part(bam_fname, reference, max_v_len=200, max_d=200, strict=False):
+def process_bam_part(bam_fname, reference, max_v_len=200, max_d=200, strict=False, sample_name=None):
   """Work out MQ and D for
 
   :param bam_fname:
   :param reference:
   :param max_v_len
   :param max_d:
+  :param strict:
+  :param sample_name:
   :return:
   """
   d_err_mat = np.zeros((2 * max_v_len + 2, 2 * max_d + 1), dtype=np.uint64)
   bam_fp = pysam.AlignmentFile(bam_fname)
   for r in bam_fp.fetch(reference=reference):
+    if sample_name is not None and not r.qname.startswith(sample_name): continue
     ri = parse_qname(r.qname)[1 if r.is_read2 else 0]  # TODO: Will this work for SE reads?
     d_err = score_alignment_error(r, ri, max_d=max_d, strict=strict)  # max(min((r.pos + 1 - ri.pos if r.reference_name == ri.chrom else max_d), max_d), -max_d)
     if len(ri.v_list):
