@@ -6,8 +6,8 @@ It is released under the [Apache](LICENSE.txt) license.
 Features
 ========
 
-- Generate reads from the whole genome, a single 1kb region or from a set of regions as desired, based on BED file
-- Handles X, Y chromosomes and polyploidy IF the VCF GT is properly set
+- Generate reads from the whole genome, a single tiny region or from a set of regions as desired
+- Handles X, Y chromosomes and polyploidy IF the VCF GT field is properly set
 - Read qname stores correct POS, CIGAR and the sizes of variants covered by the read
 - Name of sample included in read allowing us to mix FASTQs from different simulations/sources
     - Can mix viral contamination into reads
