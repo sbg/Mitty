@@ -9,9 +9,12 @@ Features
 - Generate reads from the whole genome, a single 1kb region or from a set of regions as desired, based on BED file
 - Handles X, Y chromosomes and polyploidy IF the VCF GT is properly set
 - Read qname stores correct POS, CIGAR and the sizes of variants covered by the read
+- Name of sample included in read allowing us to mix FASTQs from different simulations/sources
+    - Can mix viral contamination into reads
+    - Can do tumor/normal mixes
 - Corruption module adds sequencing errors to reads
-  - Read models can be sampled from existing BAM files
-- "God aligner" writes out a BAM with perfect alignments which can be used to BAM comparisons
+    - Read models can be sampled from existing BAM files
+- "God aligner" writes out a BAM with perfect alignments which can be used for BAM comparisons
 
 _Mitty also supplies a VCF simulator. This is currently under development_
 
@@ -60,9 +63,32 @@ distribution. The example assume that the commands are being run from inside thi
 The original sample VCF for the examples below is the Genome In a Bottle truth data set for 
 NA12878_HG001/NISTv3.3.1/GRCh37 obtained from [the official NCBI ftp site][giab]. I assume that this
 file has been saved under the name hg001.vcf.gz in the working directory. The bed file that is used
-(hg001.bed) selects out 10MB portions of chromosome 1 and chromosome 10.
+(hg001.bed) selects out 1MB portions of chromosome 1 and chromosome 10.
 
 [giab]: ftp://ftp-trace.ncbi.nlm.nih.gov/giab/ftp/release/NA12878_HG001/NISTv3.3.1/GRCh37/
+
+Program help
+------------
+Help is available from the command line. Simply invoking the base program with no arguments
+
+```
+mitty
+```
+
+Will list all the sub programs with some short help. Detailed help on praticular commands is available by
+doing, for example:
+
+```
+mitty generate-reads --help
+```
+
+Running commands with the verbose option
+
+```
+mitty v{1,2,3,4} <command>
+```
+
+will result in log messages ranging from errors to purely debug messages
 
 
 Prepare VCF file for taking reads from
@@ -133,7 +159,7 @@ sample reads from a BAM and build an empirical read model for Illumina**
 _This assumes that a sample BAM file has been downloaded to the working directory_
 
 ```
-mitty -v4 bam2illumina sample.bam ./rd-model.pkl "This model is taken from a BAM of unknown provenance" --every 5
+mitty -v4 bam2illumina sample.bam ./rd-model.pkl "This model is taken from a BAM of unknown provenance" --every 5 --min-mq 30
 ```
 
   
