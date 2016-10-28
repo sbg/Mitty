@@ -1,3 +1,20 @@
+Mitty is a data simulator meant to help debug aligners and variant callers. 
+It is released under the [Apache](docs/LICENSE.txt) license.
+
+![Mitty read simulation](docs/images/mitty-reads.png?raw=true)
+
+Features
+========
+
+- Generate reads from the whole genome, a single 1kb region or from a set of regions as desired, based on BED file
+- Handles X, Y chromosomes and polyploidy IF the VCF GT is properly set
+- Read qname stores correct POS, CIGAR and the sizes of variants covered by the read
+- Corruption module adds sequencing errors to reads
+  - Read models can be sampled from existing BAM files
+- "God aligner" writes out a BAM with perfect alignments which can be used to BAM comparisons
+
+_Mitty also supplies a VCF simulator. This is currently under development_
+
 Quickstart
 ==========
 
@@ -46,7 +63,6 @@ file has been saved under the name hg001.vcf.gz in the working directory. The be
 (hg001.bed) selects out 10MB portions of chromosome 1 and chromosome 10.
 
 [giab]: ftp://ftp-trace.ncbi.nlm.nih.gov/giab/ftp/release/NA12878_HG001/NISTv3.3.1/GRCh37/
-
 
 
 Prepare VCF file for taking reads from
