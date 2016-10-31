@@ -49,6 +49,7 @@ def process_multi_threaded(fasta, bam_fname, fastq1, fastq2=None, threads=1, max
   :param fastq2:
   :param threads:
   :param max_templates:
+  :param sample_name:
   :return:
   """
   rg_id = base64.b64encode(' '.join(sys.argv).encode('ascii'))

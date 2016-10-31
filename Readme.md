@@ -3,6 +3,8 @@ It is released under the [Apache](LICENSE.txt) license.
 
 ![Mitty read simulation](docs/images/mitty-reads.png?raw=true)
 
+![Mitty read simulation](docs/images/analysis-flow.png?raw=true)
+
 Features
 ========
 
@@ -70,25 +72,23 @@ file has been saved under the name hg001.vcf.gz in the working directory. The be
 Program help
 ------------
 Help is available from the command line. Simply invoking the base program with no arguments
+will list all the sub programs with some short help:
 
 ```
 mitty
 ```
 
-Will list all the sub programs with some short help. Detailed help on praticular commands is available by
-doing, for example:
+Detailed help on particular commands is also available:
 
 ```
 mitty generate-reads --help
 ```
 
-Running commands with the verbose option
+Running commands with the verbose option allows you to tune what messages (ranging from Errors to Debug) you get.
 
 ```
-mitty v{1,2,3,4} <command>
+mitty -v{1,2,3,4} <command>
 ```
-
-will result in log messages ranging from errors to purely debug messages
 
 
 Prepare VCF file for taking reads from
@@ -205,7 +205,7 @@ mitty -v4 corrupt-reads ./rd-model.pkl <(cat tf1) >(gzip > r1c.fq.gz) 7 --fastq2
 
 Alignment with BWA
 ------------------
-
+_(Assumes bwa and samtools are installed)_
 ```
 bwa mem ~/Data/human_g1k_v37_decoy.fasta r1c.fq.gz r2c.fq.gz | samtools view -bSho out.bam
 samtools sort out.bam > bwac.bam
@@ -247,6 +247,9 @@ mitty -v4 mq-plot bwac.bam bwac.mq.csv bwac.mq.png --strict-scoring
 
 ![MQ analysis](docs/images/bwac.mq-strict.png?raw=true "MQ analysis")
 
+Note the very asymmetric nature of the mean MQ plot about d_err = 0. This is because any read that starts with a 
+softclip (not due to an insertion) will have it's POS value to the right of the strictly correct alignment POS.
+
 
 ## Alignment error analysis
 ```
@@ -259,6 +262,9 @@ mitty -v4 derr-plot bwac.bam bwac.derr.csv bwac.derr.png
 
 Perfect BAM (God aligner)
 -------------------------
+Passing the simulated FASTQ through the god aligner produces a "perfect BAM" which can be used as a truth BAM
+for comparing alignments from different aligners. This truth BAM can also be used to test variant callers by
+removing one moving part (the aligner).
 
 ```
 mitty -v4 god-aligner ~/Data/human_g1k_v37_decoy.fasta r1c.fq.gz perfect.bam --fastq2 r2c.fq.gz --threads 4

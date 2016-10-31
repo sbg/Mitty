@@ -1,16 +1,7 @@
 import logging
-import pkg_resources
 import os
-import json
 
 import click
-
-
-import mitty.lib.vcfio as mvio
-import mitty.empirical.bq as bbq
-import mitty.empirical.gc as megc
-
-import mitty.benchmarking.god_aligner as god
 
 
 @click.group()
@@ -18,14 +9,12 @@ import mitty.benchmarking.god_aligner as god
 @click.option('-v', '--verbose', type=int, default=0)
 def cli(verbose):
   """A genomic data simulator for testing and debugging bio-informatics tools"""
-  if verbose == 1:
-    logging.basicConfig(level=logging.ERROR)
-  elif verbose == 2:
-    logging.basicConfig(level=logging.WARNING)
-  elif verbose == 3:
-    logging.basicConfig(level=logging.INFO)
-  elif verbose >= 4:
-    logging.basicConfig(level=logging.DEBUG)
+  logging.basicConfig(level=[
+    logging.ERROR,
+    logging.WARNING,
+    logging.INFO,
+    logging.DEBUG
+  ][min(verbose - 1, 3)])
 
 
 @cli.command('filter-variants', short_help='Remove complex variants from VCF')
@@ -36,6 +25,7 @@ def cli(verbose):
 def filter_vcf(vcfin, sample, bed, vcfout):
   """Subset VCF for given sample, apply BED file and filter out complex variants
    making it suitable to use for read generation"""
+  import mitty.lib.vcfio as mvio
   mvio.prepare_variant_file(vcfin, sample, bed, vcfout)
 
 
@@ -47,6 +37,7 @@ def filter_vcf(vcfin, sample, bed, vcfout):
 @click.option('-t', '--threads', type=int, default=1, help='Threads to use')
 def gc_cov(bam, fasta, pkl, block_len, threads):
   """Calculate GC content vs coverage from a BAM. Save in pickle file"""
+  import mitty.empirical.gc as megc
   megc.process_bam_parallel(bam, fasta, pkl, block_len=block_len, threads=threads)
 
 
@@ -56,6 +47,7 @@ def gc_cov(bam, fasta, pkl, block_len, threads):
 @click.option('-t', '--threads', type=int, default=1, help='Threads to use')
 def sample_bq(bam, pkl, threads):
   """BQ distribution from BAM"""
+  import mitty.empirical.bq as bbq
   bbq.process_bam_parallel(bam, pkl, threads=threads)
 
 
@@ -69,7 +61,8 @@ def sample_bq(bam, pkl, threads):
 @click.option('--max-bp', type=int, default=300, help='Maximum length of read')
 @click.option('--max-tlen', type=int, default=1000, help='Maximum size of insert')
 def bam2illumina(bam, pkl, desc, every, min_mq, threads, max_bp, max_tlen):
-  """Create read model from BAM file"""
+  """Process BAM file and create an empirical model of template length and base quality
+  distribution. The model is saved to a Python pickle file usable by Mitty read generation programs."""
   import mitty.empirical.bam2illumina as b2m
   b2m.process_bam_parallel(bam, pkl, model_description=desc, every=every, min_mq=min_mq,
                            threads=threads, max_bq=94, max_bp=max_bp, max_tlen=max_tlen)
@@ -79,6 +72,7 @@ def bam2illumina(bam, pkl, desc, every, min_mq, threads, max_bp, max_tlen):
 @click.option('-d', type=click.Path(exists=True), help='List models in this directory')
 def list_read_models(d):
   """List read models"""
+  import pkg_resources
   import pickle
   import glob
 
@@ -190,19 +184,41 @@ def read_corruption(modelfile, fastq1_in, fastq1_out, seed, fastq2_in, fastq2_ou
 @click.argument('fasta', type=click.Path(exists=True))
 @click.argument('fastq1', type=click.Path(exists=True))
 @click.argument('bam')
-@click.option('--fastq2', type=click.Path(exists=True))
-@click.option('--sample-name')
-@click.option('--max-templates', type=int)
+@click.option('--fastq2', type=click.Path(exists=True), help='If a paired-end FASTQ, second file goes here')
+@click.option('--sample-name', help='If supplied, this is put into the BAM header')
+@click.option('--max-templates', type=int, help='For debugging: quits after processing these many templates')
 @click.option('--threads', default=2)
 def god_aligner(fasta, bam, sample_name, fastq1, fastq2, max_templates, threads):
   """Given a FASTA.ann file and FASTQ made of simulated reads,
-     construct a perfectly aligned "god" BAM from them.
+     construct a perfectly aligned BAM from them.
 
-     This is useful for testing variant callers.
+     A BAM produced by an aligner from the same FASTQ can be diff-d against the perfect BAM
+     to check for alignment accuracy. (Also see the mitty filter-bam tool)
 
-     The program uses the fasta.ann file to construct the BAM header"""
+     The perfect BAM is also useful for testing variant callers by removing the aligner from the
+     pipeline and reducing one moving part.
+
+     Note: The program uses the fasta.ann file to construct the BAM header"""
+  import mitty.benchmarking.god_aligner as god
   god.process_multi_threaded(
     fasta, bam, fastq1, fastq2, threads, max_templates, sample_name)
+
+
+@cli.command('filter-bam', short_help='Refine alignment scoring')
+def filter_bam():
+  """Discard (simulated) reads from BAM whose alignment score passes a filter we set.
+
+  This is meant to be run after running a BAM diff between an aligned BAM and a perfect BAM.
+  The raw BAM diff will strictly flag any difference between the alignment and the perfect BAM
+  but for our analyses it may be sufficient to be less strict.
+
+  As an example, for some analysis we may not be concerned about alignments that have been soft-clipped
+  but are otherwise correct. In other analyses we may want to include such soft-clipped reads because
+  we suspect we are over-aggressive in soft-clipping.
+
+  **Currently under development**
+  """
+  click.echo('Currently under development')
 
 
 @cli.command('mq-plot', short_help='Create MQ plot from BAM')
@@ -243,6 +259,7 @@ def get_read_model(modelfile):
   :return:
   """
   import pickle
+  import pkg_resources
 
   import mitty.simulation.illumina  # Hard coded for now, might use entry points like before to pip install models
 
