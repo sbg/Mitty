@@ -100,7 +100,7 @@ def list_read_models(d):
 def describe_read_model(modelfile, figfile):
   """Plot panels describing this model"""
   read_module, model = get_read_model(modelfile)
-  read_module.describe_model(model, figfile)
+  read_module.describe_model(os.path.basename(modelfile), model, figfile)
 
 
 @cli.command()
