@@ -163,10 +163,12 @@ def corrupt_single_read(seq, bq_mat, corrupt_rng):
   return ''.join(corrupt_seq), ''.join([chr(b + 33) for b in bq_seq])
 
 
-def describe_model(model, figfile):
+def describe_model(model_name, model, figfile):
   """Plot a few panels describing what the model looks like
 
+  :param model_name:
   :param model:
+  :param figfile:
   :return:
   """
   import matplotlib
@@ -175,17 +177,18 @@ def describe_model(model, figfile):
 
   fig = plt.figure(figsize=(6, 15))
   plt.subplots_adjust(bottom=0.05, top=0.97)
+  fig.suptitle(model_name)
 
-  fig.text(0.01, 0.99, 'Model description:\n\n' + model['model_description'], va='top', wrap='True')
-
-  ax = plt.subplot(4,1,2)
+  ax = plt.subplot(4,1,1)
   plot_template_length_distribution(model, ax, plt)
 
-  ax = plt.subplot(4,1,3)
+  ax = plt.subplot(4,1,2)
   plot_BQ_heatmap(model, 0, ax, plt)
 
-  ax = plt.subplot(4,1,4)
+  ax = plt.subplot(4,1,3)
   plot_BQ_heatmap(model, 1, ax, plt)
+
+  fig.text(0.01, 0.25, 'Model description:\n\n' + model['model_description'], va='top', wrap='True')
 
   plt.savefig(figfile)
 
