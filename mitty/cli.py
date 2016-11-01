@@ -89,7 +89,7 @@ def list_read_models(d):
   for mod_fname in model_list:
     try:
       mod_data = pickle.load(open(mod_fname, 'rb'))
-      click.echo('{}: {}'.format(os.path.basename(mod_fname), mod_data['model_description']))
+      click.echo('\n----------\n{}:\n{}\n=========='.format(os.path.basename(mod_fname), mod_data['model_description']))
     except:
       logging.debug('Skipping {}. Not a read model file'.format(mod_fname))
 

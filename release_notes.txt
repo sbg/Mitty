@@ -1,6 +1,9 @@
 Release Notes
 =============
 
+2.7.0 (Internal testing release)
+
+- Added five empirical read models
 
 2.6.0 (Internal testing release)
 

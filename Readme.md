@@ -144,19 +144,18 @@ Listing additional custom models stored in a folder somewhere
 mitty list-read-models -d ./
 ```
 
-The model statistics can be inspected
+The model statistics can be inspected by printing a panel of plots showing read characteristics
 ```
 mitty describe-read-model ./rd-model.pkl model.png
 ```
-
-![Example of model statistics](docs/images/model.png?raw=true "Example of model statistics")
+See later for a list of read models supplied with Mitty and their characteristics
 
 
 Prepare a Illumina type read model from a BAM
 ---------------------------------------------
 **This is only needed if one of the existing read models does not match your requirements. This allows you to 
 sample reads from a BAM and build an empirical read model for Illumina**
-_This assumes that a sample BAM file has been downloaded to the working directory_
+_The example assumes that a sample BAM file (sample.bam) has been downloaded to the working directory_
 
 ```
 mitty -v4 bam2illumina sample.bam ./rd-model.pkl "This model is taken from a BAM of unknown provenance" --every 5 --min-mq 30
@@ -279,3 +278,16 @@ bam diff --in1 bwac.bam --in2 perfect.bam --out diffd.unsorted.bam
 samtools sort diffd.unsorted.bam > diffd.bam
 samtools index diffd.bam
 ```
+
+
+Appendix
+========
+
+Built-in read models
+--------------------
+
+<img src="docs/images/1kg-pcr-free.png" width="150">
+<img src="docs/images/hiseq-X-v2.5-Garvan.png" width="150">
+<img src="docs/images/old-Garvan.png" width="150">
+<img src="docs/images/hiseq-2500-v1-pcr-free.png" width="150">
+<img src="docs/images/hiseq-X-v1-HLI.png" width="150">
