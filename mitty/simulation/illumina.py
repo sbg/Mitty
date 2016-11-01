@@ -176,9 +176,7 @@ def describe_model(model, figfile):
   fig = plt.figure(figsize=(6, 15))
   plt.subplots_adjust(bottom=0.05, top=0.97)
 
-  ax = plt.subplot(4,1,1)
-  ax.text(0.01, 0.99, 'Model description:\n\n' + model['model_description'], va='top', wrap='True')
-  plt.setp(ax, xlim=(0, 1), ylim=(0, 1), xticks=[], yticks=[])
+  fig.text(0.01, 0.99, 'Model description:\n\n' + model['model_description'], va='top', wrap='True')
 
   ax = plt.subplot(4,1,2)
   plot_template_length_distribution(model, ax, plt)
