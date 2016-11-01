@@ -18,4 +18,7 @@ RUN pip3 install /root/mitty3
 RUN mitty --version
 
 # You can now test with
-# docker run --rm b6de5278dc29 mitty
+# docker run --rm images.sbgenomics.com/kghosesbg/mitty3:latest mitty
+
+# And push with
+# docker push images.sbgenomics.com/kghosesbg/mitty3:latest
