@@ -64,7 +64,7 @@ def bam2illumina(bam, pkl, desc, every, min_mq, threads, max_bp, max_tlen):
   """Process BAM file and create an empirical model of template length and base quality
   distribution. The model is saved to a Python pickle file usable by Mitty read generation programs."""
   import mitty.empirical.bam2illumina as b2m
-  b2m.process_bam_parallel(bam, pkl, model_description=desc, every=every, min_mq=min_mq,
+  b2m.process_bam_parallel(bam, pkl, model_description=desc, every=max(1, every), min_mq=min_mq,
                            threads=threads, max_bq=94, max_bp=max_bp, max_tlen=max_tlen)
 
 
