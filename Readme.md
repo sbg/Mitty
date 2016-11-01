@@ -285,9 +285,16 @@ Appendix
 
 Built-in read models
 --------------------
+![](docs/images/1kg-pcr-free.png?raw=true)
 
-<img src="docs/images/1kg-pcr-free.png" width="150">
-<img src="docs/images/hiseq-X-v2.5-Garvan.png" width="150">
-<img src="docs/images/old-Garvan.png" width="150">
-<img src="docs/images/hiseq-2500-v1-pcr-free.png" width="150">
-<img src="docs/images/hiseq-X-v1-HLI.png" width="150">
+![](docs/images/hiseq-X-v2.5-Garvan.png?raw=true)
+
+![](docs/images/old-Garvan.png?raw=true)
+
+![](docs/images/hiseq-2500-v1-pcr-free.png?raw=true)
+
+![](docs/images/hiseq-X-v1-HLI.png?raw=true)
+
+
+
+
