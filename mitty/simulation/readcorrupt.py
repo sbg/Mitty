@@ -88,9 +88,9 @@ def worker(worker_id, read_module, read_model, in_queue, out_queue, seed):
     out_queue.put(read_module.corrupt_template(read_model, template, corrupt_rng))
     if cnt % 100000 == 0:
       t1 = time.time()
-      logger.debug('Worker {}: Processed {} templates ({} t/s)'.format(worker_id, cnt, cnt / (t1 - t0)))
+      logger.debug('Worker {}: Processed {} templates ({} t/s)'.format(worker_id, cnt + 1, (cnt + 1) / (t1 - t0)))
   t1 = time.time()
-  logger.debug('... worker {} processed {} templates ({} t/s)'.format(worker_id, cnt, cnt / (t1 - t0)))
+  logger.debug('... worker {} processed {} templates ({} t/s)'.format(worker_id, cnt + 1, (cnt + 1) / (t1 - t0)))
 
 
 def writer(fastq1_out, fastq2_out=None, out_queue=None):
