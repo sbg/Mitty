@@ -200,10 +200,14 @@ def plot_template_length_distribution(model, ax, plt):
 
 
 def plot_BQ_heatmap(model, mate, ax, plt):
-  plt.imshow(model['bq_mat'][mate, :65, :model['max_rlen']].T,
+  this_bq_mat = model['bq_mat'][mate, :model['max_rlen'], :65]
+  plt.imshow(this_bq_mat.T,
              extent=(1, model['max_rlen'], 1, 65),
              aspect='auto',
              origin='lower', cmap=plt.cm.gray_r)
+  B = np.arange(65)
+  bq_mean = np.dot(this_bq_mat, np.arange(65)) / this_bq_mat.sum(axis=1)
+  plt.plot(range(1, model['max_rlen'] + 1), bq_mean, 'y', lw=2)
   ax.text(plt.getp(ax, 'xlim')[1], plt.getp(ax, 'ylim')[1], 'Mate {}'.format(mate + 1),
           ha='right', va='top')
   plt.setp(ax, xlabel='Position on read (bp)', ylabel='BQ value')
