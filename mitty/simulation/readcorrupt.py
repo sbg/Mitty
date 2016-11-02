@@ -82,10 +82,15 @@ def worker(worker_id, read_module, read_model, in_queue, out_queue, seed):
   :return:
   """
   corrupt_rng = np.random.RandomState(seed)
-  logger.debug('Starting worker {}'.format(worker_id))
-  for template in iter(in_queue.get, __process_stop_code__):
+  logger.debug('Starting worker {} ...'.format(worker_id))
+  cnt, t0 = 0, time.time()
+  for cnt, template in enumerate(iter(in_queue.get, __process_stop_code__)):
     out_queue.put(read_module.corrupt_template(read_model, template, corrupt_rng))
-  logger.debug('Shutting down worker {}'.format(worker_id))
+    if cnt % 100000 == 0:
+      t1 = time.time()
+      logger.debug('Worker {}: Processed {} templates ({} t/s)'.format(worker_id, cnt, cnt / (t1 - t0)))
+  t1 = time.time()
+  logger.debug('... worker {} processed {} templates ({} t/s)'.format(worker_id, cnt, cnt / (t1 - t0)))
 
 
 def writer(fastq1_out, fastq2_out=None, out_queue=None):
