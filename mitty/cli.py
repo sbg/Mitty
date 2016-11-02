@@ -14,7 +14,7 @@ def cli(verbose):
     logging.WARNING,
     logging.INFO,
     logging.DEBUG
-  ][min(verbose - 1, 3)])
+  ][min(verbose, 3)])
 
 
 @cli.command('filter-variants', short_help='Remove complex variants from VCF')
