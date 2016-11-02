@@ -205,11 +205,12 @@ def read_generating_worker(worker_id, fasta_fname, sample_name, read_module, rea
       reads = [None] * len(template)
       for s, (fo, p, l, ns, ne) in enumerate(template):
         pos, cigar, v_list, seq = rpc.generate_read(p, l, ns, ne, node_list)
+        if seq.count('N') > 2: break  # This combined with the else clause skips those read pairs where at least one read has too many 'N's
         if s == 1:
           seq = seq.translate(DNA_complement)[::-1]
         reads[fo] = (s, pos, l, cigar, v_list, seq)
-
-      out_queue.put(fastq_lines('{}:{}'.format(qname_serial_stub, n), region[0], cpy, reads))
+      else:
+        out_queue.put(fastq_lines('{}:{}'.format(qname_serial_stub, n), region[0], cpy, reads))
 
     t1 = time.time()
     logger.debug('Worker {} ({}): {} templates in {:0.2f}s ({:0.2f} t/s)'.format(worker_id, region, n + 1, t1 - t0, (n + 1)/(t1 - t0)))
