@@ -1,6 +1,13 @@
 Release Notes
 =============
 
+2.7.1 (Internal testing release)
+
+- Reads from N regions are discarded.
+  (Initially I thought to have this done via the bed file, but the reference is
+   peppered with stretches of 'N's and it's cumbersome for the user to craft such
+   a detailed BED file)
+
 2.7.0 (Internal testing release)
 
 - Added five empirical read models

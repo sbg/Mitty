@@ -20,6 +20,8 @@ Features
 
 _Mitty also supplies a VCF simulator. This is currently under development_
 
+It is also informative to browse the [release notes](release_notes.txt)
+
 Quickstart
 ==========
 
