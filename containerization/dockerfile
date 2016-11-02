@@ -1,16 +1,27 @@
 # Sit at the level of setup.py
 # docker build -f containerization/dockerfile -t images.sbgenomics.com/kghosesbg/mitty3:latest .
-# FROM ubuntu:xenial
-FROM images.sbgenomics.com/kghosesbg/mitty3:latest
+FROM ubuntu:xenial
+# FROM images.sbgenomics.com/kghosesbg/mitty3:latest
 
+# These are needed for click and Python 3
 ENV LC_ALL=C.UTF-8
 ENV LANG=C.UTF-8
 
-ADD . /root/mitty3
 RUN apt-get update && apt-get install -y \
   python3 \
   python3-pip \
-  zlib1g-dev
+  zlib1g-dev \
+  git \
+  tabix
+
+# Install bam util, which is what we use for bam diffs
+RUN git clone https://github.com/statgen/bamUtil.git \
+ && cd bamUtil \
+ && make cloneLib \
+ && make install INSTALLDIR=/usr/local/bin
+
+ADD . /root/mitty3
+
 RUN pip3 install -U pip
 RUN pip3 install /root/mitty3
 
@@ -19,6 +30,7 @@ RUN mitty --version
 
 # You can now test with
 # docker run --rm images.sbgenomics.com/kghosesbg/mitty3:latest mitty
+# docker run --rm images.sbgenomics.com/kghosesbg/mitty3:latest bam diff
 
 # And push with
 # docker push images.sbgenomics.com/kghosesbg/mitty3:latest
