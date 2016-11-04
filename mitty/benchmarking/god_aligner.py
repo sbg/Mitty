@@ -51,6 +51,8 @@ def process_multi_threaded(fasta, bam_fname, fastq1, fastq2=None, threads=1, max
   :param max_templates:
   :param sample_name:
   :return:
+
+  Note: The pysam sort invocation expects 2GB/thread to be available
   """
   rg_id = base64.b64encode(' '.join(sys.argv).encode('ascii'))
   fasta_ann = fasta + '.ann'
@@ -103,7 +105,7 @@ def process_multi_threaded(fasta, bam_fname, fastq1, fastq2=None, threads=1, max
 
   logger.debug('BAM sort ...')
   t0 = time.time()
-  pysam.sort('-o', bam_fname, bam_fname + '.unsorted')
+  pysam.sort('-m', '2G', '-@', str(threads), '-o', bam_fname, bam_fname + '.unsorted')
   t1 = time.time()
   logger.debug('... {:0.2f}s'.format(t1 - t0))
 
