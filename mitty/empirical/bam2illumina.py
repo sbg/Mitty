@@ -29,27 +29,29 @@ def process_bam_section(bam_fname, reference, every=1, min_mq=0, max_bq=94, max_
   bq_mat = np.zeros((2, max_bp, max_bq), dtype=np.uint64)
   tlen_mat = np.zeros(max_tlen, dtype=np.uint64)
   t0 = time.time()
-  n, min_rlen, max_rlen, mean_rlen, cnt_rlen = 0, 1e13, 0, 0, 0
+  n, min_rlen, max_rlen, mean_rlen, r_cnt = 0, 1e13, 0, 0, 0
   for n, r in enumerate(pysam.AlignmentFile(bam_fname, 'rb').fetch(reference=reference)):
     # We process every read (except secondary alignments) for BQ
     # We filter by minimum MQ for template length computations
     if n % every != 0: continue
     if r.flag > 255: continue  # Ignore secondary/split alignments
 
+    r_cnt += 1
     bq_r = r.query_qualities[::-1] if r.flag & 0x10 else r.query_qualities  # Take care of reverse complement
     bq_mat[0 if r.is_read1 else 1, range(len(bq_r)), bq_r] += 1
 
     if min_rlen > r.rlen: min_rlen = r.rlen
     if max_rlen < r.rlen: max_rlen = r.rlen
 
-    if r.mapq == 255: continue
-    if r.mapq < min_mq: continue
+    if r.mapq >= min_mq and r.mapq != 255 and r.is_read2 and abs(r.tlen) < max_tlen:
+      tlen_mat[abs(r.tlen)] += 1
 
-    if r.is_read2 and abs(r.tlen) < max_tlen: tlen_mat[abs(r.tlen)] += 1
     if n % 100000 == 0: logger.debug('Processed {} reads'.format(n))
+
   t1 = time.time()
   logger.debug('Took {}s to parse {} reads ({} r/s)'.format(t1 - t0, n, n/(t1 - t0)))
   return {
+    'r_cnt': r_cnt,
     'bq_mat': bq_mat,
     'tlen_mat': tlen_mat,
     'min_rlen': min_rlen,
@@ -97,7 +99,7 @@ def process_bam_parallel(bam_fname, pkl, model_description='Test model', every=1
     bq_mat += data['bq_mat']
     tlen_mat += data['tlen_mat']
 
-    r_cnt += int(data['bq_mat'].sum())
+    r_cnt += int(data['r_cnt'])
 
     min_rlen = min(min_rlen, data['min_rlen'])
     max_rlen = max(max_rlen, data['max_rlen'])
