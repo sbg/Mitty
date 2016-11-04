@@ -116,6 +116,7 @@ def process_bam_parallel(bam_fname, pkl, model_description='Test model', every=1
   pickle.dump({
     'model_class': 'illumina',
     'model_description': model_description,
+    'min_mq': min_mq,
     'bq_mat': bq_mat,
     'cum_bq_mat': cum_bq_mat,
     'tlen': tlen_mat,
