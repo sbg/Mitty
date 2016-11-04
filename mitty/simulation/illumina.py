@@ -176,8 +176,8 @@ def describe_model(model_name, model, figfile):
   import matplotlib.pyplot as plt
 
   fig = plt.figure(figsize=(6, 15))
-  plt.subplots_adjust(bottom=0.05, top=0.97)
-  fig.suptitle(model_name)
+  plt.subplots_adjust(bottom=0.05, top=0.92, hspace=0.4)
+  fig.suptitle('MODEL: {}'.format(model_name), ha='left')
 
   ax = plt.subplot(4,1,1)
   plot_template_length_distribution(model, ax, plt)
@@ -188,15 +188,15 @@ def describe_model(model_name, model, figfile):
   ax = plt.subplot(4,1,3)
   plot_BQ_heatmap(model, 1, ax, plt)
 
-  fig.text(0.01, 0.25, 'Model description:\n\n' + model['model_description'], va='top', wrap='True')
+  fig.text(0.1, 0.25, 'Model description:\n\n' + model['model_description'], va='top', wrap='True')
 
   plt.savefig(figfile)
 
 
 def plot_template_length_distribution(model, ax, plt):
-  ax.plot(model['tlen'])
-  ax.text(len(model['tlen']), plt.getp(ax, 'ylim')[1], 'n={}'.format(model['r_cnt']), ha='right', va='top')
-  plt.setp(ax, xlabel='Template length (bp)', ylabel='Read count')
+  ax.plot(model['tlen']/model['tlen'].max())
+  ax.text(len(model['tlen']), plt.getp(ax, 'ylim')[1], 'n={}'.format(model['tlen'].sum()), ha='right', va='top')
+  plt.setp(ax, xlabel='Template length (bp)', ylim=(0, 1.2), yticks=[], title='Template length distribution')
 
 
 def plot_BQ_heatmap(model, mate, ax, plt):
@@ -208,6 +208,4 @@ def plot_BQ_heatmap(model, mate, ax, plt):
   B = np.arange(65)
   bq_mean = np.dot(this_bq_mat, np.arange(65)) / this_bq_mat.sum(axis=1)
   plt.plot(range(1, model['max_rlen'] + 1), bq_mean, 'y', lw=2)
-  ax.text(plt.getp(ax, 'xlim')[1], plt.getp(ax, 'ylim')[1], 'Mate {}'.format(mate + 1),
-          ha='right', va='top')
-  plt.setp(ax, xlabel='Position on read (bp)', ylabel='BQ value')
+  plt.setp(ax, xlabel='Position on read (bp)', ylabel='BQ value', title='Base quality: Mate {}'.format(mate + 1))
