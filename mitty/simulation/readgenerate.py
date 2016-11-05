@@ -96,7 +96,7 @@ def process_multi_threaded(fasta_fname, vcf_fname, sample_name, bed_fname,
   vcf_df = vio.load_variant_file(vcf_fname, sample_name, bed_fname)
 
   in_queue = Queue()
-  out_queue = Queue()
+  out_queue = Queue(1000)  # This is the key to preventing workers from dying
 
   logger.debug('Starting {} workers'.format(threads))
   workers = []
