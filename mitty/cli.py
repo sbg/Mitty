@@ -174,10 +174,17 @@ def read_corruption(modelfile, fastq1_in, fastq1_out, seed, fastq2_in, fastq2_ou
 #   pass
 #
 #
-# @cli.command()
-# def genomes():
-#   """Functions for sample/population simulations"""
-#   pass
+@cli.command('sampled-genome', short_help='Create a sample VCF from a population VCF')
+@cli.option('--bed', multiple=True, 'BED files to determine ploidy for each chromosome. See help')
+def sampled_genome():
+  """Given a VCF representing all variants in a population and their allele frequencies
+  return a diploid sample VCF based on random sampling of the main list.
+
+  Ploidy and BED files: The ploidy of the generated chromosome is determined by the number of BED files
+  passed to it and the
+
+  """
+  pass
 
 
 @cli.command('god-aligner', short_help='Create a perfect BAM from simulated FASTQs')
