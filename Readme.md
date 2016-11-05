@@ -56,20 +56,6 @@ Run tests
 nosetests mitty.test -v
 ```
 
-Data note
----------
-The BED files and other small data files used in this example are found under examples/reads in the source
-distribution. The example assume that the commands are being run from inside this directory. 
-
-
-### VCF
-
-The original sample VCF for the examples below is the Genome In a Bottle truth data set for 
-NA12878_HG001/NISTv3.3.1/GRCh37 obtained from [the official NCBI ftp site][giab]. I assume that this
-file has been saved under the name hg001.vcf.gz in the working directory. The bed file that is used
-(hg001.bed) selects out 1MB portions of chromosome 1 and chromosome 10.
-
-[giab]: ftp://ftp-trace.ncbi.nlm.nih.gov/giab/ftp/release/NA12878_HG001/NISTv3.3.1/GRCh37/
 
 Program help
 ------------
@@ -92,9 +78,42 @@ Running commands with the verbose option allows you to tune what messages (rangi
 mitty -v{1,2,3,4} <command>
 ```
 
+Generate reads
+----------------
 
-Prepare VCF file for taking reads from
---------------------------------------
+```
+mitty -v4 generate-reads ~/Data/human_g1k_v37_decoy.fasta hg001.filt.vcf.gz INTEGRATION hg001.bed 1kg-pcr-free.pkl 30 7 >(gzip > r1.fq.gz) --fastq2 >(gzip > r2.fq.gz) --threads 2
+```
+
+
+Detailed tutorial with commentary
+=================================
+
+
+
+
+
+Generating reads
+----------------
+
+### Data note
+
+The BED files and other small data files used in this example are found under examples/reads in the source
+distribution. The examples assume that the commands are being run from inside this directory. The commands are
+found in the `run.sh`
+
+
+### VCF
+
+The original sample VCF for the examples below is the Genome In a Bottle truth data set for 
+NA12878_HG001/NISTv3.3.1/GRCh37 obtained from [the official NCBI ftp site][giab]. I assume that this
+file has been saved under the name hg001.vcf.gz in the working directory. The bed file that is used
+(hg001.bed) selects out 1MB portions of chromosome 1 and chromosome 10.
+
+[giab]: ftp://ftp-trace.ncbi.nlm.nih.gov/giab/ftp/release/NA12878_HG001/NISTv3.3.1/GRCh37/
+
+
+### Prepare VCF file for taking reads from
 The read simulator can not properly generate ground truth reads from complex variants (variant calls where the REF and
 ALT are both larger than 1 bp). Such calls must be filtered from a VCF file before it can be used as a sample to
 generate reads from.
@@ -133,8 +152,7 @@ The file `hg001.filt.vcf.gz` can now be used to generate reads and will serve as
 
 
 
-Listing and inspecting read models
-----------------------------------
+### Listing and inspecting read models
 
 Listing Mitty's built in models
 ```
@@ -153,8 +171,8 @@ mitty describe-read-model 1kg-pcr-free.pkl model.png
 See later for a list of read models supplied with Mitty and their characteristics
 
 
-Prepare a Illumina type read model from a BAM
----------------------------------------------
+### Prepare a Illumina type read model from a BAM
+
 **This is only needed if one of the existing read models does not match your requirements. This allows you to 
 sample reads from a BAM and build an empirical read model for Illumina**
 _The example assumes that a sample BAM file (sample.bam) has been downloaded to the working directory_
@@ -164,8 +182,8 @@ mitty -v4 bam2illumina sample.bam ./rd-model.pkl "This model is taken from a BAM
 ```
 
   
-Generating perfect reads
-------------------------
+### Generating perfect reads
+
 ```
 mitty -v4 generate-reads ~/Data/human_g1k_v37_decoy.fasta hg001.filt.vcf.gz INTEGRATION hg001.bed 1kg-pcr-free.pkl 30 7 >(gzip > r1.fq.gz) --fastq2 >(gzip > r2.fq.gz) --threads 2
 ```
@@ -176,8 +194,8 @@ folder). It will then treat the model file name as a path and try and load that 
 file system - which is the case in this particular example.)_
 
 
-Corrupting reads
-----------------
+### Corrupting reads
+
 The reads generated using the previous command have no base call errors. Base call errors can be introduced into the
 reads using the following command.
 
@@ -198,8 +216,8 @@ Mate 2:
 can be compared with the empirical model profile shown in the Appendix for the `1kg-pcr-free.pkl` model.
 
 
-Alignment with BWA
-------------------
+### Alignment with BWA
+
 _(Assumes bwa and samtools are installed)_
 ```
 bwa mem ~/Data/human_g1k_v37_decoy.fasta r1c.fq.gz r2c.fq.gz | samtools view -bSho out.bam
@@ -216,10 +234,10 @@ Since the qname carries the correct alignment and CIGAR string you can match tha
 CIGAR string for spot checks.
 
 
-Alignment diagnostics
----------------------
+### Alignment diagnostics
 
-## Mapping quality
+
+#### Mapping quality
 ```
 mitty -v4 mq-plot bwac.bam bwac.mq.csv bwac.mq.png
 ```
@@ -227,7 +245,7 @@ mitty -v4 mq-plot bwac.bam bwac.mq.csv bwac.mq.png
 ![MQ analysis](docs/images/bwac.mq.png?raw=true "MQ analysis")
 
 
-### Strict scoring
+##### Strict scoring
 The normal alignment scoring mode is to compute the difference between the aligned read position and each breakpoint in
 the correct read alignment and then take the minimum of these differences. This gives credit for a 'partial' alignment
 Typically this happens when the read covers a larg(er) insertion or deletion and the aligner is able to correctly place
@@ -246,7 +264,7 @@ Note the very asymmetric nature of the mean MQ plot about d_err = 0. This is bec
 softclip (not due to an insertion) will have it's POS value to the right of the strictly correct alignment POS.
 
 
-## Alignment error analysis
+#### Alignment error analysis
 ```
 mitty -v4 derr-plot bwac.bam bwac.derr.csv bwac.derr.png
 ```
@@ -255,8 +273,8 @@ mitty -v4 derr-plot bwac.bam bwac.derr.csv bwac.derr.png
 
 
 
-Perfect BAM (God aligner)
--------------------------
+### Perfect BAM (God aligner)
+
 Passing the simulated FASTQ through the god aligner produces a "perfect BAM" which can be used as a truth BAM
 for comparing alignments from different aligners. This truth BAM can also be used to test variant callers by
 removing one moving part (the aligner).
@@ -265,8 +283,8 @@ removing one moving part (the aligner).
 mitty -v4 god-aligner ~/Data/human_g1k_v37_decoy.fasta r1c.fq.gz perfect.bam --fastq2 r2c.fq.gz --threads 4
 ```
 
-Find differences in alignments
-------------------------------
+### Find differences in alignments
+
 (This requires bamUtils to be installed. I found release 1.0.14 to work, but repository head NOT to)
 
 ```
@@ -274,6 +292,23 @@ bam diff --in1 bwac.bam --in2 perfect.bam --out diffd.unsorted.bam
 samtools sort diffd.unsorted.bam > diffd.bam
 samtools index diffd.bam
 ```
+
+
+Generating samples (genomes)
+----------------------------
+Mitty also has features to generate simulated genomes in the form of VCF files. 
+
+### Sampled Genomes
+
+The `sampled-genome` command can, given a VCF representing all variants in a population and their allele 
+frequencies, return a diploid sample VCF based on random sampling of the main list.
+
+Ploidy and BED files: The ploidy of the generated chromosome is determined by the number of BED files
+passed to the program. So you would pass two BED files for a diploid genome, three for genomes where some
+chromosomes have trisomy etc. 
+
+The program checks how many times a chromosome appears in the BED files and this determines the ploidy of a
+chromosome. So, for example here are some 
 
 
 Appendix
