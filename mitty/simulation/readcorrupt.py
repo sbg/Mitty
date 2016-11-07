@@ -31,7 +31,7 @@ def multi_process(read_module, read_model, fastq1_in, fastq1_out, fastq2_in=None
   seed_rng = np.random.RandomState(seed)
 
   logger.debug('Starting {} workers'.format(processes))
-  in_queue, out_queue = Queue(1000), Queue(1000)
+  in_queue, out_queue = Queue(10000), Queue(10000)
   p_list = [Process(target=worker,
                     args=(i, read_module, read_model, in_queue, out_queue, seed_rng.randint(SEED_MAX)))
             for i in range(processes)]
