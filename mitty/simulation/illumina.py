@@ -70,8 +70,7 @@ def _templates_for_region(p_min, p_max, model, tloc_rng, tlen_rng, shuffle_rng):
   ts = tloc_rng.geometric(p=p, size=est_block_size).cumsum() + p_min + 1
   shuffle_rng.shuffle(ts)
   tl = np.searchsorted(model['cum_tlen'], tlen_rng.rand(ts.shape[0]))
-  # tl = (tlen_rng.randn(ts.shape[0]) * tlen_std + tlen).astype(int)
-  tl.clip(rlen)
+  tl.clip(rlen, out=tl)
   te = ts + tl
   idx = (te < p_max)
   return ts[idx], te[idx]

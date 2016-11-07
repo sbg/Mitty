@@ -31,7 +31,7 @@ def multi_process(read_module, read_model, fastq1_in, fastq1_out, fastq2_in=None
   seed_rng = np.random.RandomState(seed)
 
   logger.debug('Starting {} workers'.format(processes))
-  in_queue, out_queue = Queue(), Queue()
+  in_queue, out_queue = Queue(10000), Queue(10000)
   p_list = [Process(target=worker,
                     args=(i, read_module, read_model, in_queue, out_queue, seed_rng.randint(SEED_MAX)))
             for i in range(processes)]
@@ -83,7 +83,7 @@ def worker(worker_id, read_module, read_model, in_queue, out_queue, seed):
   """
   corrupt_rng = np.random.RandomState(seed)
   logger.debug('Starting worker {} ...'.format(worker_id))
-  cnt, t0 = 0, time.time()
+  cnt, t0 = -1, time.time()
   for cnt, template in enumerate(iter(in_queue.get, __process_stop_code__)):
     out_queue.put(read_module.corrupt_template(read_model, template, corrupt_rng))
     if cnt % 100000 == 0:

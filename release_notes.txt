@@ -1,6 +1,11 @@
 Release Notes
 =============
 
+2.7.3 (Internal testing release)
+
+- t_len < r_len bug in Illumina model fixed
+- queue length explicitly set to avoid out of memory errors in Linux
+
 2.7.1 (Internal testing release)
 
 - Reads from N regions are discarded.
