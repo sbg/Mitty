@@ -97,28 +97,7 @@ def process_multi_threaded(fasta, bam_fname, fastq1, fastq2=None, threads=1, max
   t1 = time.time()
   logger.debug('Processed {} templates in {:0.2f}s ({:0.2f} t/s)'.format(cnt, t1 - t0, cnt/(t1 - t0)))
 
-  logger.debug('Combining BAM fragments ...')
-  t0 = time.time()
-  pysam.cat('-o', bam_fname + '.unsorted', *file_fragments)
-  t1 = time.time()
-  logger.debug('... {:0.2f}s'.format(t1 - t0))
-
-  logger.debug('BAM sort ...')
-  t0 = time.time()
-  pysam.sort('-m', '2G', '-@', str(threads), '-o', bam_fname, bam_fname + '.unsorted')
-  t1 = time.time()
-  logger.debug('... {:0.2f}s'.format(t1 - t0))
-
-  logger.debug('BAM index ...')
-  t0 = time.time()
-  pysam.index(bam_fname)
-  t1 = time.time()
-  logger.debug('... {:0.2f}s'.format(t1 - t0))
-
-  logger.debug('Removing intermediate files')
-  for f in file_fragments:
-    os.remove(f)
-  os.remove(bam_fname + '.unsorted')
+  merge_sort_fragments(bam_fname, file_fragments, threads)
 
 
 def disciple(bam_fname, bam_hdr, in_queue):
@@ -181,3 +160,21 @@ def write_perfect_reads(qname, ref_dict, read_data, fp):
 
   for r in reads:
     fp.write(r)
+
+
+def merge_sort_fragments(bam_fname, file_fragments, threads):
+  logger.debug('Merge sorting BAM fragments ...')
+  t0 = time.time()
+  pysam.merge('-O', 'BAM', '-l', '9', '-@', str(threads), '-f', bam_fname + '.unsorted', *file_fragments)
+  t1 = time.time()
+  logger.debug('... {:0.2f}s'.format(t1 - t0))
+
+  logger.debug('Removing fragments')
+  for f in file_fragments:
+    os.remove(f)
+
+  logger.debug('BAM index ...')
+  t0 = time.time()
+  pysam.index(bam_fname)
+  t1 = time.time()
+  logger.debug('... {:0.2f}s'.format(t1 - t0))
