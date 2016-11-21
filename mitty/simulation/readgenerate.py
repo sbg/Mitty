@@ -1,44 +1,6 @@
-"""Contains the logic for handling read model invocation, read creation and writing"""
-
-__qname_format__ = '@read_serial|chrom|copy|strand|pos|rlen|cigar|vs1,vs2,...|strand|pos|rlen|cigar|vs1,vs2,...'
-__qname_format_details__ = """
-@read_serial|chrom|copy|strand|pos|rlen|cigar|vs1,vs2,...|strand|pos|rlen|cigar|vs1,vs2,...
-    |          |     |    |     |    |    |        |         |                      |
- unique        |     |    |     | read    |        |         ---- repeated for ------
- code for      |     |    |     | len     |        |          other read in template
- template      |     |    |     |         |        |
-               |     |    |     |     cigar    comma separated
-      chrom read     |    |     |              list of sizes of
-  was taken from     |    |     |              variants this read
-       One based     |    |     |              covers
-                     |    |     |
-                     |    |     |
-    copy of chrom read    |     |
- was taken from (0, 1)    |     |
-                          |     |
-         forward strand (0)     |
-      or reverse strand (1)     |
-                                |
-                      pos of read
-                        One based
-
-The chrom and pos are one based to make comparing qname info in genome browser easier
-
-For reads from inside a long insertion the CIGAR has the following format:
-
-  '>p:nI'
-
-where:
-
- '>' is the unique key that indicates a read inside a long insertion
- 'p' is how many bases into the insertion branch the read starts
- 'n' is simply the length of the read
-"""
+"""Contains the logic for handling read model invocation and read creation"""
 import time
 from multiprocessing import Process, Queue
-import queue
-from collections import namedtuple
-import re
 
 import pysam
 import numpy as np
@@ -251,72 +213,6 @@ def writer(fastq1_out, fastq2_out=None, data_queue=None):
 
   t1 = time.time()
   logger.debug('Writer finished: {} templates in {:0.2f}s ({:0.2f} t/s)'.format(cnt + 1, t1 - t0, (cnt + 1)/(t1 - t0)))
-
-
-ri = namedtuple('ReadInfo', ['sample', 'rid', 'chrom', 'cpy', 'strand', 'pos', 'rlen', 'cigar', 'special_cigar', 'v_list'])
-
-
-def parse_qname(qname):
-  """Given a Mitty qname return us the POS and CIGAR as we would put in a BAM. There is also a special_cigar
-  which is set for reads completely inside long insertions
-
-  :param qname:
-  :return: pos, cigar, special_cigar
-  """
-  def _parse_(_cigar, _v_list):
-    """
-    Parse cigar to extract special_cigar if needed
-    Parse v_list
-
-    :param _cigar:
-    :param _v_list:
-    :return:
-    """
-    if _cigar[0] == '>':  # This is a special_cigar for a read from inside an insertion
-      _special_cigar = _cigar
-      _cigar = _cigar.split(':')[-1]
-    else:
-      _special_cigar = None
-
-    return _cigar, _special_cigar, [int(v) for v in _v_list.split(',') if v is not '']
-
-  d = qname.split('|')
-  rid, chrom, cpy = d[:3]
-  sample, _ = rid.split(':', 1)
-  cpy = int(cpy)
-
-  return [
-    ri(sample, rid, chrom, cpy, int(strand), int(pos), int(rlen), *_parse_(cigar, v_list))
-    for strand, pos, rlen, cigar, v_list in zip(d[3::5], d[4::5], d[5::5], d[6::5], d[7::5])
-  ]
-
-
-cigar_parser = re.compile(r'(\d+)(\D)')
-def score_alignment_error(r, ri, max_d=200, strict=False):
-  """
-  :param r: aligned read
-  :param ri: readinfo for correct alignment
-  :param strict: If True, soft clipped alignments or split alignments are marked incorrect
-                 if False alignment to breakpoints gets full score
-  :return:
-  """
-  d_err = max_d
-  if strict or ri.cigar[0] == '>':
-    # Both the strict case and the case where the read comes from inside a long insertion are scored
-    # similarly
-    d_err = max(min((r.pos + 1 - ri.pos if r.reference_name == ri.chrom else max_d), max_d), -max_d)
-  else:  # Score read as correct if read is placed at any breakpoint correctly
-    if r.reference_name == ri.chrom:
-      correct_pos = ri.pos
-      for cnt, op in cigar_parser.findall(ri.cigar):
-        if op == '=' or op == 'M' or op == 'X':
-          if abs(r.pos + 1 - correct_pos) < abs(d_err):
-            d_err = r.pos + 1 - correct_pos
-          correct_pos += int(cnt)
-        elif op == 'D':
-          correct_pos += int(cnt)
-
-  return d_err
 
 
 def validate_templates_from_read_model(tplt):
