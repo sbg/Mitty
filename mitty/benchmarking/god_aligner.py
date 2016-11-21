@@ -40,7 +40,9 @@ def parse_ann(fn):
   for n in range(0, len(ln), 2)]
 
 
-def process_multi_threaded(fasta, bam_fname, fastq1, fastq2=None, threads=1, max_templates=None, sample_name='Seven'):
+def process_multi_threaded(
+  fasta, bam_fname, fastq1, fastq2=None, threads=1, max_templates=None, sample_name='Seven',
+  sort_and_index=True):
   """
 
   :param bam_fname:
@@ -50,6 +52,10 @@ def process_multi_threaded(fasta, bam_fname, fastq1, fastq2=None, threads=1, max
   :param threads:
   :param max_templates:
   :param sample_name:
+  :param sort_and_index: If True, the output BAMs will be collated into one bam, sorted and indexed
+                         the N output BAMs created by the individual workers will be deleted at the end.
+                         If False, the N output BAMs created by the individual workers will remain. This
+                         option allows users to merge, sort and index the BAM fragments with their own tools
   :return:
 
   Note: The pysam sort invocation expects 2GB/thread to be available
@@ -60,7 +66,7 @@ def process_multi_threaded(fasta, bam_fname, fastq1, fastq2=None, threads=1, max
 
   # Start worker processes
   logger.debug('Starting {} processes'.format(threads))
-  file_fragments = ['{}.{:04}'.format(bam_fname, i) for i in range(threads)]
+  file_fragments = ['{}.{:04}.bam'.format(bam_fname, i) for i in range(threads)]
 
   in_queue = Queue()
   p_list = [Process(target=disciple, args=(file_fragments[i], bam_hdr, in_queue)) for i in range(threads)]
@@ -97,7 +103,8 @@ def process_multi_threaded(fasta, bam_fname, fastq1, fastq2=None, threads=1, max
   t1 = time.time()
   logger.debug('Processed {} templates in {:0.2f}s ({:0.2f} t/s)'.format(cnt, t1 - t0, cnt/(t1 - t0)))
 
-  merge_sort_fragments(bam_fname, file_fragments, threads)
+  if sort_and_index:
+    merge_sort_fragments(bam_fname, file_fragments, threads)
 
 
 def disciple(bam_fname, bam_hdr, in_queue):
@@ -163,15 +170,22 @@ def write_perfect_reads(qname, ref_dict, read_data, fp):
 
 
 def merge_sort_fragments(bam_fname, file_fragments, threads):
-  logger.debug('Merge sorting BAM fragments ...')
+  logger.debug('Combining BAM fragments ...')
   t0 = time.time()
-  pysam.merge('-O', 'BAM', '-l', '9', '-@', str(threads), '-f', bam_fname + '.unsorted', *file_fragments)
+  pysam.cat('-o', bam_fname + '.unsorted', *file_fragments)
   t1 = time.time()
   logger.debug('... {:0.2f}s'.format(t1 - t0))
 
   logger.debug('Removing fragments')
   for f in file_fragments:
     os.remove(f)
+
+  logger.debug('BAM sort ...')
+  t0 = time.time()
+  pysam.sort('-m', '2G', '-@', str(threads), '-o', bam_fname, bam_fname + '.unsorted')
+  t1 = time.time()
+  logger.debug('... {:0.2f}s'.format(t1 - t0))
+  os.remove(bam_fname + '.unsorted')
 
   logger.debug('BAM index ...')
   t0 = time.time()
