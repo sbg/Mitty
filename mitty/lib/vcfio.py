@@ -106,7 +106,8 @@ def parse(v, cpy):
   """Take a pysam.cbcf.VariantRecord and convert it into a Variant object
 
   :param v: variant
-  :param cpy: 0 = 1|0 1 = 0|1
+  :param cpy: 0 = 1|0, 1 = 0|1 OR
+              0 = 1|0|0, 1 = 0|1|0, 2 = 0|0|1 etc
   :return: Variant(object)
   """
   if v.samples[0]['GT'][cpy] == 0:  # Not present in this copy

@@ -39,6 +39,23 @@ mitty -v4 generate-reads illumina150x500.json ~/Data/human_g1k_v37_decoy.fasta .
 mitty -v4 generate-reads illumina150x500.json ~/Data/human_g1k_v37_decoy.fasta ../hg19/HG002.filtered.vcf.gz INTEGRATION ../hg19/hg19_10_breakpoints.bed 7 --fastq1 >(gzip > r1.fq.gz) --fastq2 >(gzip > r2.fq.gz) --threads 2
 
 
+mitty -v4 generate-reads illumina150x500.json ~/Data/human_g1k_v37_decoy.fasta ../hg19/hg19.empty.ploidy.vcf.gz empty ../hg19/hg19_10_breakpoints.bed 7 --fastq1 >(gzip > r1.fq.gz) --fastq2 >(gzip > r2.fq.gz) --threads 1
+
+
+Alignment with BWA
+------------------
+
+bwa mem ~/Data/human_g1k_v37_decoy.fasta r1.fq.gz r2.fq.gz | samtools view -bSho out.bam
+samtools sort out.bam > sorted.bam
+samtools index sorted.bam
+
+Perfect alignments
+------------------
+
+mitty -v4 god-aligner ~/Data/human_g1k_v37_decoy.fasta r1.fq.gz test.bam --fastq2 r2.fq.gz --max-templates 1000
+
+
+
 Empirical Base Quality Score
 ----------------------------
 

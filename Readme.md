@@ -303,12 +303,44 @@ Mitty also has features to generate simulated genomes in the form of VCF files.
 The `sampled-genome` command can, given a VCF representing all variants in a population and their allele 
 frequencies, return a diploid sample VCF based on random sampling of the main list.
 
-Ploidy and BED files: The ploidy of the generated chromosome is determined by the number of BED files
-passed to the program. So you would pass two BED files for a diploid genome, three for genomes where some
-chromosomes have trisomy etc. 
+**Populations:** 
 
-The program checks how many times a chromosome appears in the BED files and this determines the ploidy of a
-chromosome. So, for example here are some 
+  The program is passed an `info-af` parameter that looks for an INFO field of that name. The
+  program interprets the value of that field as the alternative allele frequency and uses that to sample the
+  respective variant. If you have a file, like say that from the 1000G project, that represents allele frequencies
+  from multiple populations for each variant, you can simulate individuals from these different populations
+  by selecting the appropriate tags. e.g. for the 1000G VCFs, `EUR_AF` for Europeans, `AMR_AF` etc.
+
+  If this parameter is omitted the `af` parameter needs to be supplied. This sets a flat alternative allele 
+  frequency for all variants that is used for sampling.
+
+
+**Ploidy and BED files:** 
+
+  The program accepts multiple BED files. A chromosome may appear zero or more times in each bed file. 
+  The ploidy of each simulated chromosome is the number of BED files in which it appears at least once.
+
+  Say, for example, we have bed files that look like
+
+```
+bed1:
+1 10  1000
+2 10  5000
+
+bed2:
+1 2000  3000
+
+bed3:
+2 10 5000
+```
+
+would result in diploid simulations for chrom 1 and chrom 2 if bed1, bed2 and bed3 are all passed.
+
+On the other hand, if only bed1 and bed2 were passed, it would result in a VCF diploid for chrom1 
+but haploid for chrom2.
+
+Also note that all variants on chrom 1 would be heterozygous since the chrom1 regions do not overlap while
+variants on chrom2 would be a random mix of homozygous and heterozygous.
 
 
 Appendix
@@ -325,7 +357,3 @@ Built-in read models
 ![](docs/images/hiseq-2500-v1-pcr-free.png?raw=true)
 
 ![](docs/images/hiseq-X-v1-HLI.png?raw=true)
-
-
-
-

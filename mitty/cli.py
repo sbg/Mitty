@@ -175,15 +175,52 @@ def read_corruption(modelfile, fastq1_in, fastq1_out, seed, fastq2_in, fastq2_ou
 #
 #
 @cli.command('sampled-genome', short_help='Create a sample VCF from a population VCF')
-@cli.option('--bed', multiple=True, 'BED files to determine ploidy for each chromosome. See help')
-def sampled_genome():
-  """Given a VCF representing all variants in a population and their allele frequencies
-  return a diploid sample VCF based on random sampling of the main list.
+@click.argument('vcfin', type=click.Path(exists=True))
+@click.argument('vcfout', type=click.Path())
+@click.option('--info-af', help='Population for AF')
+@click.option('--af', type=float, help='fixed AF value if info-af not available')
+@click.option('--bed', multiple=True, help='BED files to determine ploidy for each chromosome. See help')
+def sampled_genome(vcfin, vcfout, info_af, af, bed):
+  """Given a VCF representing all variants in a population and their allele frequencies,
+return a sample VCF based on random sampling of the main list.
 
-  Ploidy and BED files: The ploidy of the generated chromosome is determined by the number of BED files
-  passed to it and the
+**Populations:**
 
-  """
+  The program is passed an `info-af` parameter that looks for an INFO field of that name. The
+  program interprets the value of that field as the alternative allele frequency and uses that to sample the
+  respective variant. If you have a file, like say that from the 1000G project, that represents allele frequencies
+  from multiple populations for each variant, you can simulate individuals from these different populations
+  by selecting the appropriate tags. e.g. for the 1000G VCFs, `EUR_AF` for Europeans, `AMR_AF` etc.
+
+  If this parameter is omitted the `af` parameter needs to be supplied. This sets a flat alternative allele
+  frequency for all variants that is used for sampling.
+
+
+**Ploidy and BED files:**
+
+  The program accepts multiple BED files. A chromosome may appear zero or more times in each bed file.
+  The ploidy of each simulated chromosome is the number of BED files in which it appears at least once.
+
+  Say, for example, we have bed files that look like
+
+\b
+    bed1:
+    1 10  1000
+    2 10  5000
+\b
+    bed2:
+    1 2000  3000
+\b
+    bed3:
+    2 10 5000
+
+ These would result in diploid simulations for chrom 1 and chrom 2 if bed1, bed2 and bed3 are all passed.
+
+  On the other hand, if only bed1 and bed2 were passed, it would result in a VCF diploid for chrom1
+but haploid for chrom2.
+
+  Also note that all variants on chrom 1 would be heterozygous since the chrom1 regions do not overlap while
+variants on chrom2 would be a random mix of homozygous and heterozygous."""
   pass
 
 
@@ -195,7 +232,8 @@ def sampled_genome():
 @click.option('--sample-name', help='If supplied, this is put into the BAM header')
 @click.option('--max-templates', type=int, help='For debugging: quits after processing these many templates')
 @click.option('--threads', default=2)
-def god_aligner(fasta, bam, sample_name, fastq1, fastq2, max_templates, threads):
+@click.option('--no-sort', is_flag=True, help='Leave the unsorted BAM fragments as is. Required if using an external tool to merge + sort + index')
+def god_aligner(fasta, bam, sample_name, fastq1, fastq2, max_templates, threads, no_sort):
   """Given a FASTA.ann file and FASTQ made of simulated reads,
      construct a perfectly aligned BAM from them.
 
@@ -208,7 +246,7 @@ def god_aligner(fasta, bam, sample_name, fastq1, fastq2, max_templates, threads)
      Note: The program uses the fasta.ann file to construct the BAM header"""
   import mitty.benchmarking.god_aligner as god
   god.process_multi_threaded(
-    fasta, bam, fastq1, fastq2, threads, max_templates, sample_name)
+    fasta, bam, fastq1, fastq2, threads, max_templates, sample_name, not no_sort)
 
 
 @cli.command('filter-bam', short_help='Refine alignment scoring')
