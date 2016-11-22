@@ -5,7 +5,6 @@ TODO: Figure out the logistics of having diffrent models and loading GC-bias, se
 """
 import numpy as np
 
-
 SEED_MAX = (1 << 32) - 1  # Used for seeding rng
 
 
@@ -116,18 +115,37 @@ def corrupt_template(model, template, corrupt_rng):
   """Given a pair of read sequences, return a corrupted read pair
 
   :param model:
-  :param template: [qname, seq, seq]
-  :param corrupt_rng:
-  :return: [(qname, seq, bq), (qname, seq, bq)]
+  :param template:
+    (
+      index,  - same as the original index from the perfect reads
+      sample_name,
+      chrom,
+      copy,
+      (
+        (strand, pos, cigar, (v1,v2,...), MD, seq, qual)
+        ...  [repeated as for as many reads in this template]
+      )
+    )
 
-  This function does not use the qname, but conceivably we could have models (like pacbio) that may need this
-  information and the original reference info
+  :param corrupt_rng:
+  :return:
+    (
+      index,  - same as the original index from the perfect reads
+      sample_name,
+      chrom,
+      copy,
+      (
+        (strand, pos, cigar, (v1,v2,...), MD, seq, qual)
+        ...  [repeated as for as many reads in this template]
+      )
+    )
   """
   bq_mat = model['cum_bq_mat']
-  return [
-    (template[0],) + corrupt_single_read(seq, bq_mat[mate, :, :], corrupt_rng)
-    for seq, mate in zip(template[1:], [0, 1])
-  ]
+  # index, sample_name, chrom, cpy = template[:4]
+  return template[:4] + (tuple(
+    ((strand, pos, cigar, v_list) + corrupt_single_read(seq, bq_mat[mate, :, :], corrupt_rng)
+     for (strand, pos, cigar, v_list, _, seq, _), mate in zip(template[4], [0, 1]))
+  ),)
 
 
 base_rot = {
@@ -145,7 +163,7 @@ def corrupt_single_read(seq, bq_mat, corrupt_rng):
   :param seq:
   :param bq_mat:
   :param corrupt_rng:
-  :return:
+  :return: MD, seq, qual
   """
   rlen = len(seq)
   corrupt_seq = list(seq)
@@ -161,7 +179,7 @@ def corrupt_single_read(seq, bq_mat, corrupt_rng):
     if base_call_rnd[n] < phred_p[bq]:
       corrupt_seq[n] = base_rot.get(seq[n], 'NNN')[base_rnd[n]]
 
-  return ''.join(corrupt_seq), ''.join([chr(b + 33) for b in bq_seq])
+  return '', ''.join(corrupt_seq), ''.join([chr(b + 33) for b in bq_seq])  # TODO: Work out how to do MD tag
 
 
 def describe_model(model_name, model, figfile):

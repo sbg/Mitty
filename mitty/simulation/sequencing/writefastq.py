@@ -62,8 +62,10 @@ def writer(fastq1_out, side_car_out, fastq2_out=None, data_queue=None):
         sample_name,
         chrom,
         copy,
-        (strand, pos, cigar, (v1,v2,...), MD, seq, qual)
+        (
+          (strand, pos, cigar, (v1,v2,...), MD, seq, qual)
         ...  [repeated as for as many reads in this template]
+        )
       )
 
   :return:
@@ -78,7 +80,7 @@ def writer(fastq1_out, side_car_out, fastq2_out=None, data_queue=None):
     qname = '@{}|{}|{}:{}|'.format(template[0] or base_repr(cnt, 36), *template[1:4])
     # strand:pos:cigar:v1,v2,...:MD|strand:pos:cigar:v1,v2,...:MD|
     for r in template[4]:
-      qname += '{}:{}:{}:{}:{}|'.format(*r[:3], str(r[3])[1:-1], r[4])
+      qname += '{}:{}:{}:{}:{}|'.format(*r[:3], str(r[3])[1:-1].replace(' ', ''), r[4])
 
     if len(qname) > 254:
       side_car_fp.write(qname + '\n')
@@ -95,16 +97,17 @@ def writer(fastq1_out, side_car_out, fastq2_out=None, data_queue=None):
 
 
 ri = namedtuple('ReadInfo',
-                ['sample', 'chrom', 'cpy', 'strand', 'pos', 'cigar', 'special_cigar', 'v_list'])
+                ['index', 'sample', 'chrom', 'cpy', 'strand', 'pos', 'cigar', 'special_cigar', 'v_list', 'md'])
 
 
-def parse_qname(qname):
+def parse_qname(qname, long_qname_table=None):
   """Given a Mitty qname return us the POS and CIGAR as we would put in a BAM. There is also a special_cigar
   which is set for reads completely inside long insertions
 
   @index|sn|chrom:copy|strand:pos:cigar:v1,v2,...:MD|strand:pos:cigar:v1,v2,...:MD|
 
   :param qname:
+  :param long_qname_table: If present, is a map of qname index and qname for just the long qnames
   :return: pos, cigar, special_cigar
   """
   def _parse_(_cigar, _v_list):
@@ -126,13 +129,35 @@ def parse_qname(qname):
 
   def _split_(_r):
     strand, pos, cigar, v_list, md = _r.split(':')
-    return (int(strand), int(pos)) + _parse_(cigar, v_list)
+    return (int(strand), int(pos)) + _parse_(cigar, v_list) + (md,)
 
-  d = qname.split('|')
-  idx, sample = d[:2]
+  if qname[-1] != '|':  # Truncated qname
+    if long_qname_table is None:
+      raise ValueError('Long qname with no table lookup')  # It's the caller's responsibility to handle this error
+    _qname = long_qname_table.get(qname.split('|', 1)[0], None)
+    if _qname is None:
+      raise ValueError('Long qname with no table lookup: {}, {}'.format(qname.split('|', 1)[0], qname))
+      # It's the caller's responsibility to handle this error
+    qname = _qname
+
+  d = qname.split('|')[:-1]  # The last one is a dummy
+  serial, sample = d[:2]
   chrom, cpy = d[2].split(':')
   cpy = int(cpy)
   return [
-    ri(sample, chrom, cpy, *_split_(r))
+    ri(serial, sample, chrom, cpy, *_split_(r))
     for r in d[3:]
   ]
+
+
+# This assumes that the longer qnames are relatively rare, so this sidecar file is relatively small
+# and system memory is sufficient to store all such exceptions at once
+def load_qname_sidecar(sidecar_fn):
+  def parse_sidecar_file(_fn):
+    with open(_fn, 'r') as fp:
+      for ln in fp:
+        yield ln.split('|', 1)[0][1:], ln[1:]
+  return {
+    k: v
+    for k, v in parse_sidecar_file(sidecar_fn)
+  }

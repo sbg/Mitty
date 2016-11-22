@@ -180,8 +180,10 @@ def read_generating_worker(worker_id, fasta_fname, sample_name, read_module, rea
         #   sample_name,
         #   chrom,
         #   copy,
-        #   (strand, pos, cigar, (v1,v2,...), MD, seq, qual)
-        #   ...  [repeated as for as many reads in this template]
+        #   (
+        #     (strand, pos, cigar, (v1,v2,...), MD, seq, qual)
+        #     ...  [repeated as for as many reads in this template]
+        #   )
         # )
         out_queue.put((None, sample_name, region[0], cpy, reads))
 

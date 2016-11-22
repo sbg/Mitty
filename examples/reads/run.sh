@@ -25,6 +25,7 @@ mitty -v4 generate-reads \
 mitty -v4 corrupt-reads \
   1kg-pcr-free.pkl \
   r1.fq.gz >(gzip > r1c.fq.gz) \
+  lq.txt lqc.txt \
   7 \
   --fastq2-in r2.fq.gz \
   --fastq2-out >(gzip > r2c.fq.gz) \

@@ -146,16 +146,19 @@ def generate_reads(fasta, vcf, sample_name, bed, modelfile, coverage, seed, fast
 @click.argument('modelfile')
 @click.argument('fastq1_in', type=click.Path(exists=True))
 @click.argument('fastq1_out', type=click.Path())
+@click.argument('sidecar_in', type=click.Path(exists=True))
+@click.argument('sidecar_out', type=click.Path())
 @click.argument('seed', type=int)
 @click.option('--fastq2-in', type=click.Path(exists=True))
 @click.option('--fastq2-out', type=click.Path())
 @click.option('--threads', default=2)
-def read_corruption(modelfile, fastq1_in, fastq1_out, seed, fastq2_in, fastq2_out, threads):
+def read_corruption(modelfile, fastq1_in, fastq1_out, sidecar_in, sidecar_out, seed, fastq2_in, fastq2_out, threads):
   """Apply corruption model to FASTQ file of reads"""
   import mitty.simulation.readcorrupt as rc
 
   read_module, read_model = get_read_model(modelfile)
-  rc.multi_process(read_module, read_model, fastq1_in, fastq1_out, fastq2_in, fastq2_out, processes=threads, seed=seed)
+  rc.multi_process(read_module, read_model, fastq1_in, fastq1_out, sidecar_in, sidecar_out,
+                   fastq2_in, fastq2_out, processes=threads, seed=seed)
 
 
 # def read_bias():
