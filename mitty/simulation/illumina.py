@@ -172,14 +172,19 @@ def corrupt_single_read(seq, bq_mat, corrupt_rng):
   base_call_rnd = corrupt_rng.rand(rlen)
   base_rnd = corrupt_rng.randint(0, 3, size=rlen)
 
+  md, ctr = '', 0
   for n in range(rlen):
     bq_seq[n] = bq = min(np.searchsorted(bq_mat[n, :], bq_rnd[n]), 93)
     # This min should only ever be invoked if our BQ model matrix is smaller than the read length
     # Since we extract read length and BQ model from the same BAM this should not happen
     if base_call_rnd[n] < phred_p[bq]:
       corrupt_seq[n] = base_rot.get(seq[n], 'NNN')[base_rnd[n]]
+      md += str(ctr) + seq[n]
+      ctr = 0
+    else:
+      ctr += 1
 
-  return '', ''.join(corrupt_seq), ''.join([chr(b + 33) for b in bq_seq])  # TODO: Work out how to do MD tag
+  return md, ''.join(corrupt_seq), ''.join([chr(b + 33) for b in bq_seq])
 
 
 def describe_model(model_name, model, figfile):
