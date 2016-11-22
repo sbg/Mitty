@@ -176,13 +176,14 @@ def read_generating_worker(worker_id, fasta_fname, sample_name, read_module, rea
       else:
         this_cnt += 1
         # (
+        #   None,  - We want the writer to put a unique stamp on each template
         #   sample_name,
         #   chrom,
         #   copy,
         #   (strand, pos, cigar, (v1,v2,...), MD, seq, qual)
         #   ...  [repeated as for as many reads in this template]
         # )
-        out_queue.put((sample_name, region[0], cpy, reads))
+        out_queue.put((None, sample_name, region[0], cpy, reads))
 
     t1 = time.time()
     logger.debug('Worker {} ({}): {} templates in {:0.2f}s ({:0.2f} t/s)'.format(worker_id, region, this_cnt, t1 - t0, this_cnt/(t1 - t0)))

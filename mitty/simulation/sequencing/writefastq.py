@@ -58,6 +58,7 @@ def writer(fastq1_out, side_car_out, fastq2_out=None, data_queue=None):
 
     The data format is as follows:
       (
+        idx,  - if this is None then we create an index afresh
         sample_name,
         chrom,
         copy,
@@ -74,16 +75,16 @@ def writer(fastq1_out, side_car_out, fastq2_out=None, data_queue=None):
   if fastq2_out is not None: fastq_l += [open(fastq2_out, 'w')]
   for cnt, template in enumerate(iter(data_queue.get, __process_stop_code__)):
     # @index|sn|chrom:copy|
-    qname = '@{}|{}|{}:{}|'.format(base_repr(cnt, 36), *template[:3])
+    qname = '@{}|{}|{}:{}|'.format(template[0] or base_repr(cnt, 36), *template[1:4])
     # strand:pos:cigar:v1,v2,...:MD|strand:pos:cigar:v1,v2,...:MD|
-    for r in template[3]:
+    for r in template[4]:
       qname += '{}:{}:{}:{}:{}|'.format(*r[:3], str(r[3])[1:-1], r[4])
 
     if len(qname) > 254:
       side_car_fp.write(qname + '\n')
       qname = qname[:255]
 
-    for fp, r in zip(fastq_l, template[3]):
+    for fp, r in zip(fastq_l, template[4]):
       fp.write('{}\n{}\n+\n{}\n'.format(qname, r[5], r[6]))
 
   for fp in fastq_l:
