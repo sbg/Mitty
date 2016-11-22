@@ -106,16 +106,16 @@ def describe_read_model(modelfile, figfile):
 @cli.command()
 def qname():
   """Display qname format"""
-  import mitty.simulation.readgenerate as reads
-  click.echo(reads.__qname_format_details__)
+  from mitty.simulation.sequencing.writefastq import __qname_format_details__
+  click.echo(__qname_format_details__)
 
 
 def print_qname(ctx, param, value):
-  import mitty.simulation.readgenerate as reads
 
   if not value or ctx.resilient_parsing:
     return
-  click.echo(reads.__qname_format_details__)
+
+  qname()
   ctx.exit()
 
 
@@ -128,17 +128,18 @@ def print_qname(ctx, param, value):
 @click.argument('coverage', type=float)
 @click.argument('seed', type=int)
 @click.argument('fastq1', type=click.Path())
+@click.argument('longqname', type=click.Path())
 @click.option('--fastq2', type=click.Path())
 @click.option('--threads', default=2)
 @click.option('--qname', is_flag=True, callback=print_qname, expose_value=False, is_eager=True, help='Print documentation for information encoded in qname')
-def generate_reads(fasta, vcf, sample_name, bed, modelfile, coverage, seed, fastq1, fastq2, threads):
+def generate_reads(fasta, vcf, sample_name, bed, modelfile, coverage, seed, fastq1, longqname, fastq2, threads):
   """Generate simulated reads"""
   import mitty.simulation.readgenerate as reads
 
   read_module, model = get_read_model(modelfile)
   reads.process_multi_threaded(
     fasta, vcf, sample_name, bed, read_module, model, coverage,
-    fastq1, fastq2, threads=threads, seed=seed)
+    fastq1, longqname, fastq2, threads=threads, seed=seed)
 
 
 @cli.command('corrupt-reads', short_help='Apply corruption model to FASTQ file of reads')

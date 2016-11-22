@@ -18,6 +18,7 @@ mitty -v4 generate-reads \
    30 \
    7 \
    >(gzip > r1.fq.gz) \
+   lq.txt \
    --fastq2 >(gzip > r2.fq.gz) \
    --threads 2
 

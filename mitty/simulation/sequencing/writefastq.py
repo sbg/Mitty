@@ -76,14 +76,14 @@ def writer(fastq1_out, side_car_out, fastq2_out=None, data_queue=None):
     # @index|sn|chrom:copy|
     qname = '@{}|{}|{}:{}|'.format(base_repr(cnt, 36), *template[:3])
     # strand:pos:cigar:v1,v2,...:MD|strand:pos:cigar:v1,v2,...:MD|
-    for r in template[3:]:
+    for r in template[3]:
       qname += '{}:{}:{}:{}:{}|'.format(*r[:3], str(r[3])[1:-1], r[4])
 
     if len(qname) > 254:
       side_car_fp.write(qname + '\n')
       qname = qname[:255]
 
-    for fp, r in zip(fastq_l, template[3:]):
+    for fp, r in zip(fastq_l, template[3]):
       fp.write('{}\n{}\n+\n{}\n'.format(qname, r[5], r[6]))
 
   for fp in fastq_l:
@@ -125,7 +125,7 @@ def parse_qname(qname):
 
   def _split_(_r):
     strand, pos, cigar, v_list, md = _r.split(':')
-    return int(strand), int(pos), *_parse_(cigar, v_list)
+    return (int(strand), int(pos)) + _parse_(cigar, v_list)
 
   d = qname.split('|')
   idx, sample = d[:2]

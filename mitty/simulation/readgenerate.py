@@ -7,6 +7,7 @@ import numpy as np
 
 import mitty.lib.vcfio as vio
 import mitty.simulation.rpc as rpc
+from mitty.simulation.sequencing.writefastq import writer
 
 import logging
 
@@ -37,7 +38,7 @@ vcf_df = None
 #TODO: Add to readme the note that a single ended model will still produce two files, r2 will be empty
 def process_multi_threaded(fasta_fname, vcf_fname, sample_name, bed_fname,
                            read_module, model, coverage,
-                           fastq1_fname, fastq2_fname, threads=2, seed=7):
+                           fastq1_fname, sidecar_fname, fastq2_fname, threads=2, seed=7):
   """
 
   :param fasta_fname:
@@ -47,6 +48,9 @@ def process_multi_threaded(fasta_fname, vcf_fname, sample_name, bed_fname,
   :param read_module:
   :param model:
   :param coverage:
+  :param fastq1_fname:
+  :param sidecar_fname:
+  :param fastq2_fname:
   :param threads:
   :param seed:
   :return:
@@ -69,7 +73,7 @@ def process_multi_threaded(fasta_fname, vcf_fname, sample_name, bed_fname,
     workers.append(p)
 
   logger.debug('Starting writer process')
-  wr = Process(target=writer, args=(fastq1_fname, fastq2_fname, out_queue))
+  wr = Process(target=writer, args=(fastq1_fname, sidecar_fname, fastq2_fname, out_queue))
   wr.start()
 
   logger.debug('Loading up the work queue')
@@ -158,18 +162,27 @@ def read_generating_worker(worker_id, fasta_fname, sample_name, read_module, rea
     t0 = time.time()
     this_cnt = 0
     for template in zip(
-      *[zip(*([r_info[k] for k in ['file_order', 'pos', 'len']] +
+      *[zip(*([r_info[k] for k in ['file_order', 'strand', 'pos', 'len']] +
                 rpc.get_begin_end_nodes(r_info['pos'], r_info['len'], node_list))) for r_info in r_info_l]):
       reads = [None] * len(template)
-      for s, (fo, p, l, ns, ne) in enumerate(template):
+      for fo, s, p, l, ns, ne in template:
         pos, cigar, v_list, seq = rpc.generate_read(p, l, ns, ne, node_list)
-        if seq.count('N') > 2: break  # This combined with the else clause skips those read pairs where at least one read has too many 'N's
+        if seq.count('N') > 2: break
+        # This break combined with the else clause skips those read pairs where
+        # at least one read has too many 'N's
         if s == 1:
           seq = seq.translate(DNA_complement)[::-1]
-        reads[fo] = (s, pos, l, cigar, v_list, seq)
+        reads[fo] = (s, pos, cigar, v_list, '', seq, '~' * len(seq))
       else:
         this_cnt += 1
-        out_queue.put(fastq_lines('{}:{}'.format(qname_serial_stub, this_cnt), region[0], cpy, reads))
+        # (
+        #   sample_name,
+        #   chrom,
+        #   copy,
+        #   (strand, pos, cigar, (v1,v2,...), MD, seq, qual)
+        #   ...  [repeated as for as many reads in this template]
+        # )
+        out_queue.put((sample_name, region[0], cpy, reads))
 
     t1 = time.time()
     logger.debug('Worker {} ({}): {} templates in {:0.2f}s ({:0.2f} t/s)'.format(worker_id, region, this_cnt, t1 - t0, this_cnt/(t1 - t0)))
@@ -178,41 +191,6 @@ def read_generating_worker(worker_id, fasta_fname, sample_name, read_module, rea
   t11 = time.time()
   logger.debug('Worker {} finished: {} templates in {:0.2f}s ({:0.2f} t/s)'.format(
     worker_id, total_cnt, t11 - t00, total_cnt / (t11 - t00)))
-
-
-# @read_serial|chrom|copy|strand|pos|rlen|cigar|vs1,vs2,...|strand|pos|rlen|cigar|vs1,vs2,...
-def fastq_lines(n, chrom, cpy, reads):
-  qname = '@{}|{}|{}'.format(n, chrom, cpy)
-  for r in reads:
-    qname += '|{}|{}|{}|{}|{}'.format(r[0], r[1], r[2], r[3], str(r[4])[1:-1].replace(' ',''))
-
-  return [
-    qname + '\n' + r[5] + '\n+\n' + '~' * r[2] + '\n'
-    for r in reads
-  ]
-
-
-def writer(fastq1_out, fastq2_out=None, data_queue=None):
-  """Write templates to file
-
-  :param fastq1_out:
-  :param fastq2_out:
-  :param data_queue:
-  :return:
-  """
-  t0 = time.time()
-
-  cnt = -1
-  fastq_l = [open(fastq1_out, 'w')]
-  if fastq2_out is not None: fastq_l += [open(fastq2_out, 'w')]
-  for cnt, template in enumerate(iter(data_queue.get, __process_stop_code__)):
-    for fp, r in zip(fastq_l, template):
-      fp.write(r)
-  for fp in fastq_l:
-    fp.close()
-
-  t1 = time.time()
-  logger.debug('Writer finished: {} templates in {:0.2f}s ({:0.2f} t/s)'.format(cnt + 1, t1 - t0, (cnt + 1)/(t1 - t0)))
 
 
 def validate_templates_from_read_model(tplt):

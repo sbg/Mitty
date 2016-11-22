@@ -99,11 +99,13 @@ def _reads_for_template_in_region(model, file_order_rng, ts, te):
   return [
     {
       'file_order': r0fo,
+      'strand': np.full(ts.size, 0, dtype=np.uint8),
       'pos': r0p,
       'len': r0l
     },
     {
       'file_order': r1fo,
+      'strand': np.full(ts.size, 1, dtype=np.uint8),
       'pos': r1p,
       'len': r1l
     }
