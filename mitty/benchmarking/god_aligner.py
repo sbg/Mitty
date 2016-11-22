@@ -7,7 +7,8 @@ import os
 
 import pysam
 
-from mitty.simulation.readgenerate import parse_qname, DNA_complement
+from mitty.simulation.sequencing.writefastq import load_qname_sidecar, parse_qname
+from mitty.simulation.readgenerate import DNA_complement
 from mitty.version import __version__
 
 
@@ -41,13 +42,14 @@ def parse_ann(fn):
 
 
 def process_multi_threaded(
-  fasta, bam_fname, fastq1, fastq2=None, threads=1, max_templates=None, sample_name='Seven',
+  fasta, bam_fname, fastq1, sidecar_fname, fastq2=None, threads=1, max_templates=None, sample_name='Seven',
   sort_and_index=True):
   """
 
   :param bam_fname:
   :param bam_hdr:
   :param fastq1:
+  :param sidecar_fname: File containing just the long qnames
   :param fastq2:
   :param threads:
   :param max_templates:
@@ -60,6 +62,8 @@ def process_multi_threaded(
 
   Note: The pysam sort invocation expects 2GB/thread to be available
   """
+  long_qname_table = load_qname_sidecar(sidecar_fname)
+
   rg_id = base64.b64encode(' '.join(sys.argv).encode('ascii'))
   fasta_ann = fasta + '.ann'
   bam_hdr = construct_header(fasta_ann, rg_id=rg_id, sample=sample_name)
@@ -69,7 +73,7 @@ def process_multi_threaded(
   file_fragments = ['{}.{:04}.bam'.format(bam_fname, i) for i in range(threads)]
 
   in_queue = Queue()
-  p_list = [Process(target=disciple, args=(file_fragments[i], bam_hdr, in_queue)) for i in range(threads)]
+  p_list = [Process(target=disciple, args=(file_fragments[i], bam_hdr, long_qname_table, in_queue)) for i in range(threads)]
   for p in p_list:
     p.start()
 
@@ -107,11 +111,12 @@ def process_multi_threaded(
     merge_sort_fragments(bam_fname, file_fragments, threads)
 
 
-def disciple(bam_fname, bam_hdr, in_queue):
+def disciple(bam_fname, bam_hdr, long_qname_table, in_queue):
   """Create a BAM file from the FASTQ lines fed to it via in_queue
 
   :param bam_fname:
   :param bam_hdr:
+  :param long_qname_table:
   :param in_queue:
   :return:
   """
@@ -119,15 +124,17 @@ def disciple(bam_fname, bam_hdr, in_queue):
   fp = pysam.AlignmentFile(bam_fname, 'wb', header=bam_hdr)
   ref_dict = {k['SN']: n for n, k in enumerate(bam_hdr['SQ'])}
   for qname, read_data in iter(in_queue.get, __process_stop_code__):
-    write_perfect_reads(qname, ref_dict, read_data, fp)
+    write_perfect_reads(qname, long_qname_table, ref_dict, read_data, fp)
   fp.close()
   logger.debug('Shutting down thread for {}'.format(bam_fname))
 
 
-def write_perfect_reads(qname, ref_dict, read_data, fp):
+def write_perfect_reads(qname, long_qname_table, ref_dict, read_data, fp):
   """Given reads begining to a template, write out the perfect alignments to file
 
   :param qname:
+  :param long_qname_table:
+  :param ref_dict: dict containing reference names mapped to ref_id
   :param read_data: [x1, x2, ... ] where xi is (seq, qual)
                      and, e.g. [x1, x2] constitute a pair, if the input is paired end
   :param fp: pysam file pointer to write out
@@ -138,7 +145,7 @@ def write_perfect_reads(qname, ref_dict, read_data, fp):
     for _ in range(len(read_data))
   ]
 
-  for n, (ri, rd, read) in enumerate(zip(parse_qname(qname), read_data, reads)):
+  for n, (ri, rd, read) in enumerate(zip(parse_qname(qname, long_qname_table), read_data, reads)):
     read.qname = qname
     read.reference_id = ref_dict[ri.chrom]
     read.pos = ri.pos - 1

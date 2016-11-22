@@ -1,6 +1,11 @@
 Release Notes
 =============
 
+2.8.0 (Internal testing release)
+
+- qnames > 254 now handled (uses side car file)
+- md tag-like string used to describe read corruption for corrupted reads
+
 2.7.3 (Internal testing release)
 
 - t_len < r_len bug in Illumina model fixed
