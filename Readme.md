@@ -46,7 +46,7 @@ For internal users testing beta, unreleased versions, please use the internal bi
 pip install git+https://kghose@bitbucket.sbgenomics.com/scm/ben/mitty3.git
 ```
 
-Don't forget to replace 'kghose' with your username
+Don't forget to replace `kghose` with your username
 
 
 Run tests
@@ -78,20 +78,13 @@ Running commands with the verbose option allows you to tune what messages (rangi
 mitty -v{1,2,3,4} <command>
 ```
 
-Generate reads
-----------------
-
-```
-mitty -v4 generate-reads ~/Data/human_g1k_v37_decoy.fasta hg001.filt.vcf.gz INTEGRATION hg001.bed 1kg-pcr-free.pkl 30 7 >(gzip > r1.fq.gz) --fastq2 >(gzip > r2.fq.gz) --threads 2
-```
+Example simulation script 
+-------------------------
+For the impatient, a short but complete script for performing read simulations is given [here](examples/reads/run.sh)
 
 
 Detailed tutorial with commentary
 =================================
-
-
-
-
 
 Generating reads
 ----------------
@@ -99,9 +92,9 @@ Generating reads
 ### Data note
 
 The BED files and other small data files used in this example are found under examples/reads in the source
-distribution. The examples assume that the commands are being run from inside this directory. The commands are
-found in the `run.sh`
-
+distribution. The examples assume that the commands are being run from inside this directory and the hg19 fasta is
+available in a directory called `~/Data/human_g1k_v37_decoy.fasta` which also carries the index for the fasta. 
+The commands are found in the `run.sh`
 
 ### VCF
 
@@ -130,20 +123,26 @@ $ cat filter.log
 DEBUG:mitty.lib.vcfio:Starting filtering ...
 DEBUG:mitty.lib.vcfio:Filtering ('1', 20000, 1020000)
 DEBUG:mitty.lib.vcfio:Filtered out 1:943126 CTTTTTTTTTTTTTTTTTTTTTTTT -> ('C', 'CTTTTTTTTTT')
-DEBUG:mitty.lib.vcfio:Filtering ('10', 20000, 1020000)
-DEBUG:mitty.lib.vcfio:Filtered out 10:169616 GAAGGA -> ('GAGGA', 'G')
-DEBUG:mitty.lib.vcfio:Filtered out 10:190580 CTT -> ('C', 'CT')
-DEBUG:mitty.lib.vcfio:Filtered out 10:195225 GTTATTATTA -> ('GTTATTATTATTA', 'G')
-DEBUG:mitty.lib.vcfio:Filtered out 10:206889 CTTTTTTTTTTT -> ('C', 'CTTTTT')
-DEBUG:mitty.lib.vcfio:Filtered out 10:276412 CAAAAA -> ('C', 'CA')
-DEBUG:mitty.lib.vcfio:Filtered out 10:307381 TAAA -> ('TA', 'T')
-DEBUG:mitty.lib.vcfio:Filtered out 10:396572 ATTT -> ('A', 'AT')
-DEBUG:mitty.lib.vcfio:Filtered out 10:450150 ATT -> ('A', 'ATTT')
-DEBUG:mitty.lib.vcfio:Filtered out 10:513505 TA -> ('T', 'TAAA')
-DEBUG:mitty.lib.vcfio:Filtered out 10:572470 CAAA -> ('CAA', 'C')
-DEBUG:mitty.lib.vcfio:Processed 1475 variants
-DEBUG:mitty.lib.vcfio:Filtered out 11 complex variants
-DEBUG:mitty.lib.vcfio:Took 0.20363688468933105 s
+DEBUG:mitty.lib.vcfio:Filtering ('7', 32000000, 33000000)
+DEBUG:mitty.lib.vcfio:Filtered out 7:32095932 TTCTCTCTCTCTCTCTCTC -> ('T', 'TTCTCTCTCTCTCTCTCTCTC')
+DEBUG:mitty.lib.vcfio:Filtered out 7:32152848 AATAT -> ('A', 'AATATATATATATATATATATATAT')
+DEBUG:mitty.lib.vcfio:Filtered out 7:32168518 AATATATATATAT -> ('AATATATATATATATATATATAT', 'A')
+DEBUG:mitty.lib.vcfio:Filtered out 7:32335505 CAAA -> ('C', 'CA')
+DEBUG:mitty.lib.vcfio:Filtered out 7:32367381 CAA -> ('C', 'CA')
+DEBUG:mitty.lib.vcfio:Filtered out 7:32378622 GCACA -> ('G', 'GCA')
+DEBUG:mitty.lib.vcfio:Filtered out 7:32428769 CGT -> ('C', 'CGTGTGTGTGTGT')
+DEBUG:mitty.lib.vcfio:Filtered out 7:32562762 CAAA -> ('C', 'CA')
+DEBUG:mitty.lib.vcfio:Filtered out 7:32577070 GTTTTT -> ('G', 'GTTTT')
+DEBUG:mitty.lib.vcfio:Filtered out 7:32632164 CTTTT -> ('CTTTTT', 'C')
+DEBUG:mitty.lib.vcfio:Filtered out 7:32648707 ATTTTTTTTTT -> ('A', 'ATTT')
+DEBUG:mitty.lib.vcfio:Filtered out 7:32835051 CT -> ('C', 'CTTTTT')
+DEBUG:mitty.lib.vcfio:Filtered out 7:32837427 TA -> ('T', 'TAA')
+DEBUG:mitty.lib.vcfio:Filtered out 7:32972783 CAAAAAAAAAAAAAAAAA -> ('C', 'CAAAAAAAA')
+DEBUG:mitty.lib.vcfio:Filtered out 7:32980512 CAAA -> ('C', 'CAAAAA')
+DEBUG:mitty.lib.vcfio:Filtered out 7:32983713 CTTTT -> ('CTT', 'C')
+DEBUG:mitty.lib.vcfio:Processed 2208 variants
+DEBUG:mitty.lib.vcfio:Filtered out 17 complex variants
+DEBUG:mitty.lib.vcfio:Took 0.28037381172180176 s
 ```
 
 **NOTE: If the BED file is not sorted, the output file needs to be sorted again.**
@@ -185,13 +184,30 @@ mitty -v4 bam2illumina sample.bam ./rd-model.pkl "This model is taken from a BAM
 ### Generating perfect reads
 
 ```
-mitty -v4 generate-reads ~/Data/human_g1k_v37_decoy.fasta hg001.filt.vcf.gz INTEGRATION hg001.bed 1kg-pcr-free.pkl 30 7 >(gzip > r1.fq.gz) --fastq2 >(gzip > r2.fq.gz) --threads 2
+mitty -v4 generate-reads \
+  ~/Data/human_g1k_v37_decoy.fasta \
+   hg001.filt.vcf.gz \
+   INTEGRATION \
+   hg001.bed \
+   1kg-pcr-free.pkl \
+   30 \
+   7 \
+   >(gzip > r1.fq.gz) \
+   lq.txt \
+   --fastq2 >(gzip > r2.fq.gz) \
+   --threads 2
 ```
 
 _(When you supply a model file name to the read generator it will first look among the builtin
 read models to see if the file name is a match (typically these are in the `mitty/data/readmodels`
 folder). It will then treat the model file name as a path and try and load that from your 
 file system - which is the case in this particular example.)_
+
+The produced FASTQs have qnames encoding the correct read alignments for each read in the template. qnames may exceed
+the SAM specification limit (254 characters). In such cases the qname in the FASTQ is truncated to 254 characters and
+the complete qname is printed in the side-car file (`lq.txt` in the example). 
+
+The qname format can be obtained by executing `mitty qname`
 
 
 ### Corrupting reads
@@ -200,16 +216,30 @@ The reads generated using the previous command have no base call errors. Base ca
 reads using the following command.
 
 ```
-mitty -v4 corrupt-reads 1kg-pcr-free.pkl r1.fq.gz >(gzip > r1c.fq.gz) 7 --fastq2-in r2.fq.gz --fastq2-out >(gzip > r2c.fq.gz)
+mitty -v4 corrupt-reads \
+  1kg-pcr-free.pkl \
+  r1.fq.gz >(gzip > r1c.fq.gz) \
+  lq.txt lqc.txt \
+  7 \
+  --fastq2-in r2.fq.gz \
+  --fastq2-out >(gzip > r2c.fq.gz) \
+  --threads 2
 ```
 
-Note that using a read model different to that used to generate the reads originally can lead to undefined behavior, 
-including crashes.
+_Using a read model different to that used to generate the reads originally can lead to undefined behavior, 
+including crashes._
+
+As mentioned, the side-car file `lq.txt` carries qnames longer than 254 characters. The output side-car file `lqc.txt`
+similarly carries longer qnames from the corrupted reads. The qname for each corrupted template is identical to the 
+original, uncorrupted template, except for the addition of an MD-like tag that allows recovery of the original bases
+before sequencing errors were introduced. The qnames in `lq.txt` can be a subset of those in `lqc.txt`.
+
 
 The BQ profile of the sample FASTQ generated by this command (generated by FASTQC)
 
 Mate 1:
 ![FASTQC screenshot showing BQ distribution](docs/images/1kg-pcr-free-corrupt-fastqc-r1.png?raw=true "FASTQC screenshot showing BQ distribution")
+
 Mate 2:
 ![FASTQC screenshot showing BQ distribution](docs/images/1kg-pcr-free-corrupt-fastqc-r2.png?raw=true "FASTQC screenshot showing BQ distribution")
 
@@ -277,10 +307,15 @@ mitty -v4 derr-plot bwac.bam bwac.derr.csv bwac.derr.png
 
 Passing the simulated FASTQ through the god aligner produces a "perfect BAM" which can be used as a truth BAM
 for comparing alignments from different aligners. This truth BAM can also be used to test variant callers by
-removing one moving part (the aligner).
+removing one moving part (the aligner) from the analysis chain.
 
 ```
-mitty -v4 god-aligner ~/Data/human_g1k_v37_decoy.fasta r1c.fq.gz perfect.bam --fastq2 r2c.fq.gz --threads 4
+mitty -v4 god-aligner \
+  ~/Data/human_g1k_v37_decoy.fasta \
+  r1c.fq.gz lqc.txt \
+  perfectc.bam \
+  --fastq2 r2c.fq.gz \
+  --threads 2
 ```
 
 ### Find differences in alignments
@@ -307,9 +342,9 @@ frequencies, return a diploid sample VCF based on random sampling of the main li
 
   The program is passed an `info-af` parameter that looks for an INFO field of that name. The
   program interprets the value of that field as the alternative allele frequency and uses that to sample the
-  respective variant. If you have a file, like say that from the 1000G project, that represents allele frequencies
+  respective variant. If you have a file, say like that from the 1000G project, that represents allele frequencies
   from multiple populations for each variant, you can simulate individuals from these different populations
-  by selecting the appropriate tags. e.g. for the 1000G VCFs, `EUR_AF` for Europeans, `AMR_AF` etc.
+  by selecting the appropriate tags. e.g. for the 1000G VCFs, `EUR_AF` for Europeans, `AMR_AF` for Americans etc.
 
   If this parameter is omitted the `af` parameter needs to be supplied. This sets a flat alternative allele 
   frequency for all variants that is used for sampling.
@@ -323,24 +358,23 @@ frequencies, return a diploid sample VCF based on random sampling of the main li
   Say, for example, we have bed files that look like
 
 ```
-bed1:
+1.bed:
 1 10  1000
 2 10  5000
 
-bed2:
+2.bed:
 1 2000  3000
 
-bed3:
-2 10 5000
+3.bed:
+2 1000 2000
 ```
 
-would result in diploid simulations for chrom 1 and chrom 2 if bed1, bed2 and bed3 are all passed.
+If all three bed files are passed this would result in a simulated genome with two copies of both chrom 1 and chrom 2.
+Due to the regions in the BED files, chrom1 would contain only HET variants while chrom2 may carry HOM variants in the
+overlap region 1000-2000
 
-On the other hand, if only bed1 and bed2 were passed, it would result in a VCF diploid for chrom1 
-but haploid for chrom2.
-
-Also note that all variants on chrom 1 would be heterozygous since the chrom1 regions do not overlap while
-variants on chrom2 would be a random mix of homozygous and heterozygous.
+If only 1.bed and 2.bed were passed the resulting simulated genome would have two copies of chrom 1 but one copy of
+chrom 2
 
 
 Appendix
