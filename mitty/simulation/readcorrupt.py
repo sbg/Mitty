@@ -112,7 +112,7 @@ def worker(worker_id, read_module, read_model, long_qname_table, in_queue, out_q
         ri[0].sample,
         ri[0].chrom,
         ri[0].cpy,
-        ((r.strand, r.pos, r.cigar, r.v_list, r.md, seq, None) for r, seq in zip(ri, template[1:]))
+        ((r.strand, r.pos, r.special_cigar or r.cigar, r.v_list, r.md, seq, None) for r, seq in zip(ri, template[1:]))
       ),
       corrupt_rng))
     if cnt % 100000 == 0:
