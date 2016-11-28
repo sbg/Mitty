@@ -185,16 +185,16 @@ def read_corruption(modelfile, fastq1_in, fastq1_out, sidecar_in, sidecar_out, s
 @click.option('--af', type=float, help='fixed AF value if info-af not available')
 @click.option('--bed', multiple=True, help='BED files to determine ploidy for each chromosome. See help')
 def sampled_genome(vcfin, vcfout, info_af, af, bed):
-  """Given a VCF representing all variants in a population and their allele frequencies,
-return a sample VCF based on random sampling of the main list.
+  """The `sampled-genome` command can, given a VCF representing all variants in a population and their allele
+frequencies, return a diploid sample VCF based on random sampling of the main list.
 
 **Populations:**
 
   The program is passed an `info-af` parameter that looks for an INFO field of that name. The
   program interprets the value of that field as the alternative allele frequency and uses that to sample the
-  respective variant. If you have a file, like say that from the 1000G project, that represents allele frequencies
+  respective variant. If you have a file, say like that from the 1000G project, that represents allele frequencies
   from multiple populations for each variant, you can simulate individuals from these different populations
-  by selecting the appropriate tags. e.g. for the 1000G VCFs, `EUR_AF` for Europeans, `AMR_AF` etc.
+  by selecting the appropriate tags. e.g. for the 1000G VCFs, `EUR_AF` for Europeans, `AMR_AF` for Americans etc.
 
   If this parameter is omitted the `af` parameter needs to be supplied. This sets a flat alternative allele
   frequency for all variants that is used for sampling.
@@ -208,23 +208,25 @@ return a sample VCF based on random sampling of the main list.
   Say, for example, we have bed files that look like
 
 \b
-    bed1:
+    1.bed:
     1 10  1000
     2 10  5000
+
 \b
-    bed2:
+    2.bed:
     1 2000  3000
+
 \b
-    bed3:
-    2 10 5000
+    3.bed:
+    2 1000 2000
 
- These would result in diploid simulations for chrom 1 and chrom 2 if bed1, bed2 and bed3 are all passed.
 
-  On the other hand, if only bed1 and bed2 were passed, it would result in a VCF diploid for chrom1
-but haploid for chrom2.
+If all three bed files are passed this would result in a simulated genome with two copies of both chrom 1 and chrom 2.
+Due to the regions in the BED files, chrom1 would contain only HET variants while chrom2 may carry HOM variants in the
+overlap region 1000-2000
 
-  Also note that all variants on chrom 1 would be heterozygous since the chrom1 regions do not overlap while
-variants on chrom2 would be a random mix of homozygous and heterozygous."""
+If only 1.bed and 2.bed were passed the resulting simulated genome would have two copies of chrom 1 but one copy of
+chrom 2"""
   pass
 
 
