@@ -142,8 +142,22 @@ def prepare_variant_file(fname_in, sample, bed_fname, fname_out, write_mode='w')
     for alt in var.alleles:
       if _v.rlen > 1 and len(alt) > 1:
         if _v.ref != alt:
-          logger.debug('Filtered out {}:{} {} -> {}'.format(_v.contig, _v.pos, _v.ref, var.alleles))
+          logger.debug('Filtered out complex variant {}:{} {} -> {}'.format(_v.contig, _v.pos, _v.ref, var.alleles))
           return True
+    return False
+
+  def _angle_bracketed_id(_v):
+    var = _v.samples.values()[0]
+    for alt in var.alleles:
+      if alt[0] == '<':
+        logger.debug('Filtered out angle bracketed ID {}:{} {} -> {}'.format(_v.contig, _v.pos, _v.ref, var.alleles))
+        return True
+    return False
+
+  def _breakend_replacement(_v):
+    if _v.info.get('SVTYPE', None) == 'BND':
+      logger.debug('Filtered out breakend entry {}:{} {} -> {}'.format(_v.contig, _v.pos, _v.ref, _v.alts))
+      return True
     return False
 
   logger.debug('Starting filtering ...')
@@ -158,13 +172,14 @@ def prepare_variant_file(fname_in, sample, bed_fname, fname_out, write_mode='w')
     logger.debug('Filtering {}'.format(region))
     n = 0
     for n, v in enumerate(vcf_in.fetch(contig=region[0], start=region[1], stop=region[2])):
-      if _complex_variant(v):
+      if not any(v.samples.values()[0]['GT']): continue  # This variant does not exist in this sample
+      if _complex_variant(v) or _angle_bracketed_id(v) or _breakend_replacement(v):
         fltr_cnt += 1
         continue
       vcf_out.write(v)
     v_cnt += n
 
   logger.debug('Processed {} variants'.format(v_cnt))
-  logger.debug('Filtered out {} complex variants'.format(fltr_cnt))
+  logger.debug('Filtered out {} variants'.format(fltr_cnt))
   t1 = time.time()
   logger.debug('Took {} s'.format(t1 - t0))
