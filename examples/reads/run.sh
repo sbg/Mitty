@@ -37,7 +37,12 @@ samtools index bwac.bam
 
 mitty -v4 god-aligner ~/Data/human_g1k_v37_decoy.fasta r1.fq.gz lq.txt perfect.bam --fastq2 r2.fq.gz --threads 2
 
-mitty -v4 god-aligner ~/Data/human_g1k_v37_decoy.fasta r1c.fq.gz lqc.txt perfectc.bam --fastq2 r2c.fq.gz --threads 2
+mitty -v4 god-aligner \
+  ~/Data/human_g1k_v37_decoy.fasta \
+  r1c.fq.gz lqc.txt \
+  perfectc.bam \
+  --fastq2 r2c.fq.gz \
+  --threads 2
 
 
 bam diff --in1 bwac.bam --in2 perfect.bam --out diffd.unsorted.bam

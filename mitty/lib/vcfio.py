@@ -112,6 +112,11 @@ def parse(v, cpy):
   """
   if v.samples[0]['GT'][cpy] == 0:  # Not present in this copy
     return None
+
+  if unusable_variant(v):
+    logger.error("Unusable variants present in VCF. Please filter or refactor these.")
+    exit(1)
+
   alt = v.samples[0].alleles[cpy]
   l_r, l_a = len(v.ref), len(alt)
   if l_r == 1:
@@ -127,6 +132,33 @@ def parse(v, cpy):
   return Variant(v.pos, v.ref, v.samples[0].alleles[cpy], op, op_len)
 
 
+def unusable_variant(v):
+  def _complex_variant(_v):
+    var = _v.samples.values()[0]
+    for alt in var.alleles:
+      if _v.rlen > 1 and len(alt) > 1:
+        if _v.ref != alt:
+          logger.debug('Complex variant {}:{} {} -> {}'.format(_v.contig, _v.pos, _v.ref, var.alleles))
+          return True
+    return False
+
+  def _angle_bracketed_id(_v):
+    var = _v.samples.values()[0]
+    for alt in var.alleles:
+      if alt[0] == '<':
+        logger.debug('Angle bracketed variant entry {}:{} {} -> {}'.format(_v.contig, _v.pos, _v.ref, var.alleles))
+        return True
+    return False
+
+  def _breakend_replacement(_v):
+    if _v.info.get('SVTYPE', None) == 'BND':
+      logger.debug('Breakend entry {}:{} {} -> {}'.format(_v.contig, _v.pos, _v.ref, _v.alts))
+      return True
+    return False
+
+  return _complex_variant(v) or _angle_bracketed_id(v) or _breakend_replacement(v)
+
+
 def prepare_variant_file(fname_in, sample, bed_fname, fname_out, write_mode='w'):
   """Prepare a variant file with only the given sample, complex variant calls filtered out,
   and restricted to the given bed file
@@ -137,15 +169,6 @@ def prepare_variant_file(fname_in, sample, bed_fname, fname_out, write_mode='w')
   :param fname_out:
   :return: - output is to file
   """
-  def _complex_variant(_v):
-    var = _v.samples.values()[0]
-    for alt in var.alleles:
-      if _v.rlen > 1 and len(alt) > 1:
-        if _v.ref != alt:
-          logger.debug('Filtered out {}:{} {} -> {}'.format(_v.contig, _v.pos, _v.ref, var.alleles))
-          return True
-    return False
-
   logger.debug('Starting filtering ...')
   t0 = time.time()
 
@@ -153,18 +176,21 @@ def prepare_variant_file(fname_in, sample, bed_fname, fname_out, write_mode='w')
   vcf_in = pysam.VariantFile(fname_in, mode)
   vcf_in.subset_samples([sample])
   vcf_out = pysam.VariantFile(fname_out, mode=write_mode, header=vcf_in.header)
-  v_cnt, fltr_cnt = 0, 0
+  v_cnt, exclude_cnt, include_cnt = 0, 0, 0
   for region in read_bed(bed_fname):
     logger.debug('Filtering {}'.format(region))
-    n = 0
+    n = -1
     for n, v in enumerate(vcf_in.fetch(contig=region[0], start=region[1], stop=region[2])):
-      if _complex_variant(v):
-        fltr_cnt += 1
+      if not any(v.samples.values()[0]['GT']): continue  # This variant does not exist in this sample
+      if unusable_variant(v):
+        exclude_cnt += 1
         continue
       vcf_out.write(v)
-    v_cnt += n
+      include_cnt += 1
+    v_cnt += (n + 1)
 
   logger.debug('Processed {} variants'.format(v_cnt))
-  logger.debug('Filtered out {} complex variants'.format(fltr_cnt))
+  logger.debug('Sample had {} variants'.format(exclude_cnt + include_cnt))
+  logger.debug('Discarded {} variants'.format(exclude_cnt))
   t1 = time.time()
   logger.debug('Took {} s'.format(t1 - t0))

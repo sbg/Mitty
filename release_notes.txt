@@ -1,6 +1,11 @@
 Release Notes
 =============
 
+2.8.3
+
+- Bugfix: bracketed entries and breakends are now discarded from VCF file
+
+
 2.8.0 (Internal testing release)
 
 - qnames > 254 now handled (uses side car file)

@@ -151,7 +151,7 @@ def generate_read(p, l, n0, n1, nodes):
       # We want to pile up reads from a long insertion at the start of the insertion
       # We need to override the CIGAR too
       pos = nodes[n0].pr - 1
-      cigar = ['>{}:{}I'.format(p - nodes[n0].ps, l)]
+      cigar = ['>{}+{}I'.format(p - nodes[n0].ps, l)]
     else:
       pos = nodes[n0].pr
   else:

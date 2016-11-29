@@ -24,7 +24,7 @@ pos:    Position of first (left-most) reference matching base in read (Same defi
         For reads coming from completely inside an insertion this is, however, the POS for the insertion
 cigar:  CIGAR string for correct alignment.
         For reads coming from completely inside an insertion, however, the CIGAR string is:
-        '>p:nI' where:
+        '>p+nI' where:
            '>' is the unique key that indicates a read inside a long insertion
            'p' is how many bases into the insertion branch the read starts
            'n' is simply the length of the read
@@ -121,7 +121,7 @@ def parse_qname(qname, long_qname_table=None):
     """
     if _cigar[0] == '>':  # This is a special_cigar for a read from inside an insertion
       _special_cigar = _cigar
-      _cigar = _cigar.split(':')[-1]
+      _cigar = _cigar.split('+')[-1]
     else:
       _special_cigar = None
 
