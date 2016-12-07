@@ -1,6 +1,11 @@
 Release Notes
 =============
 
+2.8.4
+
+- Bugfix: PHRED (Base quality) score for perfect reads is now 40 ('I') to avoid confusing
+  GATK and other tools that think this is erroneous.
+
 2.8.3
 
 - Bugfix: bracketed entries and breakends are now discarded from VCF file

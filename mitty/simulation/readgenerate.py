@@ -172,7 +172,7 @@ def read_generating_worker(worker_id, fasta_fname, sample_name, read_module, rea
         # at least one read has too many 'N's
         if s == 1:
           seq = seq.translate(DNA_complement)[::-1]
-        reads[fo] = (s, pos, cigar, v_list, '', seq, '~' * len(seq))
+        reads[fo] = (s, pos, cigar, v_list, '', seq, 'I' * len(seq))
       else:
         this_cnt += 1
         # (
