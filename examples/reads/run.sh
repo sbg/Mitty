@@ -7,7 +7,7 @@ RAWVCF=hg001.vcf.gz
 FILTVCF=${PREFIX}-filt.vcf.gz
 SAMPLE=INTEGRATION
 BED=hg001.bed
-RMODEL=1kg-pcr-free.pkl
+RMODEL=hiseq-2500-v1-pcr-free.pkl
 COV=30
 RSEED=7
 CSEED=8
@@ -62,7 +62,7 @@ samtools index ${BWABAM}
 mitty -v4 god-aligner \
   ${FASTA} ${RC1} ${LQC} ${PERBAM} --fastq2 ${RC2} --threads 2
 
-bam diff --in1 ${BWABAM} --in2 ${PERBAM} --out out.bam
+bam diff --noCigar --in1 ${BWABAM} --in2 ${PERBAM} --out out.bam
 samtools sort out.bam > ${DIFFBAM}
 samtools index ${DIFFBAM}
 
