@@ -94,61 +94,62 @@ Generating reads
 The BED files and other small data files used in this example are found under examples/reads in the source
 distribution. The examples assume that the commands are being run from inside this directory and the hg19 fasta is
 available in a directory called `~/Data/human_g1k_v37_decoy.fasta` which also carries the index for the fasta. 
-The commands are found in the `run.sh`
+The commands are found in the `examples/reads/run.sh`
 
 ### VCF
 
 The original sample VCF for the examples below is the Genome In a Bottle truth data set for 
 NA12878_HG001/NISTv3.3.1/GRCh37 obtained from [the official NCBI ftp site][giab]. I assume that this
 file has been saved under the name hg001.vcf.gz in the working directory. The bed file that is used
-(hg001.bed) selects out 1MB portions of chromosome 1 and chromosome 10.
+(hg001.bed) selects out 1MB portions of chromosome 1 and chromosome 7.
 
 [giab]: ftp://ftp-trace.ncbi.nlm.nih.gov/giab/ftp/release/NA12878_HG001/NISTv3.3.1/GRCh37/
 
 
 ### Prepare VCF file for taking reads from
 The read simulator can not properly generate ground truth reads from complex variants (variant calls where the REF and
-ALT are both larger than 1 bp). Such calls must be filtered from a VCF file before it can be used as a sample to
-generate reads from.
+ALT are both larger than 1 bp) and from any entry that does not precisely lay out the ALT sequence in the ALT column,
+such as angle bracket ID references and variants breakend notation. 
+Such calls must be filtered from a VCF file before it can be used as a sample to generate reads from.
 
 ```
-mitty -v4 filter-variants hg001.vcf.gz INTEGRATION hg001.bed - 2> filter.log | bgzip -c > hg001.filt.vcf.gz
-tabix -p vcf hg001.filt.vcf.gz
+mitty -v4 filter-variants hg001.vcf.gz INTEGRATION hg001.bed - 2> sim-vcf-filter.log | bgzip -c > sim-filt.vcf.gz
+tabix -p vcf sim-filt.vcf.gz
 ```
 
 `filter.log` looks like::
 
 ```
-$ cat filter.log 
+$ cat sim-vcf-filter.log 
 DEBUG:mitty.lib.vcfio:Starting filtering ...
 DEBUG:mitty.lib.vcfio:Filtering ('1', 20000, 1020000)
-DEBUG:mitty.lib.vcfio:Filtered out 1:943126 CTTTTTTTTTTTTTTTTTTTTTTTT -> ('C', 'CTTTTTTTTTT')
+DEBUG:mitty.lib.vcfio:Complex variant 1:943126 CTTTTTTTTTTTTTTTTTTTTTTTT -> ('C', 'CTTTTTTTTTT')
 DEBUG:mitty.lib.vcfio:Filtering ('7', 32000000, 33000000)
-DEBUG:mitty.lib.vcfio:Filtered out 7:32095932 TTCTCTCTCTCTCTCTCTC -> ('T', 'TTCTCTCTCTCTCTCTCTCTC')
-DEBUG:mitty.lib.vcfio:Filtered out 7:32152848 AATAT -> ('A', 'AATATATATATATATATATATATAT')
-DEBUG:mitty.lib.vcfio:Filtered out 7:32168518 AATATATATATAT -> ('AATATATATATATATATATATAT', 'A')
-DEBUG:mitty.lib.vcfio:Filtered out 7:32335505 CAAA -> ('C', 'CA')
-DEBUG:mitty.lib.vcfio:Filtered out 7:32367381 CAA -> ('C', 'CA')
-DEBUG:mitty.lib.vcfio:Filtered out 7:32378622 GCACA -> ('G', 'GCA')
-DEBUG:mitty.lib.vcfio:Filtered out 7:32428769 CGT -> ('C', 'CGTGTGTGTGTGT')
-DEBUG:mitty.lib.vcfio:Filtered out 7:32562762 CAAA -> ('C', 'CA')
-DEBUG:mitty.lib.vcfio:Filtered out 7:32577070 GTTTTT -> ('G', 'GTTTT')
-DEBUG:mitty.lib.vcfio:Filtered out 7:32632164 CTTTT -> ('CTTTTT', 'C')
-DEBUG:mitty.lib.vcfio:Filtered out 7:32648707 ATTTTTTTTTT -> ('A', 'ATTT')
-DEBUG:mitty.lib.vcfio:Filtered out 7:32835051 CT -> ('C', 'CTTTTT')
-DEBUG:mitty.lib.vcfio:Filtered out 7:32837427 TA -> ('T', 'TAA')
-DEBUG:mitty.lib.vcfio:Filtered out 7:32972783 CAAAAAAAAAAAAAAAAA -> ('C', 'CAAAAAAAA')
-DEBUG:mitty.lib.vcfio:Filtered out 7:32980512 CAAA -> ('C', 'CAAAAA')
-DEBUG:mitty.lib.vcfio:Filtered out 7:32983713 CTTTT -> ('CTT', 'C')
-DEBUG:mitty.lib.vcfio:Processed 2208 variants
-DEBUG:mitty.lib.vcfio:Filtered out 17 complex variants
-DEBUG:mitty.lib.vcfio:Took 0.28037381172180176 s
+DEBUG:mitty.lib.vcfio:Complex variant 7:32095932 TTCTCTCTCTCTCTCTCTC -> ('T', 'TTCTCTCTCTCTCTCTCTCTC')
+DEBUG:mitty.lib.vcfio:Complex variant 7:32152848 AATAT -> ('A', 'AATATATATATATATATATATATAT')
+DEBUG:mitty.lib.vcfio:Complex variant 7:32168518 AATATATATATAT -> ('AATATATATATATATATATATAT', 'A')
+DEBUG:mitty.lib.vcfio:Complex variant 7:32335505 CAAA -> ('C', 'CA')
+DEBUG:mitty.lib.vcfio:Complex variant 7:32367381 CAA -> ('C', 'CA')
+DEBUG:mitty.lib.vcfio:Complex variant 7:32378622 GCACA -> ('G', 'GCA')
+DEBUG:mitty.lib.vcfio:Complex variant 7:32428769 CGT -> ('C', 'CGTGTGTGTGTGT')
+DEBUG:mitty.lib.vcfio:Complex variant 7:32562762 CAAA -> ('C', 'CA')
+DEBUG:mitty.lib.vcfio:Complex variant 7:32577070 GTTTTT -> ('G', 'GTTTT')
+DEBUG:mitty.lib.vcfio:Complex variant 7:32632164 CTTTT -> ('CTTTTT', 'C')
+DEBUG:mitty.lib.vcfio:Complex variant 7:32648707 ATTTTTTTTTT -> ('A', 'ATTT')
+DEBUG:mitty.lib.vcfio:Complex variant 7:32835051 CT -> ('C', 'CTTTTT')
+DEBUG:mitty.lib.vcfio:Complex variant 7:32837427 TA -> ('T', 'TAA')
+DEBUG:mitty.lib.vcfio:Complex variant 7:32972783 CAAAAAAAAAAAAAAAAA -> ('C', 'CAAAAAAAA')
+DEBUG:mitty.lib.vcfio:Complex variant 7:32980512 CAAA -> ('C', 'CAAAAA')
+DEBUG:mitty.lib.vcfio:Complex variant 7:32983713 CTTTT -> ('CTT', 'C')
+DEBUG:mitty.lib.vcfio:Processed 2210 variants
+DEBUG:mitty.lib.vcfio:Sample had 2210 variants
+DEBUG:mitty.lib.vcfio:Discarded 17 variants
+DEBUG:mitty.lib.vcfio:Took 0.2465670108795166 s
 ```
 
 **NOTE: If the BED file is not sorted, the output file needs to be sorted again.**
 
 The file `hg001.filt.vcf.gz` can now be used to generate reads and will serve as a truth VCF for VCF benchmarking.
-
 
 
 ### Listing and inspecting read models
@@ -219,7 +220,8 @@ reads using the following command.
 mitty -v4 corrupt-reads \
   1kg-pcr-free.pkl \
   r1.fq.gz >(gzip > r1c.fq.gz) \
-  lq.txt lqc.txt \
+  lq.txt \
+  lqc.txt \
   7 \
   --fastq2-in r2.fq.gz \
   --fastq2-out >(gzip > r2c.fq.gz) \
@@ -235,7 +237,7 @@ original, uncorrupted template, except for the addition of an MD-like tag that a
 before sequencing errors were introduced. The qnames in `lq.txt` can be a subset of those in `lqc.txt`.
 
 
-The BQ profile of the sample FASTQ generated by this command (generated by FASTQC)
+The BQ profile of the sample FASTQ generated by this command (generated by FASTQC) looks like
 
 Mate 1:
 ![FASTQC screenshot showing BQ distribution](docs/images/1kg-pcr-free-corrupt-fastqc-r1.png?raw=true "FASTQC screenshot showing BQ distribution")
@@ -312,7 +314,8 @@ removing one moving part (the aligner) from the analysis chain.
 ```
 mitty -v4 god-aligner \
   ~/Data/human_g1k_v37_decoy.fasta \
-  r1c.fq.gz lqc.txt \
+  r1c.fq.gz \
+  lqc.txt \
   perfectc.bam \
   --fastq2 r2c.fq.gz \
   --threads 2
