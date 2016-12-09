@@ -137,9 +137,8 @@ def unusable_variant(v):
     var = _v.samples.values()[0]
     for alt in var.alleles:
       if _v.rlen > 1 and len(alt) > 1:
-        if _v.ref != alt:
-          logger.debug('Complex variant {}:{} {} -> {}'.format(_v.contig, _v.pos, _v.ref, var.alleles))
-          return True
+        logger.debug('Complex variant {}:{} {} -> {}'.format(_v.contig, _v.pos, _v.ref, var.alleles))
+        return True
     return False
 
   def _angle_bracketed_id(_v):
