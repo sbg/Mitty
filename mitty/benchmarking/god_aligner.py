@@ -17,14 +17,17 @@ logger = logging.getLogger(__name__)
 __process_stop_code__ = 'SETECASTRONOMY'
 
 
-def construct_header(fasta_ann, rg_id, sample='S'):
+def construct_header(fasta_ann, rg_id, sample='S', platform='Illumina'):
   return {
     'HD': {'VN': '1.0'},
     'PG': [{'CL': ' '.join(sys.argv),
             'ID': 'mitty-god-aligner',
             'PN': 'god-aligner',
             'VN': __version__}],
-    'RG': [{'ID': rg_id, 'SM': sample}],
+    'RG': [{'ID': rg_id,
+            'CN': 'MittyReadSimulator',
+            'PL': platform,
+            'SM': sample}],
     'SQ': parse_ann(fasta_ann)
   }
 
@@ -42,7 +45,9 @@ def parse_ann(fn):
 
 
 def process_multi_threaded(
-  fasta, bam_fname, fastq1, sidecar_fname, fastq2=None, threads=1, max_templates=None, sample_name='Seven',
+  fasta, bam_fname, fastq1, sidecar_fname, fastq2=None, threads=1, max_templates=None,
+  platform='Illumina',
+  sample_name='Seven',
   sort_and_index=True):
   """
 
@@ -53,6 +58,7 @@ def process_multi_threaded(
   :param fastq2:
   :param threads:
   :param max_templates:
+  :param platform:
   :param sample_name:
   :param sort_and_index: If True, the output BAMs will be collated into one bam, sorted and indexed
                          the N output BAMs created by the individual workers will be deleted at the end.
@@ -73,7 +79,7 @@ def process_multi_threaded(
   file_fragments = ['{}.{:04}.bam'.format(bam_fname, i) for i in range(threads)]
 
   in_queue = Queue()
-  p_list = [Process(target=disciple, args=(file_fragments[i], bam_hdr, long_qname_table, in_queue)) for i in range(threads)]
+  p_list = [Process(target=disciple, args=(file_fragments[i], bam_hdr, rg_id, long_qname_table, in_queue)) for i in range(threads)]
   for p in p_list:
     p.start()
 
@@ -111,11 +117,12 @@ def process_multi_threaded(
     merge_sort_fragments(bam_fname, file_fragments, threads)
 
 
-def disciple(bam_fname, bam_hdr, long_qname_table, in_queue):
+def disciple(bam_fname, bam_hdr, rg_id, long_qname_table, in_queue):
   """Create a BAM file from the FASTQ lines fed to it via in_queue
 
   :param bam_fname:
   :param bam_hdr:
+  :param rg_id:
   :param long_qname_table:
   :param in_queue:
   :return:
@@ -124,15 +131,16 @@ def disciple(bam_fname, bam_hdr, long_qname_table, in_queue):
   fp = pysam.AlignmentFile(bam_fname, 'wb', header=bam_hdr)
   ref_dict = {k['SN']: n for n, k in enumerate(bam_hdr['SQ'])}
   for qname, read_data in iter(in_queue.get, __process_stop_code__):
-    write_perfect_reads(qname, long_qname_table, ref_dict, read_data, fp)
+    write_perfect_reads(qname, rg_id, long_qname_table, ref_dict, read_data, fp)
   fp.close()
   logger.debug('Shutting down thread for {}'.format(bam_fname))
 
 
-def write_perfect_reads(qname, long_qname_table, ref_dict, read_data, fp):
+def write_perfect_reads(qname, rg_id, long_qname_table, ref_dict, read_data, fp):
   """Given reads begining to a template, write out the perfect alignments to file
 
   :param qname:
+  :param rg_id:
   :param long_qname_table:
   :param ref_dict: dict containing reference names mapped to ref_id
   :param read_data: [x1, x2, ... ] where xi is (seq, qual)
@@ -151,6 +159,8 @@ def write_perfect_reads(qname, long_qname_table, ref_dict, read_data, fp):
     read.pos = ri.pos - 1
     read.cigarstring = ri.cigar
     read.mapq = 60
+    read.set_tag('RG', rg_id, value_type='Z')
+
     # TODO: ask aligner people what the graph cigar tag is
     # TODO: Set this as unmapped?
     if ri.strand:

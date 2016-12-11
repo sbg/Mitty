@@ -1,6 +1,11 @@
 Release Notes
 =============
 
+2.8.6
+
+- god-aligner now writes RG tag to reads (required for GATK)
+- In read model description: Now plotting adjusted BQ, rather than simple average BQ
+
 2.8.4
 
 - Bugfix: PHRED (Base quality) score for perfect reads is now 40 ('I') to avoid confusing
