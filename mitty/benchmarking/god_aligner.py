@@ -114,7 +114,7 @@ def process_multi_threaded(
   logger.debug('Processed {} templates in {:0.2f}s ({:0.2f} t/s)'.format(cnt, t1 - t0, cnt/(t1 - t0)))
 
   if sort_and_index:
-    merge_sort_fragments(bam_fname, file_fragments, threads)
+    merge_sorted_fragments(bam_fname, file_fragments, threads)
 
 
 def disciple(bam_fname, bam_hdr, rg_id, long_qname_table, in_queue):
@@ -133,6 +133,14 @@ def disciple(bam_fname, bam_hdr, rg_id, long_qname_table, in_queue):
   for qname, read_data in iter(in_queue.get, __process_stop_code__):
     write_perfect_reads(qname, rg_id, long_qname_table, ref_dict, read_data, fp)
   fp.close()
+
+  logger.debug('Sorting {} -> {}'.format(bam_fname, bam_fname + '.sorted'))
+  t0 = time.time()
+  pysam.sort('-m', '1G', '-o', bam_fname + '.sorted', bam_fname)
+  os.remove(bam_fname)
+  t1 = time.time()
+  logger.debug('... {:0.2f}s'.format(t1 - t0))
+
   logger.debug('Shutting down thread for {}'.format(bam_fname))
 
 
@@ -186,23 +194,16 @@ def write_perfect_reads(qname, rg_id, long_qname_table, ref_dict, read_data, fp)
     fp.write(r)
 
 
-def merge_sort_fragments(bam_fname, file_fragments, threads):
-  logger.debug('Combining BAM fragments ...')
+def merge_sorted_fragments(bam_fname, file_fragments, threads):
+  logger.debug('Merging sorted BAM fragments ...')
   t0 = time.time()
-  pysam.cat('-o', bam_fname + '.unsorted', *file_fragments)
+  pysam.merge('-pcf', bam_fname, *[f + '.sorted' for f in file_fragments])
   t1 = time.time()
   logger.debug('... {:0.2f}s'.format(t1 - t0))
 
   logger.debug('Removing fragments')
   for f in file_fragments:
-    os.remove(f)
-
-  logger.debug('BAM sort ...')
-  t0 = time.time()
-  pysam.sort('-m', '2G', '-@', str(threads), '-o', bam_fname, bam_fname + '.unsorted')
-  t1 = time.time()
-  logger.debug('... {:0.2f}s'.format(t1 - t0))
-  os.remove(bam_fname + '.unsorted')
+    os.remove(f + '.sorted')
 
   logger.debug('BAM index ...')
   t0 = time.time()
