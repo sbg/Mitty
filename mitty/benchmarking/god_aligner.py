@@ -1,6 +1,5 @@
 import sys
 import time
-import base64
 import logging
 from multiprocessing import Process, Queue
 import os
@@ -70,7 +69,7 @@ def process_multi_threaded(
   """
   long_qname_table = load_qname_sidecar(sidecar_fname)
 
-  rg_id = base64.b64encode(' '.join(sys.argv).encode('ascii'))
+  rg_id = 'rg{}'.format(hash(' '.join(sys.argv)))
   fasta_ann = fasta + '.ann'
   bam_hdr = construct_header(fasta_ann, rg_id=rg_id, sample=sample_name)
 
@@ -79,7 +78,7 @@ def process_multi_threaded(
   file_fragments = ['{}.{:04}.bam'.format(bam_fname, i) for i in range(threads)]
 
   in_queue = Queue()
-  p_list = [Process(target=disciple, args=(file_fragments[i], bam_hdr, rg_id, long_qname_table, in_queue)) for i in range(threads)]
+  p_list = [Process(target=disciple, args=(file_fragments[i], bam_hdr, rg_id, long_qname_table, in_queue, sort_and_index)) for i in range(threads)]
   for p in p_list:
     p.start()
 
@@ -117,7 +116,7 @@ def process_multi_threaded(
     merge_sorted_fragments(bam_fname, file_fragments, threads)
 
 
-def disciple(bam_fname, bam_hdr, rg_id, long_qname_table, in_queue):
+def disciple(bam_fname, bam_hdr, rg_id, long_qname_table, in_queue, sort=False):
   """Create a BAM file from the FASTQ lines fed to it via in_queue
 
   :param bam_fname:
@@ -125,21 +124,27 @@ def disciple(bam_fname, bam_hdr, rg_id, long_qname_table, in_queue):
   :param rg_id:
   :param long_qname_table:
   :param in_queue:
+  :param sort: If False, don't sort the BAM fragments
   :return:
   """
-  logger.debug('Writing to {}'.format(bam_fname))
+  logger.debug('Writing to {} ...'.format(bam_fname))
+  t0 = time.time()
   fp = pysam.AlignmentFile(bam_fname, 'wb', header=bam_hdr)
   ref_dict = {k['SN']: n for n, k in enumerate(bam_hdr['SQ'])}
-  for qname, read_data in iter(in_queue.get, __process_stop_code__):
+  cnt = 0
+  for cnt, (qname, read_data) in enumerate(iter(in_queue.get, __process_stop_code__)):
     write_perfect_reads(qname, rg_id, long_qname_table, ref_dict, read_data, fp)
   fp.close()
-
-  logger.debug('Sorting {} -> {}'.format(bam_fname, bam_fname + '.sorted'))
-  t0 = time.time()
-  pysam.sort('-m', '1G', '-o', bam_fname + '.sorted', bam_fname)
-  os.remove(bam_fname)
   t1 = time.time()
-  logger.debug('... {:0.2f}s'.format(t1 - t0))
+  logger.debug('... {}: {} reads in {:0.2f}s ({:0.2f} t/s)'.format(bam_fname, cnt, t1 - t0, cnt/(t1 - t0)))
+
+  if sort:
+    logger.debug('Sorting {} -> {}'.format(bam_fname, bam_fname + '.sorted'))
+    t0 = time.time()
+    pysam.sort('-m', '1G', '-o', bam_fname + '.sorted', bam_fname)
+    os.remove(bam_fname)
+    t1 = time.time()
+    logger.debug('... {:0.2f}s'.format(t1 - t0))
 
   logger.debug('Shutting down thread for {}'.format(bam_fname))
 
@@ -197,13 +202,13 @@ def write_perfect_reads(qname, rg_id, long_qname_table, ref_dict, read_data, fp)
 def merge_sorted_fragments(bam_fname, file_fragments, threads):
   logger.debug('Merging sorted BAM fragments ...')
   t0 = time.time()
-  pysam.merge('-pcf', bam_fname, *[f + '.sorted' for f in file_fragments])
+  pysam.merge('-rpcf', bam_fname, *[f + '.sorted' for f in file_fragments])
   t1 = time.time()
   logger.debug('... {:0.2f}s'.format(t1 - t0))
 
   logger.debug('Removing fragments')
   for f in file_fragments:
-    os.remove(f + '.sorted')
+   os.remove(f + '.sorted')
 
   logger.debug('BAM index ...')
   t0 = time.time()
