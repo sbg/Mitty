@@ -41,6 +41,7 @@ RUN mitty --version
 
 # You can now test with
 # docker run --rm images.sbgenomics.com/kghosesbg/mitty3:latest mitty
+# docker run -ti --rm -v /Users/kghose/Code/mitty3/examples/reads:/data images.sbgenomics.com/kghosesbg/mitty3:latest
 # docker run --rm images.sbgenomics.com/kghosesbg/mitty3:latest bam diff
 
 # And push with

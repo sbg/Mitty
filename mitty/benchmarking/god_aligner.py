@@ -65,13 +65,13 @@ def process_multi_threaded(
                          option allows users to merge, sort and index the BAM fragments with their own tools
   :return:
 
-  Note: The pysam sort invocation expects 2GB/thread to be available
+  Note: The pysam sort invocation expects 1GB/thread to be available
   """
   long_qname_table = load_qname_sidecar(sidecar_fname)
 
   rg_id = 'rg{}'.format(hash(' '.join(sys.argv)))
   fasta_ann = fasta + '.ann'
-  bam_hdr = construct_header(fasta_ann, rg_id=rg_id, sample=sample_name)
+  bam_hdr = construct_header(fasta_ann, rg_id=rg_id, sample=sample_name, platform=platform)
 
   # Start worker processes
   logger.debug('Starting {} processes'.format(threads))

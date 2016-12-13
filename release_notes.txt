@@ -1,7 +1,7 @@
 Release Notes
 =============
 
-2.8.6
+2.8.7
 
 - god-aligner now writes RG tag to reads (required for GATK)
 - In read model description: Now plotting adjusted BQ, rather than simple average BQ
