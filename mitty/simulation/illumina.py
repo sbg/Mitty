@@ -229,7 +229,12 @@ def plot_BQ_heatmap(model, mate, ax, plt):
              extent=(1, model['max_rlen'], 1, 65),
              aspect='auto',
              origin='lower', cmap=plt.cm.gray_r)
-  B = np.arange(65)
-  bq_mean = np.dot(this_bq_mat, np.arange(65)) / this_bq_mat.sum(axis=1)
+  # bq_mean = np.dot(this_bq_mat, np.arange(65)) / this_bq_mat.sum(axis=1)
+  p_err = (np.dot(this_bq_mat, 10 ** (-np.arange(65)/10.0)) / this_bq_mat.sum(axis=1))
+  bq_mean = -10 * np.log10(p_err)
+  p_err_mean = p_err.mean()
+
   plt.plot(range(1, model['max_rlen'] + 1), bq_mean, 'y', lw=2)
+  plt.text(1, 20, 'Mean error {:2.3}%'.format(p_err_mean * 100))
   plt.setp(ax, xlabel='Position on read (bp)', ylabel='BQ value', title='Base quality: Mate {}'.format(mate + 1))
+

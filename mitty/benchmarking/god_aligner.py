@@ -1,6 +1,5 @@
 import sys
 import time
-import base64
 import logging
 from multiprocessing import Process, Queue
 import os
@@ -17,14 +16,17 @@ logger = logging.getLogger(__name__)
 __process_stop_code__ = 'SETECASTRONOMY'
 
 
-def construct_header(fasta_ann, rg_id, sample='S'):
+def construct_header(fasta_ann, rg_id, sample='S', platform='Illumina'):
   return {
     'HD': {'VN': '1.0'},
     'PG': [{'CL': ' '.join(sys.argv),
             'ID': 'mitty-god-aligner',
             'PN': 'god-aligner',
             'VN': __version__}],
-    'RG': [{'ID': rg_id, 'SM': sample}],
+    'RG': [{'ID': rg_id,
+            'CN': 'MittyReadSimulator',
+            'PL': platform,
+            'SM': sample}],
     'SQ': parse_ann(fasta_ann)
   }
 
@@ -42,7 +44,9 @@ def parse_ann(fn):
 
 
 def process_multi_threaded(
-  fasta, bam_fname, fastq1, sidecar_fname, fastq2=None, threads=1, max_templates=None, sample_name='Seven',
+  fasta, bam_fname, fastq1, sidecar_fname, fastq2=None, threads=1, max_templates=None,
+  platform='Illumina',
+  sample_name='Seven',
   sort_and_index=True):
   """
 
@@ -53,6 +57,7 @@ def process_multi_threaded(
   :param fastq2:
   :param threads:
   :param max_templates:
+  :param platform:
   :param sample_name:
   :param sort_and_index: If True, the output BAMs will be collated into one bam, sorted and indexed
                          the N output BAMs created by the individual workers will be deleted at the end.
@@ -60,20 +65,20 @@ def process_multi_threaded(
                          option allows users to merge, sort and index the BAM fragments with their own tools
   :return:
 
-  Note: The pysam sort invocation expects 2GB/thread to be available
+  Note: The pysam sort invocation expects 1GB/thread to be available
   """
   long_qname_table = load_qname_sidecar(sidecar_fname)
 
-  rg_id = base64.b64encode(' '.join(sys.argv).encode('ascii'))
+  rg_id = 'rg{}'.format(hash(' '.join(sys.argv)))
   fasta_ann = fasta + '.ann'
-  bam_hdr = construct_header(fasta_ann, rg_id=rg_id, sample=sample_name)
+  bam_hdr = construct_header(fasta_ann, rg_id=rg_id, sample=sample_name, platform=platform)
 
   # Start worker processes
   logger.debug('Starting {} processes'.format(threads))
   file_fragments = ['{}.{:04}.bam'.format(bam_fname, i) for i in range(threads)]
 
   in_queue = Queue()
-  p_list = [Process(target=disciple, args=(file_fragments[i], bam_hdr, long_qname_table, in_queue)) for i in range(threads)]
+  p_list = [Process(target=disciple, args=(file_fragments[i], bam_hdr, rg_id, long_qname_table, in_queue, sort_and_index)) for i in range(threads)]
   for p in p_list:
     p.start()
 
@@ -108,31 +113,47 @@ def process_multi_threaded(
   logger.debug('Processed {} templates in {:0.2f}s ({:0.2f} t/s)'.format(cnt, t1 - t0, cnt/(t1 - t0)))
 
   if sort_and_index:
-    merge_sort_fragments(bam_fname, file_fragments, threads)
+    merge_sorted_fragments(bam_fname, file_fragments, threads)
 
 
-def disciple(bam_fname, bam_hdr, long_qname_table, in_queue):
+def disciple(bam_fname, bam_hdr, rg_id, long_qname_table, in_queue, sort=False):
   """Create a BAM file from the FASTQ lines fed to it via in_queue
 
   :param bam_fname:
   :param bam_hdr:
+  :param rg_id:
   :param long_qname_table:
   :param in_queue:
+  :param sort: If False, don't sort the BAM fragments
   :return:
   """
-  logger.debug('Writing to {}'.format(bam_fname))
+  logger.debug('Writing to {} ...'.format(bam_fname))
+  t0 = time.time()
   fp = pysam.AlignmentFile(bam_fname, 'wb', header=bam_hdr)
   ref_dict = {k['SN']: n for n, k in enumerate(bam_hdr['SQ'])}
-  for qname, read_data in iter(in_queue.get, __process_stop_code__):
-    write_perfect_reads(qname, long_qname_table, ref_dict, read_data, fp)
+  cnt = 0
+  for cnt, (qname, read_data) in enumerate(iter(in_queue.get, __process_stop_code__)):
+    write_perfect_reads(qname, rg_id, long_qname_table, ref_dict, read_data, fp)
   fp.close()
+  t1 = time.time()
+  logger.debug('... {}: {} reads in {:0.2f}s ({:0.2f} t/s)'.format(bam_fname, cnt, t1 - t0, cnt/(t1 - t0)))
+
+  if sort:
+    logger.debug('Sorting {} -> {}'.format(bam_fname, bam_fname + '.sorted'))
+    t0 = time.time()
+    pysam.sort('-m', '1G', '-o', bam_fname + '.sorted', bam_fname)
+    os.remove(bam_fname)
+    t1 = time.time()
+    logger.debug('... {:0.2f}s'.format(t1 - t0))
+
   logger.debug('Shutting down thread for {}'.format(bam_fname))
 
 
-def write_perfect_reads(qname, long_qname_table, ref_dict, read_data, fp):
+def write_perfect_reads(qname, rg_id, long_qname_table, ref_dict, read_data, fp):
   """Given reads begining to a template, write out the perfect alignments to file
 
   :param qname:
+  :param rg_id:
   :param long_qname_table:
   :param ref_dict: dict containing reference names mapped to ref_id
   :param read_data: [x1, x2, ... ] where xi is (seq, qual)
@@ -151,6 +172,8 @@ def write_perfect_reads(qname, long_qname_table, ref_dict, read_data, fp):
     read.pos = ri.pos - 1
     read.cigarstring = ri.cigar
     read.mapq = 60
+    read.set_tag('RG', rg_id, value_type='Z')
+
     # TODO: ask aligner people what the graph cigar tag is
     # TODO: Set this as unmapped?
     if ri.strand:
@@ -176,23 +199,16 @@ def write_perfect_reads(qname, long_qname_table, ref_dict, read_data, fp):
     fp.write(r)
 
 
-def merge_sort_fragments(bam_fname, file_fragments, threads):
-  logger.debug('Combining BAM fragments ...')
+def merge_sorted_fragments(bam_fname, file_fragments, threads):
+  logger.debug('Merging sorted BAM fragments ...')
   t0 = time.time()
-  pysam.cat('-o', bam_fname + '.unsorted', *file_fragments)
+  pysam.merge('-rpcf', bam_fname, *[f + '.sorted' for f in file_fragments])
   t1 = time.time()
   logger.debug('... {:0.2f}s'.format(t1 - t0))
 
   logger.debug('Removing fragments')
   for f in file_fragments:
-    os.remove(f)
-
-  logger.debug('BAM sort ...')
-  t0 = time.time()
-  pysam.sort('-m', '2G', '-@', str(threads), '-o', bam_fname, bam_fname + '.unsorted')
-  t1 = time.time()
-  logger.debug('... {:0.2f}s'.format(t1 - t0))
-  os.remove(bam_fname + '.unsorted')
+   os.remove(f + '.sorted')
 
   logger.debug('BAM index ...')
   t0 = time.time()
