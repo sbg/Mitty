@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-set -x
+set -ex
 
 
 #mitty -v4 bam2illumina sample.bam ./rd-model.pkl "This model is taken from a BAM of unknown provenance" --every 5 --min-mq 30
@@ -51,7 +51,7 @@ mitty -v4 god-aligner \
   lqc.txt \
   perfectc.bam \
   --fastq2 r2c.fq.gz \
-  --sample-name INTEGRATION
+  --sample-name INTEGRATION \
   --threads 2
 
 
@@ -60,4 +60,4 @@ samtools sort diffd.unsorted.bam > diffd.bam
 samtools index diffd.bam
 
 # Cleanup
-# rm *.fq.gz *.bam *.bai *.png
+# rm *.fq.gz *.bam *.bai *.png *.log
