@@ -291,6 +291,7 @@ def mq_plot(bam, csv, plot, max_d, strict_scoring, sample_name, threads):
 
 @cli.command('derr-plot', short_help='Create alignment error plot from BAM')
 @click.argument('bam', type=click.Path(exists=True))
+@click.argument('longqname', type=click.Path(exists=True))
 @click.argument('csv')
 @click.argument('plot')
 @click.option('--max-v', type=int, default=200, help='Range of variant sizes to consider (51 min)')
@@ -298,11 +299,21 @@ def mq_plot(bam, csv, plot, max_d, strict_scoring, sample_name, threads):
 @click.option('--strict-scoring', is_flag=True, help="Don't consider breakpoints when scoring alignment")
 @click.option('--sample-name', help='If the FASTQ contains multiple samples, process reads from only this sample')
 @click.option('--threads', default=2)
-def derr_plot(bam, csv, plot, max_v, max_d, strict_scoring, sample_name, threads):
+def derr_plot(bam, longqname, csv, plot, max_v, max_d, strict_scoring, sample_name, threads):
   """Given a BAM from simulated reads, show pattern of alignment errors"""
   import mitty.benchmarking.derr as derr
-  derr_mat = derr.process_bam(bam, max_v, max_d, strict_scoring, sample_name, threads, csv)
+  derr_mat = derr.process_bam(bam, longqname, max_v, max_d, strict_scoring, sample_name, threads, csv)
   derr.plot_derr(derr_mat, plot)
+
+
+@cli.command('filter-eval-vcf', short_help='Split out the FP and FN from an eval.vcf')
+@click.argument('vcfin', type=click.Path(exists=True))
+@click.argument('outprefix')
+def filter_eval_vcf(vcfin, outprefix):
+  """Subset VCF for given sample, apply BED file and filter out complex variants
+   making it suitable to use for read generation"""
+  import mitty.benchmarking.filterevalvcf as fev
+  fev.extract_fp_fn(vcfin, outprefix)
 
 
 def get_read_model(modelfile):
