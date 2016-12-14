@@ -10,14 +10,16 @@ matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 # from matplotlib.colors import LogNorm
 
-from mitty.simulation.readgenerate import parse_qname, score_alignment_error
+from mitty.simulation.sequencing.writefastq import parse_qname, load_qname_sidecar
+from mitty.benchmarking.alignmentscore import score_alignment_error
 
 
 logger = logging.getLogger(__name__)
 
 
-def process_bam(bam_fname, max_v_len=200, max_d=200, strict=False, sample_name=None, processes=2, out_csv=None):
+def process_bam(bam_fname, longqname_fname, max_v_len=200, max_d=200, strict=False, sample_name=None, processes=2, out_csv=None):
   bam_fp = pysam.AlignmentFile(bam_fname)
+  long_qname_table = load_qname_sidecar(longqname_fname)
   if max_v_len < 51:
     logger.warning('Setting max_v_len to 51')
     max_v_len = 51
@@ -28,7 +30,7 @@ def process_bam(bam_fname, max_v_len=200, max_d=200, strict=False, sample_name=N
   tot_rd = 0
   p = Pool(processes=processes)
   for shard in p.imap_unordered(process_bam_part_w,
-                                ((bam_fname, s['SN'], max_v_len, max_d, strict, sample_name) for s in bam_fp.header['SQ'])):
+                                ((bam_fname, long_qname_table, s['SN'], max_v_len, max_d, strict, sample_name) for s in bam_fp.header['SQ'])):
     rd_cnt = shard.sum()
     tot_rd += rd_cnt
     d_err_mat += shard
@@ -50,10 +52,11 @@ def process_bam_part_w(args):
   return process_bam_part(*args)
 
 
-def process_bam_part(bam_fname, reference, max_v_len=200, max_d=200, strict=False, sample_name=None):
+def process_bam_part(bam_fname, long_qname_table, reference, max_v_len=200, max_d=200, strict=False, sample_name=None):
   """Work out MQ and D for
 
   :param bam_fname:
+  :param long_qname_table
   :param reference:
   :param max_v_len
   :param max_d:
@@ -65,7 +68,7 @@ def process_bam_part(bam_fname, reference, max_v_len=200, max_d=200, strict=Fals
   bam_fp = pysam.AlignmentFile(bam_fname)
   for r in bam_fp.fetch(reference=reference):
     if sample_name is not None and not r.qname.startswith(sample_name): continue
-    ri = parse_qname(r.qname)[1 if r.is_read2 else 0]  # TODO: Will this work for SE reads?
+    ri = parse_qname(r.qname, long_qname_table)[1 if r.is_read2 else 0]  # TODO: Will this work for SE reads?
     d_err = score_alignment_error(r, ri, max_d=max_d, strict=strict)  # max(min((r.pos + 1 - ri.pos if r.reference_name == ri.chrom else max_d), max_d), -max_d)
     if len(ri.v_list):
       for v in ri.v_list:
