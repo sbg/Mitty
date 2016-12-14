@@ -1,6 +1,13 @@
 Release Notes
 =============
 
+2.9.0
+
+- Added check for illegal overlaps in variants in variant filtering
+- Fixed bug in filtering complex variants
+- Adding programs to process eval.vcf from VCF benchmarking pipeline
+
+
 2.8.7
 
 - god-aligner now writes RG tag to reads (required for GATK)

@@ -92,14 +92,18 @@ def split_copies(region, vl):
   #     ]
   #   )
   # }
-
   return {
     'region': region,
     'v': [
-        list(filter(None, (parse(v, cpy=cpy) for v in vl)))
+        parse_vl(vl, cpy=cpy, ploidy=ploidy)
         for cpy in range(ploidy)
     ]
   }
+
+
+def parse_vl(vl, cpy, ploidy):
+  unusable_variant.p_overlap = [0] * ploidy
+  return list(filter(None, (parse(v, cpy=cpy) for v in vl)))
 
 
 def parse(v, cpy):
@@ -133,11 +137,21 @@ def parse(v, cpy):
 
 
 def unusable_variant(v):
+  """
+
+  :param v:
+  :param p_overlap: meant to be a private mutable (updated in place)
+                    Quintisomy should be enough for everyone
+  :return: T/F
+
+  This function uses a state variable p_overlap which should be initialized to [0, 0, 0, ....]
+  when calling this on a new region or other stretch of variants. The number of elements you
+  keep must be at least the ploidy of the genomes you are handling.
+  """
   def _complex_variant(_v):
-    var = _v.samples.values()[0]
-    for alt in var.alleles:
+    for alt in _v.alts:
       if _v.rlen > 1 and len(alt) > 1:
-        logger.debug('Complex variant {}:{} {} -> {}'.format(_v.contig, _v.pos, _v.ref, var.alleles))
+        logger.debug('Complex variant {}:{} {} -> {}'.format(_v.contig, _v.pos, _v.ref, _v.alts))
         return True
     return False
 
@@ -155,12 +169,26 @@ def unusable_variant(v):
       return True
     return False
 
-  return _complex_variant(v) or _angle_bracketed_id(v) or _breakend_replacement(v)
+  def _illegal_overlap(_v, _p_overlap):
+    is_illegal = False
+    var = _v.samples.values()[0]
+    for g, po in zip(var['GT'], _p_overlap):
+      if g and po > _v.start:  # stop is 1 past the position, for some reason
+        is_illegal = True
+        logger.debug('Illegal overlap {}:{} {} -> {} (previous variant ends at {})'.format(_v.contig, _v.pos, _v.ref, _v.alts, po))
+        break
+    else:  # Only gets here if is_illegal is false
+      for n, g in enumerate(var['GT']):
+        if g:
+          _p_overlap[n] = _v.stop
+    return is_illegal
+
+  return _complex_variant(v) or _angle_bracketed_id(v) or _breakend_replacement(v) or _illegal_overlap(v, unusable_variant.p_overlap)
 
 
 def prepare_variant_file(fname_in, sample, bed_fname, fname_out, write_mode='w'):
-  """Prepare a variant file with only the given sample, complex variant calls filtered out,
-  and restricted to the given bed file
+  """Prepare a variant file with only the given sample, complex and illegal variant calls
+  filtered out, and restricted to the given bed file
 
   :param fname_in:
   :param sample:
@@ -179,6 +207,7 @@ def prepare_variant_file(fname_in, sample, bed_fname, fname_out, write_mode='w')
   for region in read_bed(bed_fname):
     logger.debug('Filtering {}'.format(region))
     n = -1
+    unusable_variant.p_overlap = [0, 0, 0, 0, 0]  # Quintisomy should be enough for anyone
     for n, v in enumerate(vcf_in.fetch(contig=region[0], start=region[1], stop=region[2])):
       if not any(v.samples.values()[0]['GT']): continue  # This variant does not exist in this sample
       if unusable_variant(v):
