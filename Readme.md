@@ -211,6 +211,28 @@ the complete qname is printed in the side-car file (`lq.txt` in the example).
 The qname format can be obtained by executing `mitty qname`
 
 
+#### Reference reads
+As you might expect, by passing a VCF with a sample having no variants (see `human-m-ref.vcf` or `human-f-ref.vcf` under
+`examples/reads`) we can generate reads with no variants, representing the reference genome.
+Note the use of `0/0` for all the autosomes and the `0` for the X and Y chromosomes in the male
+to indicate the proper ploidy to the simulator via these VCF files.
+
+```
+mitty -v4 generate-reads \
+  ~/Data/human_g1k_v37_decoy.fasta \
+  human-m-ref.vcf.gz \
+  ref \
+  human-male.bed \
+  1kg-pcr-free.pkl \
+  0.01 \
+  7 \
+  >(gzip > ref-r1.gq.gz) \
+  ref-lq.txt \
+  --fastq2 >(gzip > ref-r2.fq.gz) \
+  --threads 2
+```
+
+
 ### Corrupting reads
 
 The reads generated using the previous command have no base call errors. Base call errors can be introduced into the
