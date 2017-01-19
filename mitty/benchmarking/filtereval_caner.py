@@ -28,14 +28,15 @@ def extract_fp_fn(fname_in, prefix_out):
 
   mode = 'rb' if fname_in.endswith('bcf') else 'r'
   vcf_in = pysam.VariantFile(fname_in, mode)
-
+  bam_in = pysam.AlignmentFile(fname_in[:-3] + 'bam', "rb")#caner
+  
   fp_vcf_out = pysam.VariantFile(prefix_out + '-fp.vcf', mode='w', header=vcf_in.header)
+  fp_bam_out = pysam.AlignmentFile(prefix_out+'-fp.bam', "wb", template=bam_in) #caner
   fp_roi_bed = open(prefix_out + '-fp-roi.bed', 'w')
   fn_vcf_out = pysam.VariantFile(prefix_out + '-fn.vcf', mode='w', header=vcf_in.header)
   fn_roi_bed = open(prefix_out + '-fn-roi.bed', 'w')
-  bam_in = pysam.AlignmentFile(fname_in[:-3] + 'bam', "rb")#caner
-  fp_bam_out = pysam.AlignmentFile(prefix_out+'-fp.bam', "wb", template=bam_in) #caner
   fn_bam_out = pysam.AlignmentFile(prefix_out+'-fn.bam', "wb", template=bam_in) #caner
+  
 
   n, fp_cnt, fn_cnt = -1, 0, 0
   for n, v in enumerate(vcf_in):
