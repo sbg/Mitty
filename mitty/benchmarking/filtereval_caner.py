@@ -38,6 +38,16 @@ def extract_fp_fn(fname_in, prefix_out):
   fn_bam_out = pysam.AlignmentFile(prefix_out+'-fn.bam', "wb", template=bam_in) #caner
 
   n, fp_cnt, fn_cnt = -1, 0, 0
+  #CANER - distribution of variant sizes
+  fp_ins_size_in_curr_bin=0
+  fp_del_size_in_curr_bin=0
+  fn_ins_size_in_curr_bin=0
+  fn_del_size_in_curr_bin=0
+  fp_snp_size_in_curr_bin=0
+  fn_snp_size_in_curr_bin=0
+  fp_subst_size_in_curr_bin=0
+  fn_subst_size_in_curr_bin=0
+
   for n, v in enumerate(vcf_in):
     s = v.samples['TRUTH']
     if s['BD'] == 'FN':
@@ -48,9 +58,8 @@ def extract_fp_fn(fname_in, prefix_out):
       ref=v.ref#caner
       alts=v.alts#caner
       for alt in alts:#caner
-      	pass#caner -  process Distribution of variant sizes
-      
-      
+      	#caner -  process Distribution of variant sizes
+      	pass
 
     s = v.samples['QUERY']
     if s['BD'] == 'FP':
