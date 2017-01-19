@@ -28,31 +28,42 @@ def extract_fp_fn(fname_in, prefix_out):
 
   mode = 'rb' if fname_in.endswith('bcf') else 'r'
   vcf_in = pysam.VariantFile(fname_in, mode)
-  bam_in = pysam.AlignmentFile(fname_in[:-3] + 'bam', "rb")#caner
-  
+
   fp_vcf_out = pysam.VariantFile(prefix_out + '-fp.vcf', mode='w', header=vcf_in.header)
-  fp_bam_out = pysam.AlignmentFile(prefix_out+'-fp.bam', "wb", template=bam_in) #caner
   fp_roi_bed = open(prefix_out + '-fp-roi.bed', 'w')
   fn_vcf_out = pysam.VariantFile(prefix_out + '-fn.vcf', mode='w', header=vcf_in.header)
   fn_roi_bed = open(prefix_out + '-fn-roi.bed', 'w')
+  bam_in = pysam.AlignmentFile(fname_in[:-3] + 'bam', "rb")#caner
+  fp_bam_out = pysam.AlignmentFile(prefix_out+'-fp.bam', "wb", template=bam_in) #caner
   fn_bam_out = pysam.AlignmentFile(prefix_out+'-fn.bam', "wb", template=bam_in) #caner
-  
 
   n, fp_cnt, fn_cnt = -1, 0, 0
   for n, v in enumerate(vcf_in):
     s = v.samples['TRUTH']
     if s['BD'] == 'FN':
-      fn_vcf_out.write(v)
-      fp_bam_out.write(bam_in.fetch(v.chrom, v.start, v.stop))#caner
-      save_roi(fn_roi_bed, v)
       fn_cnt += 1
+      fn_vcf_out.write(v)
+      save_roi(fn_roi_bed, v)
+      #fp_bam_out.write(bam_in.fetch(v.chrom, v.start, v.stop))#caner
+      ref=v.ref#caner
+      alts=v.alts#caner
+      for alt in alts:#caner
+      	pass#caner -  process Distribution of variant sizes
+      
+      
 
     s = v.samples['QUERY']
     if s['BD'] == 'FP':
-      fp_vcf_out.write(v)
-      fn_bam_out.write(bam_in.fetch(v.chrom, v.start, v.stop))#caner
-      save_roi(fp_roi_bed, v)
       fp_cnt += 1
+      fp_vcf_out.write(v)
+      save_roi(fp_roi_bed, v)
+      #fn_bam_out.write(bam_in.fetch(v.chrom, v.start, v.stop))#caner
+      ref=v.ref#caner
+      alts=v.alts#caner
+      for alt in alts:#caner
+      	pass#caner - Distribution of variant sizes
+      
+      
 
   bam_in.close()#caner
   fp_bam_out.close()#caner
