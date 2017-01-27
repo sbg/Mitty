@@ -1,6 +1,11 @@
 Release Notes
 =============
 
+2.9.2
+
+- Bugfix: Forgot to commit benchmarking/__init__.py
+
+
 2.9.1
 
 - Fixed ploidy sniffing (was previously only looking at first variant in region)
