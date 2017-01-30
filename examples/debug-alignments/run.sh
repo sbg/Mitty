@@ -26,4 +26,15 @@ do
 done
 
 # Run the BAM partitioner
-mitty -v4 debug partition-bams haba d_err --threshold 10 --sidecar_in lq.txt --bam bwa_1.5.bam --bam bwa_10.bam --bam bwa_20.bam
+mitty -v4 debug partition-bams \
+  derr \
+  d_err --threshold 10 \
+  --sidecar_in lq.txt --bam bwa_1.5.bam --bam bwa_10.bam --bam bwa_20.bam
+
+mitty -v4 debug partition-bams \
+  map mapped \
+  --bam bwa_1.5.bam  --bam bwa_10.bam --bam bwa_20.bam
+
+mitty -v4 debug partition-bams \
+  mq MQ \
+  --threshold 1  --bam bwa_1.5.bam --bam bwa_10.bam --bam bwa_20.bam

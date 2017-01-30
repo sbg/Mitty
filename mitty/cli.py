@@ -274,6 +274,87 @@ def filter_bam():
   click.echo('Currently under development')
 
 
+@cli.group('debug', short_help='Alignment and variant calling debugging tools')
+def debug_tools():
+  pass
+
+
+def partition_bam_choices():
+  from mitty.benchmarking.partition_bams import scoring_fn_dict
+  return scoring_fn_dict.keys()
+
+
+def print_partion_bam_criteria(ctx, param, value):
+  if not value or ctx.resilient_parsing:
+    return
+  from mitty.benchmarking.partition_bams import scoring_fn_dict
+  for k, v in scoring_fn_dict.items():
+    print('{}: {}\n'.format(k, v[1]))
+  ctx.exit()
+
+
+@debug_tools.command('partition-bams', short_help="Given two or more BAMs partition them into mutually exclusive sets")
+@click.argument('outprefix')
+@click.argument('criterion', type=click.Choice(partition_bam_choices()))
+@click.option('--threshold', type=float, default=10)
+@click.option('--sidecar_in', type=click.Path(exists=True))
+@click.option('--bam', type=click.Path(exists=True), multiple=True, help='BAMs to partition')
+@click.option('--criteria', is_flag=True, callback=print_partion_bam_criteria, expose_value=False, is_eager=True, help='Print documentation for criteria')
+def partition_bams(outprefix, criterion, threshold, sidecar_in, bam):
+  """
+An example command line for this tool is:
+
+\b
+mitty -v4 debug partition-bams
+  myderr \\
+  d_err --threshold 10 \\
+  --sidecar_in lq.txt --bam bwa_1.5.bam --bam bwa_10.bam --bam bwa_20.bam
+
+This command line asks the tool to use |d_err| < 10 as the set membership function. We are passing it three BAM files
+(the file names refer to the `-r` values we passed `bwa mem` (1.5, 10 and 20)) and `lq.txt` is the sidecar file carrying
+the qnames > 254 characters (as described previously).
+
+This tool produces a summary file `myderr_summary.txt` that looks like:
+
+\b
+(A)(B)(C) 22331
+(A)(B)C   234
+(A)B(C)   0
+(A)BC     3
+A(B)(C)   0
+A(B)C     0
+AB(C)     208
+ABC       199126
+
+
+In this nomenclature A is the set and (A) is the complement of this set. The set labels A, B, C ... (upto a maximum of 10)
+refer to the BAM files in sequence, in this case 1.5, 10 and 20.
+
+Thus, ABC means all the reads which have a |d_err| < 10 in all the three files. AB(C) means all the reads which have
+a |d_err| < 10 in A and B but not C, and so on. A reader familiar with Venn diagrams is refered to the chart in the docs
+for a translation of the three dimensional case to a three way Venn diagram. Higher dimensions are harder to visualize
+as Venn diagrams.
+
+The tool also produces a set of files following the naming convention:
+
+\b
+myderr_(A)(B)(C)_A.bam
+myderr_(A)(B)(C)_B.bam
+myderr_(A)(B)(C)_C.bam
+myderr_(A)(B)C_A.bam
+myderr_(A)(B)C_B.bam
+myderr_(A)(B)C_C.bam
+...
+
+The first part of the name follows the convention outlined above. The trailing A, B, C refer to the orginal source BAM of
+the reads. So `myderr_(A)(B)(C)_B.bam` carries reads from bam B that have |d_err| >= 10 in all the three BAMs.
+
+The criteria the `partition-bam` tool can be run on can be obtained by passing it the `--criteria` option.
+  """
+  import mitty.benchmarking.partition_bams as pbm
+  pbm.main(bam_in_l=bam, out_prefix=outprefix, criterion=criterion, threshold=threshold, sidecar_fname=sidecar_in)
+
+
 @cli.command('mq-plot', short_help='Create MQ plot from BAM')
 @click.argument('bam', type=click.Path(exists=True))
 @click.argument('csv')

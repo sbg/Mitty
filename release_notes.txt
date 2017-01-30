@@ -1,6 +1,11 @@
 Release Notes
 =============
 
+2.10.0
+
+- BAM partitioner implemented
+
+
 2.9.2
 
 - Bugfix: Forgot to commit benchmarking/__init__.py
