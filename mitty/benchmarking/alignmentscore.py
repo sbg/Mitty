@@ -1,6 +1,9 @@
 """Code for assessing alignment accuracy"""
 import re
 
+from mitty.simulation.sequencing.writefastq import ri, load_qname_sidecar, parse_qname
+# good to have these together. Code that uses score_alignment_error is very likely to use
+# ri, load_qname_sidecar and parse_qname
 
 cigar_parser = re.compile(r'(\d+)(\D)')
 
@@ -30,3 +33,17 @@ def score_alignment_error(r, ri, max_d=200, strict=False):
           correct_pos += int(cnt)
 
   return d_err
+
+
+def tag_alignment(r, ri):
+  """Given correct alignment set tags on the read indicating correct alignment
+
+  :param r:
+  :param ri:
+  :return: mutates r
+  """
+  r.set_tags(
+    [('Xd', score_alignment_error(r, ri), 'i'),
+     ('XR', ri.chrom, 'Z'),
+     ('XP', ri.pos, 'i'),
+     ('XM', ri.cigar, 'Z')])
