@@ -68,7 +68,8 @@ def main(bam_in_l, out_prefix, criterion, threshold, sidecar_fname=None):
   for cnt, (n, r) in enumerate(iterate_over_bams(bam_fp_l)):
     if (cnt + 1) % 1000000 == 0:
       t1 = time.time()
-      logger.debug('Read {} templates ({} incomplete reads) in {}s ({} t/s)'.format(cnt + 1, len(incomplete_reads), t1 - t0, cnt / (t1 - t0)))
+      logger.debug('Processed {} reads ({} incomplete ({:0.2}%)) in {:.2f}s ({:.2f} t/s)'.format(
+        cnt + 1, len(incomplete_reads), 100 * len(incomplete_reads) / (cnt + 1), t1 - t0, cnt / (t1 - t0)))
 
     ky = ('1' if r.is_read1 else '2') + r.qname
 
@@ -83,8 +84,8 @@ def main(bam_in_l, out_prefix, criterion, threshold, sidecar_fname=None):
       incomplete_reads[ky] = ir
 
   t1 = time.time()
-  logger.debug('Read {} templates ({} incomplete reads) in {}s ({} t/s)'.format(cnt + 1, len(incomplete_reads), t1 - t0,
-                                                                                cnt / (t1 - t0)))
+  logger.debug('Processed {} reads ({} incomplete ({:0.2}%)) in {:.2f}s ({:.2f} t/s)'.format(
+    cnt + 1, len(incomplete_reads), 100 * len(incomplete_reads)/(cnt + 1), t1 - t0, cnt / (t1 - t0)))
 
   logger.debug('Closing output files')
   for p in part_d:
