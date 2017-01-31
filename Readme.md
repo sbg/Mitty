@@ -381,23 +381,26 @@ the qnames > 254 characters (as described previously).
 This tool produces a summary file `myderr_summary.txt` that looks like:
 
 ```
-(A)(B)(C)	22331
-(A)(B)C	  234
-(A)B(C)	  0
-(A)BC	    3
-A(B)(C)	  0
-A(B)C	    0
-AB(C)	    208
-ABC	      199126
+(A)(B)(C) 22331
+(A)(B)C   234
+(A)B(C)   0
+(A)BC     3
+A(B)(C)   0
+A(B)C     0
+AB(C)     208
+ABC       199126
 ```
 
 In this nomenclature A is the set and (A) is the complement of this set. The set labels A, B, C ... (upto a maximum of 10)
 refer to the BAM files in sequence, in this case 1.5, 10 and 20. 
 
 Thus, ABC means all the reads which have a |d_err| < 10 in all the three files. AB(C) means all the reads which have 
-a |d_err| < 10 in A and B but not C, and so on. A reader familiar with Venn diagrams is refered to the chart below
+a |d_err| < 10 in A and B but not C, and so on. A reader familiar with Venn diagrams is referred to the chart below
 for a translation of the three dimensional case to a three way Venn diagram. Higher dimensions are harder to visualize
 as Venn diagrams.
+
+![Sets to Venn diagram](docs/images/sets.png?raw=true "Sets to Venn diagram")
+
 
 The tool also produces a set of files following the naming convention:
 
@@ -412,6 +415,10 @@ myderr_(A)(B)C_C.bam
 ```
 The first part of the name follows the convention outlined above. The trailing A, B, C refer to the orginal source BAM of
 the reads. So `myderr_(A)(B)(C)_B.bam` carries reads from bam B that have |d_err| >= 10 in all the three BAMs.
+
+An example of throwing these files up on a genome browser and inspecting them is given below
+
+![IGV Bam Partitions](docs/images/igv-sets.png?raw=true "BAM partitions on IGV")
 
 The criteria the `partition-bam` tool can be run on can be obtained by passing it the `--criteria` option.
 
