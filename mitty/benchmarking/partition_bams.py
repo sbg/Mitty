@@ -29,8 +29,9 @@ def iterate_over_bams(bam_fp_l):
   :param bam_fp_l:
   :return:
   """
+  bl = [bam_fp.fetch(until_eof=True) for bam_fp in bam_fp_l]
   while 1:
-    rl = [next(bam_fp, None) for bam_fp in bam_fp_l]
+    rl = [next(bam_fp, None) for bam_fp in bl]
     if any(rl):
       for n, r in enumerate(rl):
         if r is None: continue
