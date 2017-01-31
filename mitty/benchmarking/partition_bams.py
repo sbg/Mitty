@@ -66,7 +66,7 @@ def main(bam_in_l, out_prefix, criterion, threshold, sidecar_fname=None):
   cnt = -1
   t0 = time.time()
   for cnt, (n, r) in enumerate(iterate_over_bams(bam_fp_l)):
-    if (cnt + 1) % 100000 == 0:
+    if (cnt + 1) % 1000000 == 0:
       t1 = time.time()
       logger.debug('Read {} templates ({} incomplete reads) in {}s ({} t/s)'.format(cnt + 1, len(incomplete_reads), t1 - t0, cnt / (t1 - t0)))
 
