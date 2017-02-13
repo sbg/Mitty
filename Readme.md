@@ -107,8 +107,9 @@ file has been saved under the name hg001.vcf.gz in the working directory. The be
 
 
 ### Prepare VCF file for taking reads from
-The read simulator can not properly generate ground truth reads from complex variants (variant calls where the REF and
-ALT are both larger than 1 bp) and from any entry that does not precisely lay out the ALT sequence in the ALT column,
+The read simulator can not properly generate ground truth reads from overlapping variants 
+(e.g. a deletion that overlaps a SNP on the same chromosome copy),  complex variants (variant calls where the REF and
+ALT are both larger than 1 bp) from any entry that does not precisely lay out the ALT sequence in the ALT column,
 such as angle bracket ID references and variants breakend notation. 
 Such calls must be filtered from a VCF file before it can be used as a sample to generate reads from.
 
@@ -378,6 +379,37 @@ overlap region 1000-2000
 
 If only 1.bed and 2.bed were passed the resulting simulated genome would have two copies of chrom 1 but one copy of
 chrom 2
+
+
+### Simulated variants
+
+The `simulate-variants` command generates a VCF fragment with simulated variants. 
+The program carries three basic models for variant simulation - SNPs, insertions and deletions and is invoked as follows:
+
+```
+mitty -v4 simulate-variants \
+  ~/Data/human_g1k_v37_decoy.fasta \
+  mysample \ # The name of the sample to add to
+  region.bed \
+  7 \  # This is the random number generator seed
+  --p-het 0.6 \   # The probability for heterozygous variants
+  --model SNP 0.001 1 1 \   #  <model type> <p> <min-size> <max-size>
+  --model INS 0.0001 10 100 \
+  --model DEL 0.0001 10 100 | bgzip -c > sim.vcf.gz
+  
+tabix -p vcf sim.vcf.gz
+```  
+p is the probability of a variant being placed on any given base 
+min-size and max-size indicate the size ranges of the variants produced. These are ignored for SNP
+
+This VCF should be run through the `filter-variants` program as usual before taking reads. This is especially
+important because there may be illegaly overlapping variants in the simulation
+  
+```  
+mitty -v4 filter-variants sim.vcf.gz mysample region.bed - 2> sim-vcf-filter.log | bgzip -c > sim-filt.vcf.gz
+tabix -p vcf sim-filt.vcf.gz  
+```
+
 
 
 Appendix
