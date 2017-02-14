@@ -1,4 +1,12 @@
-"""Functions to help parse an EVCF as we want"""
+"""Functions to help parse an EVCF as we want
+
+
+Helpful docs:
+
+https://github.com/ga4gh/benchmarking-tools/blob/master/doc/ref-impl/intermediate.md
+
+
+"""
 cat_dict = {
   'TPTP': 'TP',   # These are all seen in combination with alternate representations
   'TP.': 'TP',
