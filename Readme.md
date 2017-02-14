@@ -496,7 +496,7 @@ p is the probability of a variant being placed on any given base
 min-size and max-size indicate the size ranges of the variants produced. These are ignored for SNP
 
 This VCF should be run through the `filter-variants` program as usual before taking reads. This is especially
-important because there may be illegaly overlapping variants in the simulation
+important because the simulation can produce illegaly overlapping variants which will be taken out by this step.
   
 ```  
 mitty -v4 filter-variants sim.vcf.gz mysample region.bed - 2> sim-vcf-filter.log | bgzip -c > sim-filt.vcf.gz
@@ -504,6 +504,33 @@ tabix -p vcf sim-filt.vcf.gz
 ```
 
 Please see `examples/variants/run.sh` for an example script.
+
+
+Analysis
+--------
+Mitty supplies some tools to help with benchmarking and debugging of aligner/caller pipelines.
+
+## Variant calling accuracy, parametrized by variant size
+
+We can use a set of tools developed by the GA4GH consortium to compare a VCF produced by a pipeline with a truth VCF.
+This comparison is presented as another VCF annotated with information about each call - whether it is a TP, FN, FP or GT
+call.
+
+`pr-by-size` is a program that summarizes the comparison in terms of variant size.
+
+```
+mitty -v4 debug pr-by-size \
+  evcf.in.vcf.gz \
+  out.csv \
+  --max-size 1000 \
+  --bin-size 20 \
+  --plot pr.size.pdf
+```
+
+This invocation will process evcf.in.vcf.gz, write the results as a comma separated file (out.csv) and also plot them
+in pr.size.pdf. The program will check variants from 1000bp deletions to 1000bp insertions, putting them into 20bp size 
+bins. SNPs are always counted and placed in their own spearate bin.
+
 
 Appendix
 ========
