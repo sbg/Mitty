@@ -1,9 +1,10 @@
+import logging
 import time
 
 import pysam
-import numpy as np
 
-import logging
+from mitty.lib.bedfile import read_bed
+
 logger = logging.getLogger(__name__)
 
 
@@ -33,19 +34,6 @@ class Variant(object):
     return self.tuple().__repr__()
 
 
-# Follows standard BED convention: https://genome.ucsc.edu/FAQ/FAQformat#format1
-# chrom - The name of the chromosome (e.g. chr3, chrY, chr2_random) or scaffold (e.g. scaffold10671).
-# chromStart - The starting position of the feature in the chromosome or scaffold.
-#              The first base in a chromosome is numbered 0.
-# chromEnd - The ending position of the feature in the chromosome or scaffold.
-#            The chromEnd base is not included in the display of the feature.
-#
-# For example, the first 100 bases of a chromosome are defined as chromStart=0, chromEnd=100,
-# and span the bases numbered 0-99.
-def read_bed(bed_fname):
-  return list(map(lambda x: (x[0], int(x[1]), int(x[2])), map(lambda x: x.split(), open(bed_fname, 'r').readlines())))
-
-
 # Unphased variants always go into chrom copy 0|1
 # We get results in the form of a ploid_bed
 def load_variant_file(fname, sample, bed_fname):
@@ -61,7 +49,7 @@ def load_variant_file(fname, sample, bed_fname):
   return [
     split_copies(region, [v for v in vcf_fp.fetch(contig=region[0], start=region[1], stop=region[2])])
     for region in read_bed(bed_fname)
-  ]
+    ]
 
 
 def split_copies(region, vl):
