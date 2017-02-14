@@ -47,39 +47,30 @@ def load_variant_file(fname, sample, bed_fname):
   vcf_fp = pysam.VariantFile(fname, mode)
   vcf_fp.subset_samples([sample])
   return [
-    split_copies(region, [v for v in vcf_fp.fetch(contig=region[0], start=region[1], stop=region[2])])
+    split_copies(region,
+                 [v for v in vcf_fp.fetch(contig=region[0], start=region[1], stop=region[2])],
+                 sniff_ploidy(vcf_fp, region[0]))
     for region in read_bed(bed_fname)
     ]
 
 
-def split_copies(region, vl):
+def sniff_ploidy(vcf_fp, contig):
+  v = next(vcf_fp.fetch(contig=contig), None)
+  ploidy = 2
+  if v is not None:
+    ploidy = len(v.samples[0]['GT'])
+  logger.debug(
+    'Contig: {}, ploidy: {} {}'.format(contig, ploidy,
+                                       '(Assumed. Contig was empty)' if v is None else ''))
+  return ploidy
+
+
+def split_copies(region, vl, ploidy):
   """Given a list of pysam.cbcf.VariantRecord split it into multiple lists, one for each chromosome copy
 
   :param vl:
   :return: [c1|0, c0|1]
   """
-  # Sniff out the ploidy
-  if len(vl) == 0:
-    logger.warning('Empty region ({}), assuming diploid'.format(region))
-    ploidy = 2
-  else:
-    ploidy = len(vl[0].samples[0]['GT'])
-    logger.debug('Region: {}, ploidy: {}'.format(region, ploidy))
-
-  # cpy_l = [
-  #   (cpy, '|'.join(['0'] * cpy + ['1'] + ['0'] * (ploidy - 1 - cpy)))
-  #   for cpy in range(ploidy)
-  # ]
-  #
-  # return {
-  #   'region': region,
-  #   'v': dict(
-  #     [
-  #       (gt, list(filter(None, (parse(v, cpy=cpy) for v in vl))))
-  #       for cpy, gt in cpy_l
-  #     ]
-  #   )
-  # }
   return {
     'region': region,
     'v': [

@@ -1,6 +1,22 @@
 Release Notes
 =============
 
+2.10.0
+
+- BAM partitioner implemented
+
+
+2.9.2
+
+- Bugfix: Forgot to commit benchmarking/__init__.py
+
+
+2.9.1
+
+- Fixed ploidy sniffing (was previously only looking at first variant in region)
+- Added sample empty VCF files for human male and female + instructions on how to
+  take reference reads
+
 2.9.0
 
 - Added check for illegal overlaps in variants in variant filtering
@@ -16,7 +32,7 @@ Release Notes
 2.8.4
 
 - Bugfix: PHRED (Base quality) score for perfect reads is now 40 ('I') to avoid confusing
-  GATK and other tools that think this is erroneous.
+  GATK and other tools that think 60 (the old value) is erroneous.
 
 2.8.3
 

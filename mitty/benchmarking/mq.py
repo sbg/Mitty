@@ -11,7 +11,7 @@ matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 # from matplotlib.colors import LogNorm
 
-from mitty.simulation.readgenerate import parse_qname, score_alignment_error
+from mitty.benchmarking.alignmentscore import load_qname_sidecar, parse_qname, score_alignment_error
 
 
 logger = logging.getLogger(__name__)
