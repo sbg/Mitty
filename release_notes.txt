@@ -1,6 +1,10 @@
 Release Notes
 =============
 
+2.11.9
+
+- Simple variant simulation implemented
+
 2.10.0
 
 - BAM partitioner implemented

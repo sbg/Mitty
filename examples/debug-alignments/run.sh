@@ -25,6 +25,17 @@ do
   samtools index bwa_${i}.bam
 done
 
+bwa mem -k 50 ~/Data/human_g1k_v37_decoy.fasta r1.fq.gz r2.fq.gz | samtools view -bSho out.bam
+samtools sort out.bam > bwa_seed50.bam
+samtools index bwa_seed50.bam
+
+
+bwa mem -w 1 ~/Data/human_g1k_v37_decoy.fasta r1.fq.gz r2.fq.gz | samtools view -bSho out.bam
+samtools sort out.bam > bwa_w1.bam
+samtools index bwa_w1.bam
+
+
+
 # Run the BAM partitioner
 mitty -v4 debug partition-bams \
   derr \

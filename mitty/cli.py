@@ -382,8 +382,8 @@ The criteria the `partition-bam` tool can be run on can be obtained by passing i
   import mitty.benchmarking.partition_bams as pbm
   pbm.main(bam_in_l=bam, out_prefix=outprefix, criterion=criterion, threshold=threshold, sidecar_fname=sidecar_in)
 
-
-@cli.command('mq-plot', short_help='Create MQ plot from BAM')
+@debug_tools.command('mq-plot', short_help='Create MQ plot from scored BAM')
+@click.argument('bam', type=click.Path(exists=True))
 @click.argument('bam', type=click.Path(exists=True))
 @click.argument('csv')
 @click.argument('plot')
@@ -392,13 +392,14 @@ The criteria the `partition-bam` tool can be run on can be obtained by passing i
 @click.option('--sample-name', help='If the FASTQ contains multiple samples, process reads from only this sample')
 @click.option('--threads', default=2)
 def mq_plot(bam, csv, plot, max_d, strict_scoring, sample_name, threads):
-  """Given a BAM from simulated reads, construct an MQ plot"""
+  """Expects the BAM to contain a tag called 'Xd' which carries an integer indicating
+  how far off the alignment is."""
   import mitty.benchmarking.mq as mq
   mq_mat = mq.process_bam(bam, max_d, strict_scoring, sample_name, threads, csv)
   mq.plot_mq(mq_mat, plot)
 
 
-@cli.command('derr-plot', short_help='Create alignment error plot from BAM')
+@cli.command('derr-plot', short_help='Create alignment error plot from scored BAM')
 @click.argument('bam', type=click.Path(exists=True))
 @click.argument('longqname', type=click.Path(exists=True))
 @click.argument('csv')
@@ -409,7 +410,8 @@ def mq_plot(bam, csv, plot, max_d, strict_scoring, sample_name, threads):
 @click.option('--sample-name', help='If the FASTQ contains multiple samples, process reads from only this sample')
 @click.option('--threads', default=2)
 def derr_plot(bam, longqname, csv, plot, max_v, max_d, strict_scoring, sample_name, threads):
-  """Given a BAM from simulated reads, show pattern of alignment errors"""
+  """Expects the BAM to contain a tag called 'Xd' which carries an integer indicating
+  how far off the alignment is."""
   import mitty.benchmarking.derr as derr
   derr_mat = derr.process_bam(bam, longqname, max_v, max_d, strict_scoring, sample_name, threads, csv)
   derr.plot_derr(derr_mat, plot)

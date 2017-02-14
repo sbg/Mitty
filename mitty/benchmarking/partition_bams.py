@@ -93,6 +93,11 @@ def main(bam_in_l, out_prefix, criterion, threshold, sidecar_fname=None):
     for fp in p['filehandles']:
       fp.close()
 
+  # Nice to get this written out before the time consuming sort and index stages
+  with open('{}_summary.txt'.format(out_prefix), 'w') as fp:
+    for p in part_d:
+      fp.write('{}\t{}\n'.format(p['partition_label'], p['total']))
+
   logger.debug('Sorting and indexing output BAMs')
   for p in part_d:
     for fn in p['filenames']:
@@ -100,10 +105,6 @@ def main(bam_in_l, out_prefix, criterion, threshold, sidecar_fname=None):
       pysam.sort('-m', '1G', '-o', fn + '.bam', fn + '.unsorted.bam')
       os.remove(fn + '.unsorted.bam')
       pysam.index(fn + '.bam')
-
-  with open('{}_summary.txt'.format(out_prefix), 'w') as fp:
-    for p in part_d:
-      fp.write('{}\t{}\n'.format(p['partition_label'], p['total']))
 
 
 def get_partition_description(file_prefix, n_bams):
