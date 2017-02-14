@@ -383,17 +383,18 @@ chrom 2
 
 ### Simulated variants
 
-The `simulate-variants` command generates a VCF fragment with simulated variants. 
+The `simulate-variants` command generates a VCF with simulated variants. 
 The program carries three basic models for variant simulation - SNPs, insertions and deletions and is invoked as follows:
 
 ```
 mitty -v4 simulate-variants \
-  ~/Data/human_g1k_v37_decoy.fasta \
-  mysample \ # The name of the sample to add to
-  region.bed \
-  7 \  # This is the random number generator seed
-  --p-het 0.6 \   # The probability for heterozygous variants
-  --model SNP 0.001 1 1 \   #  <model type> <p> <min-size> <max-size>
+  - \                                      # Write the VCF to std out
+  ~/Data/human_g1k_v37_decoy.fasta \       # reference
+  mysample \                               # The name of the sample to add to
+  region.bed \                             # region over which to generate variants
+  7 \                                      # random number generator seed
+  --p-het 0.6 \                            # probability for heterozygous variants
+  --model SNP 0.001 1 1 \                  #  <model type> <p> <min-size> <max-size>
   --model INS 0.0001 10 100 \
   --model DEL 0.0001 10 100 | bgzip -c > sim.vcf.gz
   
@@ -410,7 +411,7 @@ mitty -v4 filter-variants sim.vcf.gz mysample region.bed - 2> sim-vcf-filter.log
 tabix -p vcf sim-filt.vcf.gz  
 ```
 
-
+Please see `examples/variants/run.sh` for an example script.
 
 Appendix
 ========

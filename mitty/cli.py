@@ -230,6 +230,34 @@ chrom 2"""
   pass
 
 
+@cli.command('simulate-variants', short_help='Create a fully simulated VCF')
+@click.argument('vcfout', type=click.File('w'))
+@click.argument('fasta', type=click.Path(exists=True))
+@click.argument('sample')
+@click.argument('bed', type=click.Path(exists=True))
+@click.argument('seed', type=int)
+@click.option('--p-het', default=0.6, type=float, help='Probability for heterozygous variants')
+@click.option('--model', type=(str, float, int, int), multiple=True, help='<model type> <p> <min-size> <max-size>')
+def simulate_variants(vcfout, fasta, sample, bed, seed, p_het, model):
+  """Generates a VCF with simulated variants. The program carries three basic models for variant simulation
+- SNPs, insertions and deletions and is invoked as follows:
+
+\b
+    mitty -v4 simulate-variants \
+    - \  # Write the VCF to std out
+    ~/Data/human_g1k_v37_decoy.fasta \
+    mysample \ # The name of the sample to add to
+    region.bed \
+    7 \  # This is the random number generator seed
+    --p-het 0.6 \   # The probability for heterozygous variants
+    --model SNP 0.001 1 1 \   #  <model type> <p> <min-size> <max-size>
+    --model INS 0.0001 10 100 \
+    --model DEL 0.0001 10 100 | bgzip -c > sim.vcf.gz
+  """
+  import mitty.simulation.genome.simulatevariants as simvar
+  simvar.main(fp_out=vcfout, fasta_fname=fasta, sample_name=sample, bed_fname=bed, seed=seed, p_het=p_het, models=model)
+
+
 @cli.command('god-aligner', short_help='Create a perfect BAM from simulated FASTQs')
 @click.argument('fasta', type=click.Path(exists=True))
 @click.argument('fastq1', type=click.Path(exists=True))
