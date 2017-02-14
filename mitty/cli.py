@@ -307,6 +307,27 @@ def debug_tools():
   pass
 
 
+"""
+mitty -v4 debug pr-by-size \
+  evcf.in.vcf.gz \
+  out.csv \
+  --max-size 1000 \
+  --bin-size 20 \
+  --plot pr.size.pdf
+"""
+
+@debug_tools.command('pr-by-size', short_help="Characterize TP, FN, FP and GT calls (and hence P/R) by variant size")
+@click.argument('evcf', type=click.Path(exists=True))
+@click.argument('out', type=click.Path())
+@click.option('--max-size', type=int, default=50, help='Maximum size of variant to consider')
+@click.option('--bin-size', type=int, default=5, help='Bin size')
+@click.option('--plot', type=click.Path(), help='If supplied, plot will be saved here')
+def pr_by_size(evcf, out, max_size, bin_size, plot):
+  import mitty.benchmarking.evcfbysize as ebs
+  # ebs.main(evcf_fname=evcf, out_csv_fname=out, plot_fname=plot, max_size=max_size, bin_size=bin_size)
+  data = ebs.np.loadtxt(out, skiprows=1, delimiter=',', dtype=[('TP', int), ('FN', int), ('GT', int), ('FP', int)])
+  ebs.plot(data, plot)
+
 def partition_bam_choices():
   from mitty.benchmarking.partition_bams import scoring_fn_dict
   return scoring_fn_dict.keys()
