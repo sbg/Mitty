@@ -316,9 +316,9 @@ def debug_tools():
 @click.option('--plot', type=click.Path(), help='If supplied, plot will be saved here')
 def pr_by_size(evcf, out, region_label, max_size, bin_size, plot):
   import mitty.benchmarking.evcfbysize as ebs
-  ebs.main(evcf_fname=evcf, out_csv_fname=out, plot_fname=plot,
-           max_size=max_size, bin_size=bin_size, high_confidence_region=region_label)
-  data = ebs.np.loadtxt(out, skiprows=1, delimiter=',', dtype=[('TP', int), ('FN', int), ('GT', int), ('FP', int)])
+  data = ebs.main(evcf_fname=evcf, out_csv_fname=out, plot_fname=plot,
+                  max_size=max_size, bin_size=bin_size, high_confidence_region=region_label)
+  # data = ebs.np.loadtxt(out, skiprows=1, delimiter=',', dtype=[('TP', int), ('FN', int), ('GT', int), ('FP', int)])
   ebs.plot(data, plot)
 
 
