@@ -485,6 +485,7 @@ mitty -v4 simulate-variants \
   mysample \                               # The name of the sample to add to
   region.bed \                             # region over which to generate variants
   7 \                                      # random number generator seed
+  --region-label "HG002_GIAB"                    # full name of high confidence region
   --p-het 0.6 \                            # probability for heterozygous variants
   --model SNP 0.001 1 1 \                  #  <model type> <p> <min-size> <max-size>
   --model INS 0.0001 10 100 \
