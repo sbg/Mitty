@@ -485,7 +485,6 @@ mitty -v4 simulate-variants \
   mysample \                               # The name of the sample to add to
   region.bed \                             # region over which to generate variants
   7 \                                      # random number generator seed
-  --region-label "HG002_GIAB"                    # full name of high confidence region
   --p-het 0.6 \                            # probability for heterozygous variants
   --model SNP 0.001 1 1 \                  #  <model type> <p> <min-size> <max-size>
   --model INS 0.0001 10 100 \
@@ -523,6 +522,7 @@ call.
 mitty -v4 debug pr-by-size \
   evcf.in.vcf.gz \
   out.csv \
+  --region-label "HG002_GIAB"    # full name of high confidence region if desired
   --max-size 1000 \
   --bin-size 20 \
   --plot pr.size.pdf
@@ -530,7 +530,8 @@ mitty -v4 debug pr-by-size \
 
 This invocation will process evcf.in.vcf.gz, write the results as a comma separated file (out.csv) and also plot them
 in pr.size.pdf. The program will check variants from 1000bp deletions to 1000bp insertions, putting them into 20bp size 
-bins. SNPs are always counted and placed in their own spearate bin.
+bins. SNPs are always counted and placed in their own spearate bin. Since we have supplied a region-lable,
+only variants scored in that region will be processed.
 
 
 Appendix
