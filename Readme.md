@@ -524,7 +524,7 @@ mitty -v4 debug pr-by-size \
   evcf.in.vcf.gz \
   out.csv \
   --max-size 1000 \
-  --bin-size 20 \
+  --plot-bin-size 20 \
   --plot pr.size.pdf
 ```
 
