@@ -524,7 +524,7 @@ mitty -v4 debug pr-by-size \
   out.csv \
   --region-label "HG002_GIAB"    # full name of high confidence region if desired
   --max-size 1000 \
-  --bin-size 20 \
+  --plot-bin-size 20 \
   --plot pr.size.pdf
 ```
 
