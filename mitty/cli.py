@@ -401,8 +401,8 @@ The criteria the `partition-bam` tool can be run on can be obtained by passing i
   import mitty.benchmarking.partition_bams as pbm
   pbm.main(bam_in_l=bam, out_prefix=outprefix, criterion=criterion, threshold=threshold, sidecar_fname=sidecar_in)
 
-@debug_tools.command('mq-plot', short_help='Create MQ plot from scored BAM')
-@click.argument('bam', type=click.Path(exists=True))
+
+@debug_tools.command('mq-plot', short_help='Create MQ plot from BAM')
 @click.argument('bam', type=click.Path(exists=True))
 @click.argument('csv')
 @click.argument('plot')
@@ -416,6 +416,31 @@ def mq_plot(bam, csv, plot, max_d, strict_scoring, sample_name, threads):
   import mitty.benchmarking.mq as mq
   mq_mat = mq.process_bam(bam, max_d, strict_scoring, sample_name, threads, csv)
   mq.plot_mq(mq_mat, plot)
+
+
+@debug_tools.command('alignment-analysis-plot', short_help='Plot various alignment metrics from BAM')
+@click.argument('bam', type=click.Path(exists=True))
+@click.argument('long_qname_file', type=click.Path(exists=True))
+@click.argument('out', type=click.Path())
+@click.option('--max-d', type=int, default=200, help='Range of d_err to consider')
+@click.option('--max-size', type=int, default=50, help='Maximum size of variant to consider')
+@click.option('--fig-file', type=click.Path(), help='If supplied, plot will be saved here')
+@click.option('--plot-bin-size', type=int, help='Bin size')
+@click.option('--strict-scoring', is_flag=True, help="Don't consider breakpoints when scoring alignment")
+@click.option('--replot', is_flag=True,
+              help='If supplied, instead of reprocessing the evcf, we expect "out" to exist, and load data from there')
+@click.option('--processes', default=2, help='How many processes to use for computation')
+def alignment_debug_plot(bam, long_qname_file, out, max_d, max_size, fig_file, plot_bin_size, strict_scoring, replot, processes):
+  """Computes 3D matrix of alignment metrics (d_err, MQ, v_size) saves it to a numpy array file and produces a set
+  of summary figures"""
+  import mitty.benchmarking.xmv as xmv
+  xmv_mat = xmv.main(bam, sidecar_fname=long_qname_file,
+                     max_xd=max_d, max_vlen=max_size, strict_scoring=strict_scoring,
+                     processes=processes)
+  xmv.save(xmv_mat, out)
+  # mq.plot_mq(mq_mat, plot)
+
+
 
 
 @cli.command('derr-plot', short_help='Create alignment error plot from scored BAM')
