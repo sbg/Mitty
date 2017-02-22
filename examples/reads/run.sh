@@ -6,14 +6,14 @@ set -ex
 #mitty describe-read-model ./rd-model.pkl model.png
 
 
-mitty -v4 filter-variants hg001.vcf.gz INTEGRATION hg001.bed - 2> filter.log | bgzip -c > hg001.filt.vcf.gz
+mitty -v4 filter-variants hg001.vcf.gz INTEGRATION region.bed - 2> filter.log | bgzip -c > hg001.filt.vcf.gz
 tabix -p vcf hg001.filt.vcf.gz
 
 mitty -v4 generate-reads \
   ~/Data/human_g1k_v37_decoy.fasta \
    hg001.filt.vcf.gz \
    INTEGRATION \
-   hg001.bed \
+   region.bed \
    1kg-pcr-free.pkl \
    30 \
    7 \
@@ -34,6 +34,10 @@ mitty -v4 corrupt-reads \
 bwa mem ~/Data/human_g1k_v37_decoy.fasta r1c.fq.gz r2c.fq.gz | samtools view -bSho out.bam
 samtools sort out.bam > bwac.bam
 samtools index bwac.bam
+
+mitty -v4 debug alignment-analysis-plot bwac.bam lqc.txt xmv-data
+
+exit 0
 
 mitty -v4 god-aligner \
   ~/Data/human_g1k_v37_decoy.fasta \
