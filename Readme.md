@@ -522,10 +522,11 @@ call.
 mitty -v4 debug pr-by-size \
   evcf.in.vcf.gz \
   out.csv \
-  --region-label "HG002_GIAB"    # full name of high confidence region if desired
+  --title "Demo P/R plot parametrized by variant size" \
+  --region-label "HG002_GIAB" \  # full name of high confidence region if desired
   --max-size 1000 \
   --plot-bin-size 20 \
-  --plot pr.size.pdf
+  --fig-file pr.size.pdf
 ```
 
 This invocation will process evcf.in.vcf.gz, write the results as a comma separated file (out.csv) and also plot them

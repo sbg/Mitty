@@ -312,18 +312,19 @@ def debug_tools():
 @click.argument('out', type=click.Path())
 @click.option('--region-label', help='Name of high confidence region if desired')
 @click.option('--max-size', type=int, default=50, help='Maximum size of variant to consider')
+@click.option('--title', help='Title for the plot')
 @click.option('--fig-file', type=click.Path(), help='If supplied, plot will be saved here')
 @click.option('--plot-bin-size', type=int, help='Bin size')
 @click.option('--replot', is_flag=True,
               help='If supplied, instead of reprocessing the evcf, we expect "out" to exist, and load data from there')
-def pr_by_size(evcf, out, region_label, max_size, fig_file, plot_bin_size, replot):
+def pr_by_size(evcf, out, region_label, max_size, title, fig_file, plot_bin_size, replot):
   import mitty.benchmarking.evcfbysize as ebs
   if not replot:
     data = ebs.main(evcf_fname=evcf, out_csv_fname=out,
                     max_size=max_size, high_confidence_region=region_label)
   else:
     data = ebs.np.loadtxt(out, skiprows=1, delimiter=',', dtype=[('TP', int), ('FN', int), ('GT', int), ('FP', int)])
-  ebs.plot(data, fig_fname=fig_file, bin_size=plot_bin_size)
+  ebs.plot(data, fig_fname=fig_file, bin_size=plot_bin_size, title=title)
 
 
 def partition_bam_choices():

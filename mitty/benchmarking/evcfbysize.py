@@ -30,9 +30,9 @@ def main(evcf_fname, out_csv_fname, max_size=50, high_confidence_region=None):
 
 
 # Ignoring bin size for now
-def plot(data, fig_fname, bin_size=5):
+def plot(data, fig_fname, bin_size=5, title='P/R by variant size'):
   fig = plt.figure(figsize=(6, 11))
-  plt.subplots_adjust(bottom=0.05, top=0.99, hspace=0.01)
+  plt.subplots_adjust(bottom=0.05, top=0.95, hspace=0.01)
 
   ax1 = plt.subplot(411)
   r_p = plot_panels(ax1,
@@ -78,5 +78,6 @@ def plot(data, fig_fname, bin_size=5):
                       yticks=[n_min, n_max], ylim=[n_min/2, n_max * 2],
                       color='k', label='Total', show_ax_label=True, yscale='log')
   plt.legend(handles=[tot_p], loc='upper right', fontsize=9)
+  plt.suptitle(title)
 
   plt.savefig(fig_fname)
