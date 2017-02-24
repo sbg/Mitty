@@ -535,6 +535,15 @@ bins. SNPs are always counted and placed in their own spearate bin. Since we hav
 only variants scored in that region will be processed.
 
 
+Miscellaneous utilities
+-----------------------
+
+Plot variant size distribution in VCF file:
+```
+mitty -v4 debug variant-by-size hg001.vcf.gz hg001.variant.size.csv --max-size 100 --title "HG001" --fig-file hg001.variant.png --plot-bin-size 5
+```
+
+
 Appendix
 ========
 

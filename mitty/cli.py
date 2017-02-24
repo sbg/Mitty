@@ -327,6 +327,25 @@ def pr_by_size(evcf, out, region_label, max_size, title, fig_file, plot_bin_size
   ebs.plot(data, fig_fname=fig_file, bin_size=plot_bin_size, title=title)
 
 
+@debug_tools.command('variant-by-size', short_help="Characterize variant size distribution in a VCF")
+@click.argument('vcf', type=click.Path(exists=True))
+@click.argument('out', type=click.Path())
+@click.option('--max-size', type=int, default=50, help='Maximum size of variant to consider')
+@click.option('--title', help='Title for the plot')
+@click.option('--fig-file', type=click.Path(), help='If supplied, plot will be saved here')
+@click.option('--plot-bin-size', type=int, help='Bin size')
+@click.option('--replot', is_flag=True,
+              help='If supplied, instead of reprocessing the vcf, we expect "out" to exist, and load data from there')
+def variant_by_size(vcf, out, max_size, title, fig_file, plot_bin_size, replot):
+  import mitty.benchmarking.vsizedistrib as vsd
+  if not replot:
+    data = vsd.main(vcf_fname=vcf, max_size=max_size)
+    vsd.np.savetxt(out, data, fmt='%d', delimiter=', ', header='SIZE')
+  else:
+    data = vsd.np.loadtxt(out, skiprows=1, delimiter=',', dtype=int)
+  vsd.plot(data, fig_fname=fig_file, bin_size=plot_bin_size, title=title)
+
+
 def partition_bam_choices():
   from mitty.benchmarking.partition_bams import scoring_fn_dict
   return scoring_fn_dict.keys()
