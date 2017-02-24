@@ -510,6 +510,16 @@ Analysis
 --------
 Mitty supplies some tools to help with benchmarking and debugging of aligner/caller pipelines.
 
+## Alignment accuracy
+
+```
+mitty -v4 debug alignment-analysis-plot \
+  bwac.bam lqc.txt \
+  bwac.alignment.npy \
+  --fig-file bwac.alignment.png
+```
+
+
 ## Variant calling accuracy, parametrized by variant size
 
 We can use a set of tools developed by the GA4GH consortium to compare a VCF produced by a pipeline with a truth VCF.

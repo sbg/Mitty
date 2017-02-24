@@ -95,18 +95,38 @@ def process_fragment(bam_fname, long_qname_table, reference, max_xd=200, max_MQ=
   return xmv_mat
 
 
+def plot_panel(xmv_mat, fig_fname=None):
+  fig = plt.figure(figsize=(6, 11))
+  plt.subplots_adjust(bottom=0.05, top=0.99)
+
+  ax1 = plt.subplot(411)
+  plot_mean_MQ_vs_derr(ax1, xmv_mat, show_ax_label=True)
+
+  if fig_fname is not None:
+    plt.savefig(fig_fname)
+
+
 # Different plots
-def plot_mean_MQ_vs_derr(xmv_mat, plot_bin_size=5):
+def plot_mean_MQ_vs_derr(ax, xmv_mat, plot_bin_size=5, show_ax_label=False):
   """Plot mean_MQ (y-axis) against d_err (x-axis) for given range of variant sizes
 
   :param xmv_mat:
   :param vlen_slice:
   :return:
   """
-  mq_mat = xmv_mat[:, :, 1:].sum(axis=2)
+  mq_mat = xmv_mat.sum(axis=2)
   data_cnt = mq_mat.sum(axis=1)
   mq_vector = np.arange(mq_mat.shape[1])
   mean_mq = np.dot(mq_vector, mq_mat.T) / np.clip(data_cnt, 1, data_cnt.max() + 1).astype(float)
+
+  max_derr = int((mean_mq.shape[0] - 3) / 2)
+  x1, x2 = max_derr * 1.5, max_derr * 1.7
+  xt = [-max_derr, -int(max_derr/2), 0, int(max_derr/2), max_derr]
+
+  ax.plot(range(-max_derr, max_derr + 1), mean_mq[:2 * max_derr + 1], 'k.')
+  ax.plot([x1, x2], mean_mq[2 * max_derr + 1:], 'ko')
+  ax.set_xticks(xt + [x1, x2])
+  ax.set_xticklabels(xt + ['WC', 'UM'] if show_ax_label else [])
 
 
 def plot_mq(mq_mat, plot):

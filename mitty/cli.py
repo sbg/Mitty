@@ -454,13 +454,15 @@ def alignment_debug_plot(bam, long_qname_file, out, max_d, max_size, fig_file, p
   """Computes 3D matrix of alignment metrics (d_err, MQ, v_size) saves it to a numpy array file and produces a set
   of summary figures"""
   import mitty.benchmarking.xmv as xmv
-  xmv_mat = xmv.main(bam, sidecar_fname=long_qname_file,
-                     max_xd=max_d, max_vlen=max_size, strict_scoring=strict_scoring,
-                     processes=processes)
-  xmv.save(xmv_mat, out)
-  # mq.plot_mq(mq_mat, plot)
+  if not replot:
+    xmv_mat = xmv.main(bam, sidecar_fname=long_qname_file,
+                       max_xd=max_d, max_vlen=max_size, strict_scoring=strict_scoring,
+                       processes=processes)
+    xmv.save(xmv_mat, out)
+  else:
+    xmv_mat = xmv.np.load(out)
 
-
+  xmv.plot_panel(xmv_mat, fig_fname=fig_file)
 
 
 @cli.command('derr-plot', short_help='Create alignment error plot from scored BAM')
