@@ -15,7 +15,7 @@ mitty -v4 generate-reads \
    INTEGRATION \
    region.bed \
    1kg-pcr-free.pkl \
-   30 \
+   10 \
    7 \
    >(gzip > r1.fq.gz) \
    lq.txt \
