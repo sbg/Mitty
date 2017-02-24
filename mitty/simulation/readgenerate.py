@@ -6,6 +6,7 @@ import pysam
 import numpy as np
 
 import mitty.lib.vcfio as vio
+from mitty.lib.sanitizeseq import sanitize
 import mitty.simulation.rpc as rpc
 from mitty.simulation.sequencing.writefastq import writer
 
@@ -149,7 +150,7 @@ def read_generating_worker(worker_id, fasta_fname, sample_name, read_module, rea
   for ps, wd in enumerate(iter(in_queue.get, __process_stop_code__)):
     r_idx, cpy, rng_seed = wd['region_idx'], wd['region_cpy'], wd['rng_seed']
     region = vcf_df[r_idx]['region']
-    ref_seq = fasta.fetch(reference=region[0], start=region[1], end=region[2])
+    ref_seq = sanitize(fasta.fetch(reference=region[0], start=region[1], end=region[2]))
 
     # The structure needed to generate read sequences, pos and CIGAR strings
     # + 1 because BED is 0-indexed and our convention is 1-indexed as is what is displayed in genome browsers
