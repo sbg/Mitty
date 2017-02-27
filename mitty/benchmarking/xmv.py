@@ -14,11 +14,13 @@ import logging
 import matplotlib
 matplotlib.use('Agg')
 import matplotlib.pyplot as plt
+from matplotlib.colors import LogNorm
 import pysam
 import numpy as np
 
-#from mitty.simulation.sequencing.writefastq import load_qname_sidecar, parse_qname
 from mitty.benchmarking.alignmentscore import score_alignment_error, load_qname_sidecar, parse_qname
+from mitty.benchmarking.plot.byvsize import plot_panels
+
 
 logger = logging.getLogger(__name__)
 
@@ -95,23 +97,60 @@ def process_fragment(bam_fname, long_qname_table, reference, max_xd=200, max_MQ=
   return xmv_mat
 
 
-def plot_panel(xmv_mat, fig_fname=None):
-  fig = plt.figure(figsize=(6, 11))
-  plt.subplots_adjust(bottom=0.05, top=0.99)
-
-  ax1 = plt.subplot(411)
-  plot_mean_MQ_vs_derr(ax1, xmv_mat, show_ax_label=True)
-
-  if fig_fname is not None:
-    plt.savefig(fig_fname)
+def plot_figures(xmv_mat, fig_prefix=None):
+  plot_MQ(xmv_mat, fig_prefix=fig_prefix)
+  # plot_AA(xmv_mat, fig_prefix=fig_prefix)
 
 
-# Different plots
-def plot_mean_MQ_vs_derr(ax, xmv_mat, plot_bin_size=5, show_ax_label=False):
+def plot_MQ(xmv_mat, fig_prefix=None):
+  fig = plt.figure(figsize=(8, 16))
+  plt.subplots_adjust(bottom=0.05, top=0.98, hspace=.2)
+
+  ax = plt.subplot(512)
+  plot_heatmap_MQ_vs_derr(ax, xmv_mat)
+
+  ax = plt.subplot(511)
+  plot_mean_MQ_vs_derr(ax, xmv_mat)
+
+  ax = plt.subplot(513)
+  plot_perr_vs_MQ(ax, xmv_mat, yscale='log')
+
+  ax = plt.subplot(514)
+  plot_perr_vs_MQ(ax, xmv_mat, yscale='linear')
+
+  ax = plt.subplot(515)
+  plot_read_count_vs_MQ(ax, xmv_mat)
+
+  plt.savefig(fig_prefix + '_MQ.png')
+
+def plot_heatmap_MQ_vs_derr(ax, xmv_mat):
+  hm = xmv_mat.sum(axis=2).T
+  max_derr = int((xmv_mat.shape[0] - 3) / 2)
+  x1, x2 = max_derr * 1.5, max_derr * 1.7
+  xt = [-max_derr, -int(max_derr / 2), 0, int(max_derr / 2), max_derr]
+
+  ax.imshow(hm[:, :-2], cmap=plt.cm.gray_r, norm=LogNorm(vmin=0.01, vmax=hm.max()),
+            origin='lower', extent=(xt[0], xt[-1], 0, hm.shape[0] - 1),
+            aspect='auto')
+
+  ax.set_xticks(xt)
+  ax.set_xticklabels(xt)
+  ax.set_xlim((-max_derr * 1.1, max_derr * 1.5 * 1.1))
+
+  ax.set_yticks([0, 20, 40, 60])
+  ax.set_ylim([-5, 70])
+  # ax.axvline(x=0, color='k', linestyle=':')
+
+  plt.xlabel(r'$d_{err}$')
+  plt.ylabel('MQ')
+
+
+def plot_mean_MQ_vs_derr(ax, xmv_mat):
   """Plot mean_MQ (y-axis) against d_err (x-axis) for given range of variant sizes
 
   :param xmv_mat:
-  :param vlen_slice:
+  :param fig_prefix:
+  :param plot_bin_size:
   :return:
   """
   mq_mat = xmv_mat.sum(axis=2)
@@ -124,32 +163,32 @@ def plot_mean_MQ_vs_derr(ax, xmv_mat, plot_bin_size=5, show_ax_label=False):
   xt = [-max_derr, -int(max_derr/2), 0, int(max_derr/2), max_derr]
 
   ax.plot(range(-max_derr, max_derr + 1), mean_mq[:2 * max_derr + 1], 'k.')
+  # ax.scatter(range(-max_derr, max_derr + 1), mean_mq[:2 * max_derr + 1],
+  #            400 * data_cnt[:2 * max_derr + 1] / data_cnt[:2 * max_derr + 2].max(),
+  #            color='none', edgecolors='k')
   ax.plot([x1, x2], mean_mq[2 * max_derr + 1:], 'ko')
-  ax.set_xticks(xt + [x1, x2])
-  ax.set_xticklabels(xt + ['WC', 'UM'] if show_ax_label else [])
+  # ax.scatter([x1], mean_mq[2 * max_derr + 1],
+  #            400 * mean_mq[2 * max_derr + 1] / mean_mq[:2 * max_derr + 2].max(),
+  #            color='none', edgecolors='k')
+
+  ax.set_xticks(xt + [x1])
+  ax.set_xticklabels(xt + ['WC'])
+  ax.set_xlim((-max_derr * 1.1, max_derr * 1.5 * 1.1))
+  # ax.set_xlim((-50, 50))
+
+  ax.set_yticks([0, 20, 40, 60])
+  ax.set_ylim([-5, 70])
+  ax.axvline(x=0, color='k', linestyle=':')
+
+  plt.xlabel(r'$d_{err}$')
+  plt.ylabel('MQ')
+
+  # plt.imshow(xmv_mat.sum(axis=2).T, cmap=plt.cm.gray_r, norm=LogNorm(vmin=0.01, vmax=1e6))
 
 
-def plot_mq(mq_mat, plot):
-  fig = plt.figure(figsize=(6, 11))
-  plt.subplots_adjust(bottom=0.05, top=0.99)
-
-  ax1 = plt.subplot(411)
-  plot_mq_vs_p_err(mq_mat, ax1, yscale='linear')
-
-  ax2 = plt.subplot(412, sharex=ax1)
-  plot_mq_vs_p_err(mq_mat, ax2, yscale='log')
-
-  ax3 = plt.subplot(413, sharex=ax1)
-  plot_mq_vs_read_cnt(mq_mat, ax3)
-
-  ax4 = plt.subplot(414)
-  plot_derr_vs_mq(mq_mat, ax4)
-
-  plt.savefig(plot)
-
-
-def plot_mq_vs_p_err(mq_mat, ax, yscale='log'):
-  mq = np.arange(100)
+def plot_perr_vs_MQ(ax, xmv_mat, yscale='linear'):
+  mq = np.arange(xmv_mat.shape[1])
+  mq_mat = xmv_mat.sum(axis=2)
   for fmt, d_margin, label in zip(['g*', 'ro'], [0, 10], [r'$d_{err} = 0$', r'$d_{err} < 10$']):
     p_err = compute_p_err(mq_mat, d_margin)
     ax.plot(mq, p_err, fmt, mfc='none', label=label)
@@ -161,24 +200,45 @@ def plot_mq_vs_p_err(mq_mat, ax, yscale='log'):
 
 def compute_p_err(mq_mat, d_margin=0):
   d_max = int((mq_mat.shape[0] - 3)/2)
-  c = mq_mat[d_max - d_margin:d_max + 1 + d_margin, :, :].sum(axis=0).sum(axis=1)
-  t = mq_mat.sum(axis=0).sum(axis=1)
+  c = mq_mat[d_max - d_margin:d_max + 1 + d_margin, :].sum(axis=0)
+  t = mq_mat.sum(axis=0)
   return (t - c) / np.clip(t, 1, 1 + t.max())
 
 
-def plot_derr_vs_mq(mq_mat, ax):
-  d_max = (mq_mat.shape[1] - 1) / 2
-  d = np.arange(-d_max, d_max + 1)
+def plot_read_count_vs_MQ(ax, xmv_mat):
+  mq = np.arange(xmv_mat.shape[1])
+  mq_mat = xmv_mat.sum(axis=2)
   cnt = mq_mat.sum(axis=0)
-  mq = np.arange(mq_mat.shape[0])
-  mean_mq = np.dot(mq, mq_mat) / np.clip(cnt, 1, cnt.max()).astype(float)
-  ax.plot(d, mean_mq, 'k.')
-  ax.vlines(0, 0, 100, linestyles=':')
-  plt.setp(ax, xlabel=r'$d_{err}$', ylabel='MQ (mean)', xlim=(-d_max - 1, d_max + 1))
-
-
-def plot_mq_vs_read_cnt(mq_mat, ax):
-  mq = np.arange(100)
-  cnt = mq_mat.sum(axis=1)
   ax.step(mq, cnt, 'k', where='mid')
   plt.setp(ax, xlabel='MQ', ylabel=r'Read count', xlim=(-1, 65), yscale='log')
+
+
+def plot_AA(xmv_mat, fig_prefix):
+  pass
+
+
+def alignment_accuracy_by_vsize(xmv_mat, d_err_threshold):
+  max_derr = int((xmv_mat.shape[0] - 3) / 2)
+  derr_mat = xmv_mat.sup(axis=1)
+  d_idx = (max_derr + d_err_threshold, max_derr + d_err_threshold)
+  num = derr_mat[d_idx[0]:d_idx[1], :].sum(axis=0)
+  den = derr_mat.sum(axis=0)
+  return num, den
+
+
+def plot_alignment_accuracy_by_vsize(ax, xmv_mat, plot_bin_size=5, show_ax_label=False):
+  """
+
+  :param ax:
+  :param xmv_mat:
+  :param plot_bin_size:
+  :param show_ax_label:
+  :return:
+  """
+  n10, d10 = alignment_accuracy_by_vsize(xmv_mat, 10)
+  n100, d100 = alignment_accuracy_by_vsize(xmv_mat, 100)
+
+
+
+
+
