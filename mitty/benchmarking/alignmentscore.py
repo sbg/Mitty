@@ -11,7 +11,12 @@ cigar_parser = re.compile(r'(\d+)(\D)')
 
 
 def score_alignment_error(r, ri, max_d=200, strict=False):
-  """
+  """Algorithm:
+
+  If strict is True: Look at the distance between the simulated P and the aligned P
+  If strict is False: Look at the aligned CIGAR and compute the difference between exact P and
+                     aligned P after accounting for any soft clip at the start of the read
+
   :param r: aligned read
   :param ri: readinfo for correct alignment
   :param strict: If True, soft clipped alignments or split alignments are marked incorrect
@@ -26,19 +31,16 @@ def score_alignment_error(r, ri, max_d=200, strict=False):
   elif r.reference_name != ri.chrom:
     d_err = max_d + 1
   else:
-    if strict or ri.cigar[0] == '>':
-      # Both the strict case and the case where the read comes from inside a long insertion are scored
-      # similarly
-      d_err = max(min((r.pos + 1 - ri.pos), max_d), -max_d)
-    else:  # Score read as correct if read is placed at any breakpoint correctly
-      correct_pos = ri.pos
-      for cnt, op in cigar_parser.findall(ri.cigar):
-        if op == '=' or op == 'M' or op == 'X':
-          if abs(r.pos + 1 - correct_pos) < abs(d_err):
-            d_err = r.pos + 1 - correct_pos
-          correct_pos += int(cnt)
-        elif op == 'D':
-          correct_pos += int(cnt)
+    correct_pos = ri.pos
+    # Both the strict case and the case where the read comes from inside a long insertion are scored
+    # similarly
+    if not (strict or ri.cigar[0] == '>'):
+      # Score read considering soft clipping
+      cigar_op = r.cigartuples[0]
+      if cigar_op[0] in [1, 2, 3, 4, 5]:
+        correct_pos += cigar_op[1]
+
+    d_err = max(min((r.pos + 1 - correct_pos), max_d), -max_d)
 
   return d_err
 
