@@ -289,45 +289,6 @@ Since the qname carries the correct alignment and CIGAR string you can match tha
 CIGAR string for spot checks.
 
 
-### Alignment diagnostics
-
-
-#### Mapping quality
-```
-mitty -v4 mq-plot bwac.bam bwac.mq.csv bwac.mq.png
-```
-
-![MQ analysis](docs/images/bwac.mq.png?raw=true "MQ analysis")
-
-
-##### Strict scoring
-The normal alignment scoring mode is to compute the difference between the aligned read position and each breakpoint in
-the correct read alignment and then take the minimum of these differences. This gives credit for a 'partial' alignment
-Typically this happens when the read covers a larg(er) insertion or deletion and the aligner is able to correctly place
-one anchor (side of the read), but not the other one.
-
-If strict scoring is turned on then only the first breakpoint i.e. the perfectly correct alignment is considered.
-
-
-```
-mitty -v4 mq-plot bwac.bam bwac.mq.csv bwac.mq.png --strict-scoring
-```
-
-![MQ analysis](docs/images/bwac.mq-strict.png?raw=true "MQ analysis")
-
-Note the very asymmetric nature of the mean MQ plot about d_err = 0. This is because any read that starts with a 
-softclip (not due to an insertion) will have it's POS value to the right of the strictly correct alignment POS.
-
-
-#### Alignment error analysis
-```
-mitty -v4 derr-plot bwac.bam bwac.derr.csv bwac.derr.png
-```
-
-![Alignment analysis](docs/images/bwac.derr.png?raw=true "Alignment analysis")
-
-
-
 ### Perfect BAM (God aligner)
 
 Passing the simulated FASTQ through the god aligner produces a "perfect BAM" which can be used as a truth BAM
@@ -344,7 +305,47 @@ mitty -v4 god-aligner \
   --threads 2
 ```
 
-### Find differences in alignments
+
+Analysis
+--------
+Mitty supplies some tools to help with benchmarking and debugging of aligner/caller pipelines.
+
+## Alignment accuracy
+
+```
+mitty -v4 debug alignment-analysis-plot \
+  bwac.bam lqc.txt \
+  bwac.alignment.npy \
+  --fig-prefix bwac.alignment
+```
+
+
+## Variant calling accuracy, parametrized by variant size
+
+We can use a set of tools developed by the GA4GH consortium to compare a VCF produced by a pipeline with a truth VCF.
+This comparison is presented as another VCF annotated with information about each call - whether it is a TP, FN, FP or GT
+call.
+
+`pr-by-size` is a program that summarizes the comparison in terms of variant size.
+
+```
+mitty -v4 debug pr-by-size \
+  evcf.in.vcf.gz \
+  out.csv \
+  --title "Demo P/R plot parametrized by variant size" \
+  --region-label "HG002_GIAB" \  # full name of high confidence region if desired
+  --max-size 1000 \
+  --plot-bin-size 20 \
+  --fig-file pr.size.pdf
+```
+
+This invocation will process evcf.in.vcf.gz, write the results as a comma separated file (out.csv) and also plot them
+in pr.size.pdf. The program will check variants from 1000bp deletions to 1000bp insertions, putting them into 20bp size 
+bins. SNPs are always counted and placed in their own spearate bin. Since we have supplied a region-lable,
+only variants scored in that region will be processed.
+
+
+## Find differences in alignments
 
 (This requires bamUtils to be installed. I found release 1.0.14 to work, but repository head NOT to)
 
@@ -355,7 +356,7 @@ samtools index diffd.bam
 ```
 
 
-### Set differences of two or more BAM files derived from the same FASTQ(s)
+## Set differences of two or more BAM files derived from the same FASTQ(s)
 
 Often, we would like to tweak alignment algorithm parameters, or even test new algorithms. Sometimes we just look at
 the global effect of these tweaks, for example, by looking at variant calling performance. Often, however, we want to
@@ -422,7 +423,6 @@ An example of throwing these files up on a genome browser and inspecting them is
 ![IGV Bam Partitions](docs/images/igv-sets.png?raw=true "BAM partitions on IGV")
 
 The criteria the `partition-bam` tool can be run on can be obtained by passing it the `--criteria` option.
-
 
 
 Generating samples (genomes)
@@ -506,43 +506,6 @@ tabix -p vcf sim-filt.vcf.gz
 Please see `examples/variants/run.sh` for an example script.
 
 
-Analysis
---------
-Mitty supplies some tools to help with benchmarking and debugging of aligner/caller pipelines.
-
-## Alignment accuracy
-
-```
-mitty -v4 debug alignment-analysis-plot \
-  bwac.bam lqc.txt \
-  bwac.alignment.npy \
-  --fig-prefix bwac.alignment
-```
-
-
-## Variant calling accuracy, parametrized by variant size
-
-We can use a set of tools developed by the GA4GH consortium to compare a VCF produced by a pipeline with a truth VCF.
-This comparison is presented as another VCF annotated with information about each call - whether it is a TP, FN, FP or GT
-call.
-
-`pr-by-size` is a program that summarizes the comparison in terms of variant size.
-
-```
-mitty -v4 debug pr-by-size \
-  evcf.in.vcf.gz \
-  out.csv \
-  --title "Demo P/R plot parametrized by variant size" \
-  --region-label "HG002_GIAB" \  # full name of high confidence region if desired
-  --max-size 1000 \
-  --plot-bin-size 20 \
-  --fig-file pr.size.pdf
-```
-
-This invocation will process evcf.in.vcf.gz, write the results as a comma separated file (out.csv) and also plot them
-in pr.size.pdf. The program will check variants from 1000bp deletions to 1000bp insertions, putting them into 20bp size 
-bins. SNPs are always counted and placed in their own spearate bin. Since we have supplied a region-lable,
-only variants scored in that region will be processed.
 
 
 Miscellaneous utilities
