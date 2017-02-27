@@ -424,35 +424,19 @@ The criteria the `partition-bam` tool can be run on can be obtained by passing i
   pbm.main(bam_in_l=bam, out_prefix=outprefix, criterion=criterion, threshold=threshold, sidecar_fname=sidecar_in)
 
 
-@debug_tools.command('mq-plot', short_help='Create MQ plot from BAM')
-@click.argument('bam', type=click.Path(exists=True))
-@click.argument('csv')
-@click.argument('plot')
-@click.option('--max-d', type=int, default=200, help='Range of d_err to consider')
-@click.option('--strict-scoring', is_flag=True, help="Don't consider breakpoints when scoring alignment")
-@click.option('--sample-name', help='If the FASTQ contains multiple samples, process reads from only this sample')
-@click.option('--threads', default=2)
-def mq_plot(bam, csv, plot, max_d, strict_scoring, sample_name, threads):
-  """Expects the BAM to contain a tag called 'Xd' which carries an integer indicating
-  how far off the alignment is."""
-  import mitty.benchmarking.mq as mq
-  mq_mat = mq.process_bam(bam, max_d, strict_scoring, sample_name, threads, csv)
-  mq.plot_mq(mq_mat, plot)
-
-
 @debug_tools.command('alignment-analysis-plot', short_help='Plot various alignment metrics from BAM')
 @click.argument('bam', type=click.Path(exists=True))
 @click.argument('long_qname_file', type=click.Path(exists=True))
 @click.argument('out', type=click.Path())
 @click.option('--max-d', type=int, default=200, help='Range of d_err to consider')
 @click.option('--max-size', type=int, default=50, help='Maximum size of variant to consider')
-@click.option('--fig-file', type=click.Path(), help='If supplied, plot will be saved here')
-@click.option('--plot-bin-size', type=int, help='Bin size')
+@click.option('--fig-prefix', type=click.Path(), help='If supplied, a series of plots will be saved with this prefix')
+@click.option('--plot-bin-size', default=1, type=int, help='Bin size')
 @click.option('--strict-scoring', is_flag=True, help="Don't consider breakpoints when scoring alignment")
 @click.option('--replot', is_flag=True,
-              help='If supplied, instead of reprocessing the evcf, we expect "out" to exist, and load data from there')
+              help='If supplied, instead of reprocessing the BAM, we expect "out" to exist, and load data from there')
 @click.option('--processes', default=2, help='How many processes to use for computation')
-def alignment_debug_plot(bam, long_qname_file, out, max_d, max_size, fig_file, plot_bin_size, strict_scoring, replot, processes):
+def alignment_debug_plot(bam, long_qname_file, out, max_d, max_size, fig_prefix, plot_bin_size, strict_scoring, replot, processes):
   """Computes 3D matrix of alignment metrics (d_err, MQ, v_size) saves it to a numpy array file and produces a set
   of summary figures"""
   import mitty.benchmarking.xmv as xmv
@@ -464,25 +448,8 @@ def alignment_debug_plot(bam, long_qname_file, out, max_d, max_size, fig_file, p
   else:
     xmv_mat = xmv.np.load(out)
 
-  xmv.plot_panel(xmv_mat, fig_fname=fig_file)
-
-
-@cli.command('derr-plot', short_help='Create alignment error plot from scored BAM')
-@click.argument('bam', type=click.Path(exists=True))
-@click.argument('longqname', type=click.Path(exists=True))
-@click.argument('csv')
-@click.argument('plot')
-@click.option('--max-v', type=int, default=200, help='Range of variant sizes to consider (51 min)')
-@click.option('--max-d', type=int, default=200, help='Range of d_err to consider')
-@click.option('--strict-scoring', is_flag=True, help="Don't consider breakpoints when scoring alignment")
-@click.option('--sample-name', help='If the FASTQ contains multiple samples, process reads from only this sample')
-@click.option('--threads', default=2)
-def derr_plot(bam, longqname, csv, plot, max_v, max_d, strict_scoring, sample_name, threads):
-  """Expects the BAM to contain a tag called 'Xd' which carries an integer indicating
-  how far off the alignment is."""
-  import mitty.benchmarking.derr as derr
-  derr_mat = derr.process_bam(bam, longqname, max_v, max_d, strict_scoring, sample_name, threads, csv)
-  derr.plot_derr(derr_mat, plot)
+  if fig_prefix is not None:
+    xmv.plot_figures(xmv_mat, fig_prefix=fig_prefix, plot_bin_size=plot_bin_size)
 
 
 @cli.command('filter-eval-vcf', short_help='Split out the FP and FN from an eval.vcf')

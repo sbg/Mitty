@@ -1,6 +1,13 @@
 Release Notes
 =============
 
+2.12.0
+
+- Changed alignment error algorithm
+- Alignment analysis reports reinstated, now with further detail and break down by variant size
+- Added utility program to plot variant size distrib in a VCF file
+
+
 2.11.2
 
 - Bugfix: other IUPAC codes will no longer appear in reads

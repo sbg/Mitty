@@ -516,7 +516,7 @@ Mitty supplies some tools to help with benchmarking and debugging of aligner/cal
 mitty -v4 debug alignment-analysis-plot \
   bwac.bam lqc.txt \
   bwac.alignment.npy \
-  --fig-file bwac.alignment.png
+  --fig-prefix bwac.alignment
 ```
 
 

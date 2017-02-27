@@ -97,31 +97,35 @@ def process_fragment(bam_fname, long_qname_table, reference, max_xd=200, max_MQ=
   return xmv_mat
 
 
-def plot_figures(xmv_mat, fig_prefix=None):
+def plot_figures(xmv_mat, fig_prefix=None, plot_bin_size=5):
   plot_MQ(xmv_mat, fig_prefix=fig_prefix)
-  # plot_AA(xmv_mat, fig_prefix=fig_prefix)
+  plot_AA(xmv_mat, fig_prefix=fig_prefix, plot_bin_size=plot_bin_size)
 
 
 def plot_MQ(xmv_mat, fig_prefix=None):
-  fig = plt.figure(figsize=(8, 16))
-  plt.subplots_adjust(bottom=0.05, top=0.98, hspace=.2)
+  fig = plt.figure(figsize=(8, 18))
+  plt.subplots_adjust(bottom=0.05, top=0.98, hspace=.2, right=0.97, left=0.18)
 
-  ax = plt.subplot(512)
+  ax = plt.subplot(612)
   plot_heatmap_MQ_vs_derr(ax, xmv_mat)
 
-  ax = plt.subplot(511)
+  ax = plt.subplot(611)
   plot_mean_MQ_vs_derr(ax, xmv_mat)
 
-  ax = plt.subplot(513)
+  ax = plt.subplot(613)
   plot_perr_vs_MQ(ax, xmv_mat, yscale='log')
 
-  ax = plt.subplot(514)
+  ax = plt.subplot(614)
   plot_perr_vs_MQ(ax, xmv_mat, yscale='linear')
 
-  ax = plt.subplot(515)
+  ax = plt.subplot(615)
   plot_read_count_vs_MQ(ax, xmv_mat)
 
+  ax = plt.subplot(616)
+  plot_read_fate(ax, xmv_mat)
+
   plt.savefig(fig_prefix + '_MQ.png')
+
 
 def plot_heatmap_MQ_vs_derr(ax, xmv_mat):
   hm = xmv_mat.sum(axis=2).T
@@ -213,20 +217,52 @@ def plot_read_count_vs_MQ(ax, xmv_mat):
   plt.setp(ax, xlabel='MQ', ylabel=r'Read count', xlim=(-1, 65), yscale='log')
 
 
-def plot_AA(xmv_mat, fig_prefix):
-  pass
+def plot_read_fate(ax, xmv_mat):
+  d_max = int((xmv_mat.shape[0] - 3) / 2)
+
+  d0 = xmv_mat[d_max:d_max + 1, :, :].sum()
+  within_d10 = xmv_mat[d_max - 10:d_max + 1 + 10, :, :].sum()
+  within_dmax = xmv_mat[:2 * d_max + 1, :, :].sum()
+  wc = xmv_mat[2 * d_max + 1, :, :].sum()
+  um = xmv_mat[2 * d_max + 2, :, :].sum()
+
+  ax.barh(0, d0, color='g', align='center')
+  ax.barh(1, within_d10 - d0, color='y', align='center')
+  ax.barh(2, within_dmax - within_d10, color='r', align='center')
+  ax.barh(3, wc, color='pink', align='center')
+  ax.barh(4, um, color='c', align='center')
+
+  ax.set_yticks([0, 1, 2, 3, 4])
+  ax.set_yticklabels([r'$d_{err} = 0$', r'$0 < |d_{err}| \leq 10$', r'10 < $|d_{err}|$', 'WC', 'UM'])
+  ax.set_ylim([-0.5, 4.5])
+
+  ax.set_xscale('log')
+  ax.set_xlabel('Read fate')
+
+
+def plot_AA(xmv_mat, fig_prefix, plot_bin_size=5):
+  fig = plt.figure(figsize=(6, 6))
+  plt.subplots_adjust(bottom=0.05, top=0.98, hspace=.01)
+
+  ax = plt.subplot(211)
+  plot_alignment_accuracy_by_vsize(ax, xmv_mat, plot_bin_size=plot_bin_size)
+
+  ax = plt.subplot(212)
+  plot_vcounts(ax, xmv_mat, plot_bin_size=plot_bin_size)
+
+  plt.savefig(fig_prefix + '_V.png')
 
 
 def alignment_accuracy_by_vsize(xmv_mat, d_err_threshold):
   max_derr = int((xmv_mat.shape[0] - 3) / 2)
-  derr_mat = xmv_mat.sup(axis=1)
-  d_idx = (max_derr + d_err_threshold, max_derr + d_err_threshold)
-  num = derr_mat[d_idx[0]:d_idx[1], :].sum(axis=0)
-  den = derr_mat.sum(axis=0)
+  derr_mat = xmv_mat.sum(axis=1)
+  d_idx = (max_derr - d_err_threshold, max_derr + d_err_threshold + 1)
+  num = derr_mat[d_idx[0]:d_idx[1], :].sum(axis=0)[1:]
+  den = derr_mat.sum(axis=0)[1:]
   return num, den
 
 
-def plot_alignment_accuracy_by_vsize(ax, xmv_mat, plot_bin_size=5, show_ax_label=False):
+def plot_alignment_accuracy_by_vsize(ax, xmv_mat, plot_bin_size=5):
   """
 
   :param ax:
@@ -235,10 +271,32 @@ def plot_alignment_accuracy_by_vsize(ax, xmv_mat, plot_bin_size=5, show_ax_label
   :param show_ax_label:
   :return:
   """
+  n0, d0 = alignment_accuracy_by_vsize(xmv_mat, 0)
   n10, d10 = alignment_accuracy_by_vsize(xmv_mat, 10)
-  n100, d100 = alignment_accuracy_by_vsize(xmv_mat, 100)
+
+  d0_p = plot_panels(ax,
+                    num=n0,
+                    den=d0,
+                    bin_size=plot_bin_size,
+                    yticks=[0.0, 0.5, 1.0], ylim=[-0.05, 1.05],
+                    color='b', label=r'$d_{err} = 0$')
+  d10_p = plot_panels(ax,
+                    num=n10,
+                    den=n10,
+                    bin_size=plot_bin_size,
+                    yticks=[0.0, 0.5, 1.0], ylim=[-0.05, 1.05],
+                    color='r', label=r'$|d_{err}| < 10$')
+  plt.legend(handles=[d0_p, d10_p], loc='lower center', fontsize=9)
 
 
-
-
+def plot_vcounts(ax, xmv_mat, plot_bin_size=5):
+  v_cnt = xmv_mat.sum(axis=0).sum(axis=0)[1:]
+  n_max = 10 ** np.ceil(np.log10((v_cnt).max()))
+  n_min = 10 ** int(np.log10((v_cnt).min() + 1))
+  tot_p = plot_panels(ax,
+                      num=v_cnt,
+                      bin_size=plot_bin_size,
+                      yticks=[n_min, n_max], ylim=[n_min/2, n_max * 2],
+                      color='k', label='Count', show_ax_label=True, yscale='log')
+  plt.legend(handles=[tot_p], loc='lower center', fontsize=9)
 
