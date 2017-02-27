@@ -343,7 +343,9 @@ def variant_by_size(vcf, out, max_size, title, fig_file, plot_bin_size, replot):
     vsd.np.savetxt(out, data, fmt='%d', delimiter=', ', header='SIZE')
   else:
     data = vsd.np.loadtxt(out, skiprows=1, delimiter=',', dtype=int)
-  vsd.plot(data, fig_fname=fig_file, bin_size=plot_bin_size, title=title)
+
+  if fig_file is not None:
+    vsd.plot(data, fig_fname=fig_file, bin_size=plot_bin_size, title=title)
 
 
 def partition_bam_choices():
