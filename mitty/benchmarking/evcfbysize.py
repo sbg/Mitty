@@ -59,7 +59,7 @@ def plot(data, fig_fname, bin_size=5, title='P/R by variant size'):
   plt.legend(handles=[gt_p], loc='upper left', fontsize=9)
 
   ax3 = plt.subplot(413)
-  n_max = 10 ** np.ceil(np.log10(data['FP'].max()))
+  n_max = 10 ** np.ceil(np.log10(data['FP'].max() + 1))
   n_min = 10 ** int(np.log10(data['FP'].min() + 1))
   fp_p = plot_panels(ax3,
                      num=data['FP'],
@@ -70,7 +70,7 @@ def plot(data, fig_fname, bin_size=5, title='P/R by variant size'):
   plt.legend(handles=[fp_p], loc='upper right', fontsize=9)
 
   ax4 = plt.subplot(414)
-  n_max = 10 ** np.ceil(np.log10((data['TP'] + data['FN'] + data['GT']).max()))
+  n_max = 10 ** np.ceil(np.log10((data['TP'] + data['FN'] + data['GT']).max() + 1))
   n_min = 10 ** int(np.log10((data['TP'] + data['FN'] + data['GT']).min() + 1))
   tot_p = plot_panels(ax4,
                       num=data['TP'] + data['FN'] + data['GT'],

@@ -67,13 +67,18 @@ def bin_array(y, b=20):
     y[2 * N + 2:]))
 
 
+def censor(y):
+  """Use clip to turn zeros into tiny positive values"""
+  return y.clip(1e-6, y.max())
+
+
 def line_with_ci(ax, part, color='k', linestyle='-'):
-  ax.plot(part['x'], part['y']['y'], marker=None if len(part['x']) > 1 else 'x', color=color, linestyle=linestyle)
+  ax.plot(part['x'], censor(part['y']['y']), marker=None if len(part['x']) > 1 else 'x', color=color, linestyle=linestyle)
   if 'l' in part['y'].dtype.names:
     if len(part['y']['l']) > 1:
-      ax.fill_between(part['x'], part['y']['l'], part['y']['h'], color=color, alpha=0.5)
+      ax.fill_between(part['x'], censor(part['y']['l']), censor(part['y']['h']), color=color, alpha=0.5)
     else:
-      ax.plot([part['x'][0], part['x'][0]], [part['y']['l'][0], part['y']['h'][0]], color=color, linestyle=linestyle, lw=3)
+      ax.plot([part['x'][0], part['x'][0]], [censor(part['y']['l'][0]), censor(part['y']['h'][0])], color=color, linestyle=linestyle, lw=3)
 
 
 def plot_panels(ax, num, den=None, bin_size=None,
@@ -106,7 +111,6 @@ def plot_panels(ax, num, den=None, bin_size=None,
   x_lim = [x0 - .1 *(x1 - x0), x1 + .1 *(x1 - x0)]
   xticks, xticklabels = [], []
   for part in parts:
-    # print(part)
     line_with_ci(ax, part, color=color, linestyle=linestyle)
     xticks += part['xticks']
     xticklabels += part['xticklabels']
