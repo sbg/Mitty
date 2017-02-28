@@ -17,8 +17,7 @@ Features
 - Corruption module adds sequencing errors to reads
     - Read models can be sampled from existing BAM files
 - "God aligner" writes out a BAM with perfect alignments which can be used for BAM comparisons
-
-_Mitty also supplies a VCF simulator. This is currently under development_
+- Simple genome simulator to generate VCFs with SNPs and different sizes of Insertions and Deletions for aligner/caller testing
 
 It is also informative to browse the [release notes](release_notes.txt)
 
@@ -316,8 +315,15 @@ Mitty supplies some tools to help with benchmarking and debugging of aligner/cal
 mitty -v4 debug alignment-analysis-plot \
   bwac.bam lqc.txt \
   bwac.alignment.npy \
-  --fig-prefix bwac.alignment
+  --fig-prefix bwac.alignment \
+  --max-d 200 \
+  --max-size 50 \
+  --plot-bin-size 5
 ```
+
+![MQ plots](docs/images/aligner-report-example-1.png?raw=true "MQ plots")
+
+![Alignment accuracy plots](docs/images/aligner-report-example-2.png?raw=true "Alignment accuracy plots")
 
 
 ## Variant calling accuracy, parametrized by variant size
@@ -341,8 +347,10 @@ mitty -v4 debug pr-by-size \
 
 This invocation will process evcf.in.vcf.gz, write the results as a comma separated file (out.csv) and also plot them
 in pr.size.pdf. The program will check variants from 1000bp deletions to 1000bp insertions, putting them into 20bp size 
-bins. SNPs are always counted and placed in their own spearate bin. Since we have supplied a region-lable,
+bins. SNPs are always counted and placed in their own spearate bin. Since we have supplied a region-label,
 only variants scored in that region will be processed.
+
+![P/R plots](docs/images/caller-report-example.png?raw=true "P/R plots")
 
 
 ## Find differences in alignments
@@ -504,8 +512,6 @@ tabix -p vcf sim-filt.vcf.gz
 ```
 
 Please see `examples/variants/run.sh` for an example script.
-
-
 
 
 Miscellaneous utilities
