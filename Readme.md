@@ -323,6 +323,12 @@ mitty -v4 debug alignment-analysis-plot \
   --plot-bin-size 5
 ```
 
+This invocation will process `bwac.bam` (using the long qname side car file `lqc.txt`) and summarize the alignment
+performance in a numpy data file (`bwac.alignment.npy`). It will plot them in a set of figures named with the prefix
+`bwac.alignment`. The alignment error will be assessed upto a maximum of 200bp. The program will check variants 
+from 50bp deletions to 50bp insertions, putting them into 5bp size 
+bins. SNPs are always counted and placed in their own spearate bin. 
+
 ![MQ plots](docs/images/aligner-report-example-1.png?raw=true "MQ plots")
 
 ![Alignment accuracy plots](docs/images/aligner-report-example-2.png?raw=true "Alignment accuracy plots")
@@ -332,9 +338,7 @@ mitty -v4 debug alignment-analysis-plot \
 
 We can use a set of tools developed by the GA4GH consortium to compare a VCF produced by a pipeline with a truth VCF.
 This comparison is presented as another VCF annotated with information about each call - whether it is a TP, FN, FP or GT
-call.
-
-`pr-by-size` is a program that summarizes the comparison in terms of variant size.
+call. `pr-by-size` is a program that summarizes the data in such an evaluation VCF in terms of variant size.
 
 ```
 mitty -v4 debug pr-by-size \
@@ -342,13 +346,13 @@ mitty -v4 debug pr-by-size \
   out.csv \
   --title "Demo P/R plot parametrized by variant size" \
   --region-label "HG002_GIAB" \  # full name of high confidence region if desired
-  --max-size 1000 \
-  --plot-bin-size 20 \
+  --max-size 50 \
+  --plot-bin-size 5 \
   --fig-file pr.size.pdf
 ```
 
-This invocation will process evcf.in.vcf.gz, write the results as a comma separated file (out.csv) and also plot them
-in pr.size.pdf. The program will check variants from 1000bp deletions to 1000bp insertions, putting them into 20bp size 
+This invocation will process `evcf.in.vcf.gz`, write the results as a comma separated file (`out.csv`) and also plot them
+in `pr.size.pdf`. The program will check variants from 50bp deletions to 50bp insertions, putting them into 5bp size 
 bins. SNPs are always counted and placed in their own spearate bin. Since we have supplied a region-label,
 only variants scored in that region will be processed.
 
