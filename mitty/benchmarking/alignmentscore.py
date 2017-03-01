@@ -25,7 +25,6 @@ def score_alignment_error(r, ri, max_d=200, strict=False):
            d_err = max_d + 1 if wrong chrom
            d_err = max_d + 2 if unmapped
   """
-  d_err = max_d
   if r.is_unmapped:
     d_err = max_d + 2
   elif r.reference_name != ri.chrom:
@@ -37,7 +36,7 @@ def score_alignment_error(r, ri, max_d=200, strict=False):
     if not (strict or ri.cigar[0] == '>'):
       # Score read considering soft clipping
       cigar_op = r.cigartuples[0]
-      if cigar_op[0] in [1, 2, 3, 4, 5]:
+      if 0 < cigar_op[0] < 6:
         correct_pos += cigar_op[1]
 
     d_err = max(min((r.pos + 1 - correct_pos), max_d), -max_d)
