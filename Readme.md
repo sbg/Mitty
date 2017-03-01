@@ -532,6 +532,80 @@ mitty -v4 debug variant-by-size hg001.vcf.gz hg001.variant.size.csv --max-size 1
 Appendix
 ========
 
+Qname format
+------------
+Read alignment and simulation metadata are stored in the qname in the following format. 
+
+```
+      @index|sn|chrom:copy|strand:pos:cigar:v1,v2,...:MD|strand:pos:cigar:v1,v2,...:MD|
+
+Each section is separated by a  bar (`|`), sub-sections are separated by a colon (`:`) and 
+their meanings  are as follows: 
+
+index:  unique code for each template. If you must know, the index is simply a monotonic counter
+        in base-36 notation
+sn:     sample name. Useful if simulation is an ad-mixture of sample + contaminants or multiple samples
+chrom:  chromosome id of chromosome the read is taken from
+copy:   copy of chromosome the read is taken from (0, 1, 2, ...) depends on ploidy
+strand: 0: forward strand, 1: reverse strand
+pos:    Position of first (left-most) reference matching base in read (Same definition as for POS in BAM)
+        One based
+        For reads coming from completely inside an insertion this is, however, the POS for the insertion
+cigar:  CIGAR string for correct alignment.
+        For reads coming from completely inside an insertion, however, the CIGAR string is:
+        '>p+nI' where:
+           '>' is the unique key that indicates a read inside a long insertion
+           'p' is how many bases into the insertion branch the read starts
+           'n' is simply the length of the read
+v1,v2,..: Comma separated list of variant sizes covered bly this read
+            0 = SNP
+            + = INS
+            - = DEL
+MD:     Read corruption MD tag. This is empty for perfect reads, but is filled with an MD formatted
+        string for corrupted reads. The MD string is referenced to the original, perfect read, not
+        a reference sequence.
+```
+
+Notes:
+
+- The alignment information is repeated for every read in the template.
+  The example shows what a PE template would look like.
+- The pos value is are one based to make comparing qname info in genome browser easier
+- qnames longer than 254 characters (the maximum allowed by the SAM spec) are stored in
+  a side-car file alongside the simulated FASTQs.
+  The qname in the FASTQ file is truncated to 254 characters. A truncated qname is detected by the
+  absence of the final '|' character in the qname
+
+This information is also available by executing `mitty qname`
+
+Example from a perfect read:
+
+`@8|INTEGRATION|1:1|1:1930067:27=1X63=1I158=:0,1:|0:1929910:184=1X63=1I1=:0,1:|`
+
+Corresponding read after passing through read corruption model:
+
+`@8|INTEGRATION|1:1|1:1930067:27=1X63=1I158=:0,1:126T29T16G15G28C0T2T8C9T0C6T|0:1929910:184=1X63=1I1=:0,1:9G25G3T1C36T87G10G0C0A4A1G4C0A0G0G0A1A0T0C3A1C0A0T0C0C0T0G2T0A0A1A0G1G0T0G0A0A0A0C1T1A0T0C0T0C0T0A1T1A0A1A0T0A0C0A0A|`
+
+
+```
+@8           - simulated reads serial number (in base 26)
+INTEGRATION  - name of sample (from VCF) reads are generated from
+1:1          - read is from chromosome 1, copy 1 (copy numbers start 0, 1, ...)
+1:1930067:27=1X63=1I158=:0,1:126T29T16G15G28C0T2T8C9T0C6T 
+             - read one metadata with fields as:
+
+    1:1930067       - read is from reverse strand (1, as opposed to 0 - see the metdata for the mate) at pos 1930067
+    27=1X63=1I158=  - this is the correct CIGAR for this read
+    0,1             - this read carries two variants a SNP (0) and an insertion (1)
+    126T29T16G15G28C0T2T8C9T0C6T  
+                    - This string follows the conventions for an MD tag and indicates the sequencing error
+                      relative to the uncorrupted read
+
+0:1929910:184=1X63=1I1=:0,1:9G25G3T1C36T87G10G0C0A4A1G4C0A0G0G0A1A0T0C3A1C0A0T0C0C0T0G2T0A0A1A0G1G0T0G0A0A0A0C1T1A0T0C0T0C0T0A1T1A0A1A0T0A0C0A0A 
+             - read two metadata in same format
+```
+
+
 Built-in read models
 --------------------
 ![](docs/images/1kg-pcr-free.png?raw=true)
