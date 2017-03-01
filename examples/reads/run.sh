@@ -35,9 +35,14 @@ bwa mem ~/Data/human_g1k_v37_decoy.fasta r1c.fq.gz r2c.fq.gz | samtools view -bS
 samtools sort out.bam > bwac.bam
 samtools index bwac.bam
 
-mitty -v4 debug alignment-analysis-plot bwac.bam lqc.txt xmv-data
+mitty -v4 debug alignment-analysis-plot \
+  bwac.bam lqc.txt \
+  bwac.alignment.npy \
+  --fig-prefix bwac.alignment \
+  --max-d 200 \
+  --max-size 50 \
+  --plot-bin-size 5
 
-exit 0
 
 mitty -v4 god-aligner \
   ~/Data/human_g1k_v37_decoy.fasta \
