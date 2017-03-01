@@ -1,6 +1,12 @@
 Release Notes
 =============
 
+2.12.1
+
+- Bugfix: fixed tag error in partition_bams code
+  Note: Partition BAMs is not parallelized and can only run serially through a BAM. For large BAMs (eg. > 50GB
+  one will usually run out of memory)
+
 2.12.0
 
 - Changed alignment error algorithm

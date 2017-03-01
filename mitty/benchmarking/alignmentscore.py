@@ -56,5 +56,4 @@ def tag_alignment(r, ri, max_d=200, strict=False):
     [('Xd', score_alignment_error(r, ri, max_d, strict), 'i'),
      ('XR', ri.chrom, 'Z'),
      ('XP', ri.pos, 'i'),
-     ('XM', ri.cigar, 'Z'),
-     ('XV', ri.v_list, 'B')])
+     ('XM', ri.cigar, 'Z')] + ([('XV', ri.v_list)] if ri.v_list else []))
