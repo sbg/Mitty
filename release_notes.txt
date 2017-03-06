@@ -1,6 +1,10 @@
 Release Notes
 =============
 
+2.12.2
+
+- 'd_err_strict' option added to partition-bams
+
 2.12.1
 
 - Bugfix: fixed tag error in partition_bams code

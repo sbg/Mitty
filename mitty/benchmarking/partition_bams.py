@@ -160,6 +160,19 @@ def partition_by_d_err(rl, x, long_qname_table):
   return independent_partitions(rl, lambda r: abs(r.get_tag('Xd')) < x)
 
 
+def partition_by_d_err_strict(rl, x, long_qname_table):
+  """
+
+  :param rl: a list of read objects [0, 1, 2, ...]
+  :param x: threshold
+  :return:
+  """
+  ri = parse_qname(rl[0].qname, long_qname_table)[0 if rl[0].is_read1 else 1]
+  for r in rl:
+    tag_alignment(r, ri, strict=True)
+  return independent_partitions(rl, lambda r: abs(r.get_tag('Xd')) < x)
+
+
 def partition_by_MQ(rl, x, *args):
   """
 
@@ -220,6 +233,9 @@ def independent_partitions(rl, scoring_function):
 scoring_fn_dict = {
   'd_err': (partition_by_d_err,
             'Set membership is |d_err| < threshold\n'
+            '(Only possible for simulated reads)'),
+  'd_err_strict': (partition_by_d_err_strict,
+            'Set membership is |d_err(strict)| < threshold\n'
             '(Only possible for simulated reads)'),
   'MQ': (partition_by_MQ,
          'Set membership is MQ < threshold'),
