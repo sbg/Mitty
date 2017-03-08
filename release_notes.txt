@@ -1,6 +1,9 @@
 Release Notes
 =============
 
+2.12.3
+- Improvements to alignment analysis plots
+
 2.12.2
 
 - 'd_err_strict' option added to partition-bams

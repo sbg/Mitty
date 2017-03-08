@@ -104,7 +104,7 @@ def plot_figures(xmv_mat, fig_prefix=None, plot_bin_size=5):
 
 def plot_MQ(xmv_mat, fig_prefix=None):
   fig = plt.figure(figsize=(8, 18))
-  plt.subplots_adjust(bottom=0.05, top=0.98, hspace=.2, right=0.97, left=0.18)
+  plt.subplots_adjust(bottom=0.05, top=0.98, hspace=.3, right=0.97, left=0.18)
 
   ax = plt.subplot(612)
   plot_heatmap_MQ_vs_derr(ax, xmv_mat)
@@ -130,8 +130,9 @@ def plot_MQ(xmv_mat, fig_prefix=None):
 def plot_heatmap_MQ_vs_derr(ax, xmv_mat):
   hm = xmv_mat.sum(axis=2).T
   max_derr = int((xmv_mat.shape[0] - 3) / 2)
-  x1, x2 = max_derr * 1.5, max_derr * 1.7
+  x1 = max_derr * 1.3
   xt = [-max_derr, -int(max_derr / 2), 0, int(max_derr / 2), max_derr]
+  xlim = [-max_derr * 1.1, x1 * 1.1]
 
   ax.imshow(hm[:, :-2], cmap=plt.cm.gray_r, norm=LogNorm(vmin=0.01, vmax=hm.max()),
             origin='lower', extent=(xt[0], xt[-1], 0, hm.shape[0] - 1),
@@ -139,7 +140,7 @@ def plot_heatmap_MQ_vs_derr(ax, xmv_mat):
 
   ax.set_xticks(xt)
   ax.set_xticklabels(xt)
-  ax.set_xlim((-max_derr * 1.1, max_derr * 1.5 * 1.1))
+  ax.set_xlim(xlim)
 
   ax.set_yticks([0, 20, 40, 60])
   ax.set_ylim([-5, 70])
@@ -163,21 +164,22 @@ def plot_mean_MQ_vs_derr(ax, xmv_mat):
   mean_mq = np.dot(mq_vector, mq_mat.T) / np.clip(data_cnt, 1, data_cnt.max() + 1).astype(float)
 
   max_derr = int((mean_mq.shape[0] - 3) / 2)
-  x1, x2 = max_derr * 1.5, max_derr * 1.7
+  x1 = max_derr * 1.3
   xt = [-max_derr, -int(max_derr/2), 0, int(max_derr/2), max_derr]
+  xlim = [-max_derr * 1.1, x1 * 1.1]
 
   ax.plot(range(-max_derr, max_derr + 1), mean_mq[:2 * max_derr + 1], 'k.')
   # ax.scatter(range(-max_derr, max_derr + 1), mean_mq[:2 * max_derr + 1],
   #            400 * data_cnt[:2 * max_derr + 1] / data_cnt[:2 * max_derr + 2].max(),
   #            color='none', edgecolors='k')
-  ax.plot([x1, x2], mean_mq[2 * max_derr + 1:], 'ko')
+  ax.plot([x1], mean_mq[2 * max_derr + 1:2 * max_derr + 2], 'ko')
   # ax.scatter([x1], mean_mq[2 * max_derr + 1],
   #            400 * mean_mq[2 * max_derr + 1] / mean_mq[:2 * max_derr + 2].max(),
   #            color='none', edgecolors='k')
 
   ax.set_xticks(xt + [x1])
   ax.set_xticklabels(xt + ['WC'])
-  ax.set_xlim((-max_derr * 1.1, max_derr * 1.5 * 1.1))
+  ax.set_xlim(xlim)
   # ax.set_xlim((-50, 50))
 
   ax.set_yticks([0, 20, 40, 60])
@@ -185,7 +187,7 @@ def plot_mean_MQ_vs_derr(ax, xmv_mat):
   ax.axvline(x=0, color='k', linestyle=':')
 
   plt.xlabel(r'$d_{err}$')
-  plt.ylabel('MQ')
+  plt.ylabel('Mean MQ')
 
   # plt.imshow(xmv_mat.sum(axis=2).T, cmap=plt.cm.gray_r, norm=LogNorm(vmin=0.01, vmax=1e6))
 
@@ -193,7 +195,7 @@ def plot_mean_MQ_vs_derr(ax, xmv_mat):
 def plot_perr_vs_MQ(ax, xmv_mat, yscale='linear'):
   mq = np.arange(xmv_mat.shape[1])
   mq_mat = xmv_mat.sum(axis=2)
-  for fmt, d_margin, label in zip(['g*', 'ro'], [0, 10], [r'$d_{err} = 0$', r'$d_{err} < 10$']):
+  for fmt, d_margin, label in zip(['g*', 'ro'], [0, 10], [r'$d_{err} = 0$', r'$|d_{err}| \leq 10$']):
     p_err = compute_p_err(mq_mat, d_margin)
     ax.plot(mq, p_err, fmt, mfc='none', label=label)
 
@@ -235,9 +237,10 @@ def plot_read_fate(ax, xmv_mat):
   ax.set_yticks([0, 1, 2, 3, 4])
   ax.set_yticklabels([r'$d_{err} = 0$', r'$0 < |d_{err}| \leq 10$', r'10 < $|d_{err}|$', 'WC', 'UM'])
   ax.set_ylim([-0.5, 4.5])
+  ax.set_ylabel('Read fate')
 
   ax.set_xscale('log')
-  ax.set_xlabel('Read fate')
+  ax.set_xlabel('Read count')
 
 
 def plot_AA(xmv_mat, fig_prefix, plot_bin_size=5):
@@ -285,8 +288,9 @@ def plot_alignment_accuracy_by_vsize(ax, xmv_mat, plot_bin_size=5):
                     den=n10,
                     bin_size=plot_bin_size,
                     yticks=[0.0, 0.5, 1.0], ylim=[-0.05, 1.05],
-                    color='r', label=r'$|d_{err}| < 10$')
+                    color='r', label=r'$|d_{err}| \leq 10$')
   plt.legend(handles=[d0_p, d10_p], loc='lower center', fontsize=9)
+  ax.set_ylabel('Fraction correctly aligned')
 
 
 def plot_vcounts(ax, xmv_mat, plot_bin_size=5):
@@ -299,4 +303,4 @@ def plot_vcounts(ax, xmv_mat, plot_bin_size=5):
                       yticks=[n_min, n_max], ylim=[n_min/2, n_max * 2],
                       color='k', label='Count', show_ax_label=True, yscale='log')
   plt.legend(handles=[tot_p], loc='lower center', fontsize=9)
-
+  ax.set_ylabel('Read count')
