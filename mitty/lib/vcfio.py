@@ -98,7 +98,7 @@ def parse(v, cpy):
 
   if unusable_variant(v):
     logger.error("Unusable variants present in VCF. Please filter or refactor these.")
-    exit(1)
+    raise ValueError("Unusable variants present in VCF. Please filter or refactor these.")
 
   alt = v.samples[0].alleles[cpy]
   l_r, l_a = len(v.ref), len(alt)
