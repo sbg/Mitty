@@ -3,6 +3,7 @@ Release Notes
 
 2.12.3
 - Improvements to alignment analysis plots
+- Bugfix: Reads in long insertions now properly placed just after the anchoring reference base
 
 2.12.2
 

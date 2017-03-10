@@ -178,4 +178,4 @@ def test_read_gen_ins():
   ref_seq, vcf = load_data()
   nodes = rgen.create_node_list(ref_seq, ref_start_pos=1, vl=vcf[0]['v'][1])
 
-  assert rgen.generate_read(9, 2, 3, 3, nodes) == (8, '>0:2I', [3], 'TT')
+  assert rgen.generate_read(9, 2, 3, 3, nodes) == (9, '>0+2I', [3], 'TT')

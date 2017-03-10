@@ -141,19 +141,17 @@ def generate_read(p, l, n0, n1, nodes):
   :return: (pos, cigar, v_list, seq)
            v_list = [-d, +i, 0] -> a list of ints indicating size of variants carried by read
   """
-  v_list = [n.v for n in nodes[n0:n1 + 1] if n.v is not None]
+  pos = nodes[n0].pr
   cigar = [str((min(p + l - n.ps, n.oplen) - max(0, p - n.ps)) if n.cigarop != 'D' else n.oplen) + n.cigarop for n in nodes[n0:n1 + 1]]
+  v_list = [n.v for n in nodes[n0:n1 + 1] if n.v is not None]
   seq = [n.seq[max(0, p - n.ps):min(p + l - n.ps, n.oplen)] for n in nodes[n0:n1 + 1]]
 
   if nodes[n0].cigarop == 'I':
     if n0 == n1:
       # Special case - read is from inside a long insertion
-      # We want to pile up reads from a long insertion at the start of the insertion
-      # We need to override the CIGAR too
-      pos = nodes[n0].pr - 1
+      # We want to pile up reads from a long insertion at the start of the insertion, which happens automatically
+      # Now we need to override the CIGAR
       cigar = ['>{}+{}I'.format(p - nodes[n0].ps, l)]
-    else:
-      pos = nodes[n0].pr
   else:
     pos = p - nodes[n0].ps + nodes[n0].pr
 
