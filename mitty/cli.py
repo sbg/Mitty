@@ -424,7 +424,23 @@ The criteria the `partition-bam` tool can be run on can be obtained by passing i
   pbm.main(bam_in_l=bam, out_prefix=outprefix, criterion=criterion, threshold=threshold, sidecar_fname=sidecar_in)
 
 
-@debug_tools.command('alignment-analysis-plot', short_help='Plot various alignment metrics from BAM')
+@debug_tools.group('alignment-analysis', short_help='Plot various alignment metrics from BAM')
+def alignment_analysis():
+  """Computes a three dimensional histogram of alignment metrics from a BAM of simulated reads
+
+  \b
+  The dimensions are:
+    [0] Xd - alignment error  -max_xd, ... 0, ... +max_xd, wrong_chrom, unmapped
+                              (2 * max_xd + 3)
+    [1] MQ - mapping quality  0, ... max_MQ
+                              (max_MQ + 1)
+    [2] vlen - length of variant carried by read
+                              Ref, < -max_vlen , -max_vlen, ... 0, ... +max_vlen, > +max_vlen
+                              ( 2 * max_vlen + 1 + 2 + 1)"""
+  pass
+
+
+@alignment_analysis.command('process', short_help='Compute alignment metrics from BAM and plot')
 @click.argument('bam', type=click.Path(exists=True))
 @click.argument('long_qname_file', type=click.Path(exists=True))
 @click.argument('out', type=click.Path())
@@ -433,23 +449,29 @@ The criteria the `partition-bam` tool can be run on can be obtained by passing i
 @click.option('--fig-prefix', type=click.Path(), help='If supplied, a series of plots will be saved with this prefix')
 @click.option('--plot-bin-size', default=1, type=int, help='Bin size')
 @click.option('--strict-scoring', is_flag=True, help="Don't consider breakpoints when scoring alignment")
-@click.option('--replot', is_flag=True,
-              help='If supplied, instead of reprocessing the BAM, we expect "out" to exist, and load data from there')
 @click.option('--processes', default=2, help='How many processes to use for computation')
-def alignment_debug_plot(bam, long_qname_file, out, max_d, max_size, fig_prefix, plot_bin_size, strict_scoring, replot, processes):
+def alignment_debug_plot(bam, long_qname_file, out, max_d, max_size, fig_prefix, plot_bin_size, strict_scoring, processes):
   """Computes 3D matrix of alignment metrics (d_err, MQ, v_size) saves it to a numpy array file and produces a set
   of summary figures"""
   import mitty.benchmarking.xmv as xmv
-  if not replot:
-    xmv_mat = xmv.main(bam, sidecar_fname=long_qname_file,
-                       max_xd=max_d, max_vlen=max_size, strict_scoring=strict_scoring,
-                       processes=processes)
-    xmv.save(xmv_mat, out)
-  else:
-    xmv_mat = xmv.np.load(out)
+  xmv_mat = xmv.main(bam, sidecar_fname=long_qname_file,
+                     max_xd=max_d, max_vlen=max_size, strict_scoring=strict_scoring,
+                     processes=processes)
+  xmv.save(xmv_mat, out)
 
   if fig_prefix is not None:
     xmv.plot_figures(xmv_mat, fig_prefix=fig_prefix, plot_bin_size=plot_bin_size)
+
+
+@alignment_analysis.command('plot', short_help='Plot alignment metrics from existing data file')
+@click.argument('datafile', type=click.Path(exists=True))
+@click.argument('fig-prefix', type=click.Path())
+@click.option('--plot-bin-size', default=1, type=int, help='Bin size')
+def alignment_debug_plot(datafile, fig_prefix, plot_bin_size):
+  """Produces a set of alignment metric summary figures from existing data file"""
+  import mitty.benchmarking.xmv as xmv
+  xmv_mat = xmv.np.load(datafile)
+  xmv.plot_figures(xmv_mat, fig_prefix=fig_prefix, plot_bin_size=plot_bin_size)
 
 
 @cli.command('filter-eval-vcf', short_help='Split out the FP and FN from an eval.vcf')

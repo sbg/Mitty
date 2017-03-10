@@ -1,9 +1,11 @@
 Release Notes
 =============
 
-2.12.3
+2.13.0
 - Improvements to alignment analysis plots
 - Bugfix: Reads in long insertions now properly placed just after the anchoring reference base
+- Enhancement: Improved CLI for processing/replotting alignment metrics. The CLI is now split into two subcommands. You no longer have to pass in the BAM and qname side-car file when you just want to replot an existing alignment metrics data file.
+
 
 2.12.2
 
