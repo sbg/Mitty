@@ -285,7 +285,7 @@ def plot_alignment_accuracy_by_vsize(ax, xmv_mat, plot_bin_size=5):
                     color='b', label=r'$d_{err} = 0$')
   d10_p = plot_panels(ax,
                     num=n10,
-                    den=n10,
+                    den=d10,
                     bin_size=plot_bin_size,
                     yticks=[0.0, 0.5, 1.0], ylim=[-0.05, 1.05],
                     color='r', label=r'$|d_{err}| \leq 10$')
