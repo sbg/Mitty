@@ -36,23 +36,23 @@ def plot(data, fig_fname, bin_size=5, title='P/R by variant size'):
 
   ax1 = plt.subplot(411)
   r_p = plot_panels(ax1,
-                    num=data['TP'],
+                    num=data['TP'] + data['GT'],
                     den=(data['TP'] + data['FN'] + data['GT']),
                     bin_size=bin_size,
                     yticks=[0.0, 0.5, 1.0], ylim=[-0.05, 1.05],
                     color='b', label='recall')
   p_p = plot_panels(ax1,
-                    num=data['TP'],
-                    den=(data['TP'] + data['FP']),
+                    num=data['TP'] + data['GT'],
+                    den=(data['TP'] + data['FP'] + data['GT']),
                     bin_size=bin_size,
                     yticks=[0.0, 0.5, 1.0], ylim=[-0.05, 1.05],
                     color='r', label='precision')
-  plt.legend(handles=[r_p, p_p], loc='lower center', fontsize=9)
+  plt.legend(handles=[r_p, p_p], loc='upper right', fontsize=9)
 
   ax2 = plt.subplot(412)
   gt_p = plot_panels(ax2,
                      num=data['GT'],
-                     den=data['TP'],
+                     den=data['TP'] + data['GT'],
                      bin_size=bin_size,
                      yticks=[0.0, 0.5, 1.0], ylim=[-0.05, 1.05],
                      color='k', label='GT')
