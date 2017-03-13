@@ -147,6 +147,7 @@ Variants::
 
 For chrom copy 1|0
 
+```
 +---------------+---------+-----------------------------------------------------------------+
 |     REF       |  ALT    |                      Node data                                  |
 +-------+-------+  1|0    +----------------+-----------+----------+--------+--------+-------+
@@ -202,7 +203,7 @@ For chrom copy 1|0
 +-------+-------+---------+                |           |          |        |        |       |
 |  25   |   C   |    C    |                |           |          |        |        |       |
 +-------+-------+---------+----------------+-----------+----------+--------+--------+-------+
-
+```
 
 Creating the node sequence
 ==========================
@@ -210,6 +211,7 @@ Say that the reference sequence is ``rseq``, the current cursor on the reference
 ``P_ref`` and the current variant is ``(P_v, ref, alt)``. We will create two nodes to
 add to the sequence according to the following rules.
 
+```
 +------------+----------------------------------------------------------------------------+
 |            |                               Node data                                    |
 +------------+---------------------------+-----------+---------+---------+----------------+
@@ -228,6 +230,7 @@ add to the sequence according to the following rules.
 | DEL        +---------------------------+-----------+---------+---------+----------------+
 |            |                           | ``-``     |  ``-``  |   D     |  len(alt) - 1  |
 +------------+---------------------------+-----------+---------+---------+----------------+
+```
 
 Here ``p*`` is the cumulative count of sample sequence bases at the start of the node. It
 is the cumulative sum of len(seq) for all nodes except D nodes
