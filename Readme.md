@@ -21,7 +21,7 @@ Features
 - "God aligner" writes out a BAM with perfect alignments which can be used for BAM comparisons
 - Simple genome simulator to generate VCFs with SNPs and different sizes of Insertions and Deletions for aligner/caller testing
 
-It is also informative to browse the [release notes](release_notes.txt)
+It is also informative to browse the [release notes](release_notes.txt) and poke around the detailed documentation under the [/docs](docs/) folder
 
 Quickstart
 ==========
@@ -34,20 +34,11 @@ conda create -n mymitty python=3.5
 * Using a virtual env is recommended, but it's a personal choice
 * Mitty requires Python3 to run
 
-For external users, please use the public repository
+Install Mitty from the public github repository
 
 ```
 pip install git+https://github.com/sbg/Mitty.git
 ```
-
-
-For internal users testing beta, unreleased versions, please use the internal bitbucket repository
-
-```
-pip install git+https://kghose@bitbucket.sbgenomics.com/scm/ben/mitty3.git
-```
-
-Don't forget to replace `kghose` with your username
 
 
 Run tests
