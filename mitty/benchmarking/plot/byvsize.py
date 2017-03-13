@@ -14,7 +14,7 @@ def bootstrap(p, n, ci=0.05):
   """
   l_ci, h_ci = ci/2, 1 - ci/2
   # print([(_p,) + tuple(ss.binom.ppf([l_ci, h_ci], _n, _p)/_n) for _n, _p in zip(n, p)])
-  return np.array([(_p,) + tuple(ss.binom.ppf([l_ci, h_ci], _n, _p)/_n) for _n, _p in zip(n, p)],
+  return np.array([((_p,) + tuple(ss.binom.ppf([l_ci, h_ci], _n, _p)/_n)) if _p > 0 else (0, 0, 0) for _n, _p in zip(n, p)],
                   dtype=[('y', float), ('l', float), ('h', float)])
 
 
