@@ -127,23 +127,26 @@ For chrom copy 0|1
 [3] Need to set this to the ps of the last base before the deletion to make the CIGAR string generation work
 
 
-Reference sequence::
+Reference sequence (copied over for convenience)
 
-  ATGACGTATCCAAGGAGGCGTTACC
-  1234567890123456789012345
+```
+ATGACGTATCCAAGGAGGCGTTACC
+1234567890123456789012345
+```
 
-Variants::
+Variants (copied over for convenience)
 
-  ##fileformat=VCFv4.1
-  ##contig=<ID=tiny,length=51>
-  ##FORMAT=<ID=GT,Number=1,Type=String,Description="Genotype">
-  #CHROM	POS	ID	REF	ALT	QUAL	FILTER	INFO	FORMAT	g0_s0
-  1	5	.	C	T	100	PASS	.	GT	0|1
-  1	8	.	A	ATTT	100	PASS	.	GT	0|1
-  1	11	.	CAA	C	100	PASS	.	GT	0|1
-  1	14	.	G	T	100	PASS	.	GT	1|0
-  1	20	.	GTT	G	100	PASS	.	GT	1|1
-
+```
+##fileformat=VCFv4.1
+##contig=<ID=tiny,length=51>
+##FORMAT=<ID=GT,Number=1,Type=String,Description="Genotype">
+#CHROM	POS	ID	REF	ALT	QUAL	FILTER	INFO	FORMAT	g0_s0
+1	5	.	C	T	100	PASS	.	GT	0|1
+1	8	.	A	ATTT	100	PASS	.	GT	0|1
+1	11	.	CAA	C	100	PASS	.	GT	0|1
+1	14	.	G	T	100	PASS	.	GT	1|0
+1	20	.	GTT	G	100	PASS	.	GT	1|1
+```
 
 For chrom copy 1|0
 
