@@ -307,7 +307,12 @@ def debug_tools():
   pass
 
 
-@debug_tools.command('pr-by-size', short_help="Characterize TP, FN, FP and GT calls (and hence P/R) by variant size")
+@debug_tools.group('variant-call-analysis', short_help="Characterize TP, FN, FP and GT calls (and hence P/R) by variant size")
+def variant_call_analysis():
+  pass
+
+
+@variant_call_analysis.command('process', short_help="Process EVCF, characterize calls by variant size and plot")
 @click.argument('evcf', type=click.Path(exists=True))
 @click.argument('out', type=click.Path())
 @click.option('--region-label', help='Name of high confidence region if desired')
@@ -315,15 +320,21 @@ def debug_tools():
 @click.option('--title', help='Title for the plot')
 @click.option('--fig-file', type=click.Path(), help='If supplied, plot will be saved here')
 @click.option('--plot-bin-size', type=int, help='Bin size')
-@click.option('--replot', is_flag=True,
-              help='If supplied, instead of reprocessing the evcf, we expect "out" to exist, and load data from there')
-def pr_by_size(evcf, out, region_label, max_size, title, fig_file, plot_bin_size, replot):
+def vc_process(evcf, out, region_label, max_size, title, fig_file, plot_bin_size):
   import mitty.benchmarking.evcfbysize as ebs
-  if not replot:
-    data = ebs.main(evcf_fname=evcf, out_csv_fname=out,
-                    max_size=max_size, high_confidence_region=region_label)
-  else:
-    data = ebs.np.loadtxt(out, skiprows=1, delimiter=',', dtype=[('TP', int), ('FN', int), ('GT', int), ('FP', int)])
+  data = ebs.main(evcf_fname=evcf, out_csv_fname=out,
+                  max_size=max_size, high_confidence_region=region_label)
+  ebs.plot(data, fig_fname=fig_file, bin_size=plot_bin_size, title=title)
+
+
+@variant_call_analysis.command('plot', short_help="Plot P/R from existing data file.")
+@click.argument('datafile', type=click.Path(exists=True))
+@click.argument('fig-file', type=click.Path())
+@click.option('--title', help='Title for the plot')
+@click.option('--plot-bin-size', type=int, help='Bin size')
+def vc_process(datafile, fig_file, title, plot_bin_size):
+  import mitty.benchmarking.evcfbysize as ebs
+  data = ebs.np.loadtxt(datafile, skiprows=1, delimiter=',', dtype=[('TP', int), ('FN', int), ('GT', int), ('FP', int)])
   ebs.plot(data, fig_fname=fig_file, bin_size=plot_bin_size, title=title)
 
 
