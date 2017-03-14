@@ -30,7 +30,16 @@ def main(evcf_fname, out_csv_fname, max_size=50, high_confidence_region=None):
 
 
 # Ignoring bin size for now
-def plot(data, fig_fname, bin_size=5, title='P/R by variant size'):
+def plot(data, fig_fname, bin_size=5, plot_range=None, title='P/R by variant size'):
+  max_size = (data.shape[0] - 3)/2
+  if plot_range is not None and plot_range < max_size:
+    print(data.dtype)
+    _data = data[max_size + 1 - (plot_range + 1):max_size + 1 + (plot_range + 1) + 1]
+    for k in data.dtype.names:
+      _data[0][k] = data[:max_size + 1 - (plot_range + 1)][k].sum()
+      _data[-1][k] = data[max_size + 1 + (plot_range + 1) + 1:][k].sum()
+    data = _data
+
   fig = plt.figure(figsize=(6, 11))
   plt.subplots_adjust(bottom=0.05, top=0.95, hspace=0.01)
 
