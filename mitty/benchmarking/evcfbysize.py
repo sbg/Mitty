@@ -31,13 +31,13 @@ def main(evcf_fname, out_csv_fname, max_size=50, high_confidence_region=None):
 
 # Ignoring bin size for now
 def plot(data, fig_fname, bin_size=5, plot_range=None, title='P/R by variant size'):
-  max_size = (data.shape[0] - 3)/2
+  max_size = int((data.shape[0] - 3)/2)
   if plot_range is not None and plot_range < max_size:
-    print(data.dtype)
-    _data = data[max_size + 1 - (plot_range + 1):max_size + 1 + (plot_range + 1) + 1]
+    n0, n1 = max_size + 1 - (plot_range + 1), max_size + 1 + (plot_range + 1) + 1
+    _data = data[n0:n1]
     for k in data.dtype.names:
-      _data[0][k] = data[:max_size + 1 - (plot_range + 1)][k].sum()
-      _data[-1][k] = data[max_size + 1 + (plot_range + 1) + 1:][k].sum()
+      _data[0][k] = data[:n0][k].sum()
+      _data[-1][k] = data[n1:][k].sum()
     data = _data
 
   fig = plt.figure(figsize=(6, 11))
@@ -56,7 +56,7 @@ def plot(data, fig_fname, bin_size=5, plot_range=None, title='P/R by variant siz
                     bin_size=bin_size,
                     yticks=[0.0, 0.5, 1.0], ylim=[-0.05, 1.05],
                     color='r', label='precision')
-  plt.legend(handles=[r_p, p_p], loc='upper right', fontsize=9)
+  plt.legend(handles=[r_p, p_p], loc='center left',fontsize=9)
 
   ax2 = plt.subplot(412)
   gt_p = plot_panels(ax2,
