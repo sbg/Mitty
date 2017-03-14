@@ -70,97 +70,95 @@ Running commands with the verbose option allows you to tune what messages (rangi
 mitty -v{1,2,3,4} <command>
 ```
 
-Example simulation script 
--------------------------
-For the impatient, a short but complete script for performing read simulations is given [here](examples/reads/run.sh)
-
 
 Detailed tutorial with commentary
 =================================
 
+Note on the files used here
+---------------------------
+A script containing all the commands in this tutorial is found under [`examples/tutorial/script.sh`](examples/tutorial/script.sh). Some parts of the script assume external tools such as an aligner, a variant caller and the GA4GH benchmarking tools are installed. 
+I assume that the GRC37 (or HG19) FASTA and it's index is available and aliased to `$FASTA`. On my development machine, for example, `FASTA=~/Data/human_g1k_v37_decoy.fasta`.
+The VCF refered to as `hg001.vcf.gz` has been downloaded from the [NIH NCBI website](ftp://ftp-trace.ncbi.nih.gov/giab/ftp/release/NA12878_HG001/NISTv3.3.2/GRCh37/)
+
 Generating reads
 ----------------
 
-### Data note
-
-The BED files and other small data files used in this example are found under examples/reads in the source
-distribution. The examples assume that the commands are being run from inside this directory and the hg19 fasta is
-available in a directory called `~/Data/human_g1k_v37_decoy.fasta` which also carries the index for the fasta. 
-The commands are found in the `examples/reads/run.sh`
-
-### VCF
-
-The original sample VCF for the examples below is the Genome In a Bottle truth data set for 
-NA12878_HG001/NISTv3.3.1/GRCh37 obtained from [the official NCBI ftp site][giab]. I assume that this
-file has been saved under the name hg001.vcf.gz in the working directory. The bed file that is used
-(hg001.bed) selects out 1MB portions of chromosome 1 and chromosome 7.
-
-[giab]: ftp://ftp-trace.ncbi.nlm.nih.gov/giab/ftp/release/NA12878_HG001/NISTv3.3.1/GRCh37/
-
+### Aliases used
+```
+FASTA=~/Data/human_g1k_v37_decoy.fasta
+SAMPLEVCF=hg001.vcf.gz
+SAMPLENAME=HG001
+REGION_BED=region.bed
+FILTVCF=hg001-filt.vcf.gz
+READMODEL=1kg-pcr-free.pkl
+COVERAGE=30
+READ_GEN_SEED=7
+FASTQ_PREFIX=hg001-reads
+READ_CORRUPT_SEED=8
+```
 
 ### Prepare VCF file for taking reads from
 The read simulator can not properly generate ground truth reads from overlapping variants 
 (e.g. a deletion that overlaps a SNP on the same chromosome copy),  complex variants (variant calls where the REF and
-ALT are both larger than 1 bp) from any entry that does not precisely lay out the ALT sequence in the ALT column,
+ALT are both larger than 1 bp) or any entry that does not precisely lay out the ALT sequence in the ALT column,
 such as angle bracket ID references and variants breakend notation. 
 Such calls must be filtered from a VCF file before it can be used as a sample to generate reads from.
 
 ```
-mitty -v4 filter-variants hg001.vcf.gz INTEGRATION hg001.bed - 2> sim-vcf-filter.log | bgzip -c > sim-filt.vcf.gz
-tabix -p vcf sim-filt.vcf.gz
+mitty -v4 filter-variants \
+  ${SAMPLEVCF} \
+  ${SAMPLENAME} \
+  ${REGION_BED} \
+  - \
+  2> vcf-filter.log | bgzip -c > ${FILTVCF}
+
+tabix -p vcf ${FILTVCF}
 ```
 
-`filter.log` looks like::
+The `region.bed` file is used to select out just the parts of the VCF we would like to generate reads from. The input VCF can be a population VCF (say from the 1000G project). The `${SAMPLENAME}` indicates which sample to extract from the VCF.
+
+
+`vcf-filter.log` looks like::
 
 ```
-$ cat sim-vcf-filter.log 
+$ cat vcf-filter.log 
 DEBUG:mitty.lib.vcfio:Starting filtering ...
-DEBUG:mitty.lib.vcfio:Filtering ('1', 20000, 1020000)
-DEBUG:mitty.lib.vcfio:Complex variant 1:943126 CTTTTTTTTTTTTTTTTTTTTTTTT -> ('C', 'CTTTTTTTTTT')
-DEBUG:mitty.lib.vcfio:Filtering ('7', 32000000, 33000000)
-DEBUG:mitty.lib.vcfio:Complex variant 7:32095932 TTCTCTCTCTCTCTCTCTC -> ('T', 'TTCTCTCTCTCTCTCTCTCTC')
-DEBUG:mitty.lib.vcfio:Complex variant 7:32152848 AATAT -> ('A', 'AATATATATATATATATATATATAT')
-DEBUG:mitty.lib.vcfio:Complex variant 7:32168518 AATATATATATAT -> ('AATATATATATATATATATATAT', 'A')
-DEBUG:mitty.lib.vcfio:Complex variant 7:32335505 CAAA -> ('C', 'CA')
-DEBUG:mitty.lib.vcfio:Complex variant 7:32367381 CAA -> ('C', 'CA')
-DEBUG:mitty.lib.vcfio:Complex variant 7:32378622 GCACA -> ('G', 'GCA')
-DEBUG:mitty.lib.vcfio:Complex variant 7:32428769 CGT -> ('C', 'CGTGTGTGTGTGT')
-DEBUG:mitty.lib.vcfio:Complex variant 7:32562762 CAAA -> ('C', 'CA')
-DEBUG:mitty.lib.vcfio:Complex variant 7:32577070 GTTTTT -> ('G', 'GTTTT')
-DEBUG:mitty.lib.vcfio:Complex variant 7:32632164 CTTTT -> ('CTTTTT', 'C')
-DEBUG:mitty.lib.vcfio:Complex variant 7:32648707 ATTTTTTTTTT -> ('A', 'ATTT')
-DEBUG:mitty.lib.vcfio:Complex variant 7:32835051 CT -> ('C', 'CTTTTT')
-DEBUG:mitty.lib.vcfio:Complex variant 7:32837427 TA -> ('T', 'TAA')
-DEBUG:mitty.lib.vcfio:Complex variant 7:32972783 CAAAAAAAAAAAAAAAAA -> ('C', 'CAAAAAAAA')
-DEBUG:mitty.lib.vcfio:Complex variant 7:32980512 CAAA -> ('C', 'CAAAAA')
-DEBUG:mitty.lib.vcfio:Complex variant 7:32983713 CTTTT -> ('CTT', 'C')
-DEBUG:mitty.lib.vcfio:Processed 2210 variants
-DEBUG:mitty.lib.vcfio:Sample had 2210 variants
-DEBUG:mitty.lib.vcfio:Discarded 17 variants
-DEBUG:mitty.lib.vcfio:Took 0.2465670108795166 s
+DEBUG:mitty.lib.vcfio:Filtering ('1', 1000000, 2000000)
+DEBUG:mitty.lib.vcfio:Complex variant 1:1827835 CTT -> ('CT', 'C')
+DEBUG:mitty.lib.vcfio:Filtering ('3', 60830384, 61830384)
+DEBUG:mitty.lib.vcfio:Complex variant 3:60835995 TTCTCTCTCTCTCTCTCTCTCTC -> ('TTCTCTCTCTCTCTCTCTCTCTCTCTCTC', 'T')
+DEBUG:mitty.lib.vcfio:Complex variant 3:60897726 TAC -> ('TACAC', 'T')
+DEBUG:mitty.lib.vcfio:Complex variant 3:60970457 GGTGTGT -> ('GGT', 'G')
+DEBUG:mitty.lib.vcfio:Complex variant 3:61205001 ATG -> ('ATGTG', 'A')
+DEBUG:mitty.lib.vcfio:Complex variant 3:61309628 GGTGTGTGTGTGTGTGT -> ('GGTGTGTGTGTGTGTGTGTGT', 'G')
+DEBUG:mitty.lib.vcfio:Complex variant 3:61360782 AGTGTGTGTGT -> ('AGTGTGTGTGTGT', 'A')
+DEBUG:mitty.lib.vcfio:Complex variant 3:61469726 CAAAAAAAAAAAAAAA -> ('CA', 'C')
+DEBUG:mitty.lib.vcfio:Complex variant 3:61488707 TTGTG -> ('TTG', 'T')
+DEBUG:mitty.lib.vcfio:Complex variant 3:61509647 TCACACACACA -> ('TCACACACACACACA', 'T')
+DEBUG:mitty.lib.vcfio:Complex variant 3:61522251 TACACAC -> ('TACAC', 'T')
+DEBUG:mitty.lib.vcfio:Complex variant 3:61541525 CA -> ('CAAA', 'C')
+DEBUG:mitty.lib.vcfio:Complex variant 3:61633465 CAAAAAAA -> ('CAAAAAAAAAAAAA', 'C')
+DEBUG:mitty.lib.vcfio:Complex variant 3:61718383 AAAATAAAT -> ('AAAAT', 'A')
+DEBUG:mitty.lib.vcfio:Complex variant 3:61731724 CTTT -> ('CTT', 'C')
+DEBUG:mitty.lib.vcfio:Processed 2807 variants
+DEBUG:mitty.lib.vcfio:Sample had 2807 variants
+DEBUG:mitty.lib.vcfio:Discarded 15 variants
+DEBUG:mitty.lib.vcfio:Took 0.28023505210876465 s
 ```
 
 **NOTE: If the BED file is not sorted, the output file needs to be sorted again.**
 
-The file `hg001.filt.vcf.gz` can now be used to generate reads and will serve as a truth VCF for VCF benchmarking.
+`${FILTVCF}` can now be used to generate reads and will serve as a truth VCF for VCF benchmarking.
 
 
 ### Listing and inspecting read models
 
-Listing Mitty's built in models
-```
-mitty list-read-models
-```
+`mitty list-read-models` will list built in read models 
 
-Listing additional custom models stored in a folder somewhere
-```
-mitty list-read-models -d ./
-```
+`mitty list-read-models -d ./mydir` will list additional custom models stored in `mydir`
 
-The model statistics can be inspected by printing a panel of plots showing read characteristics
-```
-mitty describe-read-model 1kg-pcr-free.pkl model.png
-```
+`mitty describe-read-model 1kg-pcr-free.pkl model.png` prints a panel of plots showing read characteristics
+
 See later for a list of read models supplied with Mitty and their characteristics
 
 
@@ -179,16 +177,16 @@ mitty -v4 bam2illumina sample.bam ./rd-model.pkl "This model is taken from a BAM
 
 ```
 mitty -v4 generate-reads \
-  ~/Data/human_g1k_v37_decoy.fasta \
-   hg001.filt.vcf.gz \
-   INTEGRATION \
-   hg001.bed \
-   1kg-pcr-free.pkl \
-   30 \
-   7 \
-   >(gzip > r1.fq.gz) \
-   lq.txt \
-   --fastq2 >(gzip > r2.fq.gz) \
+  ${FASTA} \
+  ${FILTVCF} \
+  ${SAMPLENAME} \
+  ${REGION_BED} \
+  ${READMODEL} \
+  ${COVERAGE} \
+  ${READ_GEN_SEED} \
+  >(gzip > ${FASTQ_PREFIX}1.fq.gz) \
+   ${FASTQ_PREFIX}-lq.txt \
+   --fastq2 >(gzip > ${FASTQ_PREFIX}2.fq.gz) \
    --threads 2
 ```
 
@@ -197,60 +195,38 @@ read models to see if the file name is a match (typically these are in the `mitt
 folder). It will then treat the model file name as a path and try and load that from your 
 file system - which is the case in this particular example.)_
 
-The produced FASTQs have qnames encoding the correct read alignments for each read in the template. qnames may exceed
-the SAM specification limit (254 characters). In such cases the qname in the FASTQ is truncated to 254 characters and
-the complete qname is printed in the side-car file (`lq.txt` in the example). 
+The produced FASTQs have qnames encoding the correct read alignments for each read in the template. qnames may exceed the SAM specification limit (254 characters). In such cases the qname in the FASTQ is truncated to 254 characters and the complete qname is printed in the side-car file `${FASTQ_PREFIX}-lq.txt`. 
 
 The qname format can be obtained by executing `mitty qname`
 
 
 #### Reference reads
 As you might expect, by passing a VCF with a sample having no variants (see `human-m-ref.vcf` or `human-f-ref.vcf` under
-`examples/reads`) we can generate reads with no variants, representing the reference genome.
+`examples/empty-vcfs`) we can generate reads with no variants, representing the reference genome.
 Note the use of `0/0` for all the autosomes and the `0` for the X and Y chromosomes in the male
 to indicate the proper ploidy to the simulator via these VCF files.
-
-```
-mitty -v4 generate-reads \
-  ~/Data/human_g1k_v37_decoy.fasta \
-  human-m-ref.vcf.gz \
-  ref \
-  human-male.bed \
-  1kg-pcr-free.pkl \
-  0.01 \
-  7 \
-  >(gzip > ref-r1.gq.gz) \
-  ref-lq.txt \
-  --fastq2 >(gzip > ref-r2.fq.gz) \
-  --threads 2
-```
 
 
 ### Corrupting reads
 
-The reads generated using the previous command have no base call errors. Base call errors can be introduced into the
-reads using the following command.
+The reads generated using the previous command have no base call errors. Base call errors can be introduced into the reads using the following command.
 
 ```
 mitty -v4 corrupt-reads \
-  1kg-pcr-free.pkl \
-  r1.fq.gz >(gzip > r1c.fq.gz) \
-  lq.txt \
-  lqc.txt \
-  7 \
-  --fastq2-in r2.fq.gz \
-  --fastq2-out >(gzip > r2c.fq.gz) \
+  ${READMODEL} \
+  ${FASTQ_PREFIX}1.fq.gz >(gzip > ${FASTQ_PREFIX}-corrupt1.fq.gz) \
+  ${FASTQ_PREFIX}-lq.txt \
+  ${FASTQ_PREFIX}-corrupt-lq.txt \
+  ${READ_CORRUPT_SEED} \
+  --fastq2-in ${FASTQ_PREFIX}2.fq.gz \
+  --fastq2-out >(gzip > ${FASTQ_PREFIX}-corrupt2.fq.gz) \
   --threads 2
 ```
 
 _Using a read model different to that used to generate the reads originally can lead to undefined behavior, 
 including crashes._
 
-As mentioned, the side-car file `lq.txt` carries qnames longer than 254 characters. The output side-car file `lqc.txt`
-similarly carries longer qnames from the corrupted reads. The qname for each corrupted template is identical to the 
-original, uncorrupted template, except for the addition of an MD-like tag that allows recovery of the original bases
-before sequencing errors were introduced. The qnames in `lq.txt` can be a subset of those in `lqc.txt`.
-
+As mentioned, the side-car file `${FASTQ_PREFIX}-lq.txt` carries qnames longer than 254 characters. The output side-car file `${FASTQ_PREFIX}-corrupt-lq.txt` similarly carries longer qnames from the corrupted reads. The qname for each corrupted template is identical to the  original, uncorrupted template, except for the addition of an MD-like tag that allows recovery of the original bases before sequencing errors were introduced.
 
 The BQ profile of the sample FASTQ generated by this command (generated by FASTQC) looks like
 
@@ -267,9 +243,16 @@ can be compared with the empirical model profile shown in the Appendix for the `
 
 _(Assumes bwa and samtools are installed)_
 ```
-bwa mem ~/Data/human_g1k_v37_decoy.fasta r1c.fq.gz r2c.fq.gz | samtools view -bSho out.bam
-samtools sort out.bam > bwac.bam
-samtools index bwac.bam
+FASTA=~/Data/human_g1k_v37_decoy.fasta
+FASTQ_PREFIX=hg001-reads
+BAM=hg001-bwa.bam
+
+bwa mem \
+  ${FASTA} \
+  ${FASTQ_PREFIX}-corrupt1.fq.gz \
+  ${FASTQ_PREFIX}-corrupt2.fq.gz | samtools view -bSho temp.bam
+samtools sort temp.bam > ${BAM}
+samtools index ${BAM}
 ```
 
 
@@ -288,12 +271,14 @@ for comparing alignments from different aligners. This truth BAM can also be use
 removing one moving part (the aligner) from the analysis chain.
 
 ```
+GODBAM=hg001-god.bam
+
 mitty -v4 god-aligner \
-  ~/Data/human_g1k_v37_decoy.fasta \
-  r1c.fq.gz \
-  lqc.txt \
-  perfectc.bam \
-  --fastq2 r2c.fq.gz \
+  ${FASTA} \
+  ${FASTQ_PREFIX}-corrupt1.fq.gz \
+  ${FASTQ_PREFIX}-corrupt-lq.txt \
+  ${GODBAM} \
+  --fastq2 ${FASTQ_PREFIX}-corrupt2.fq.gz \
   --threads 2
 ```
 
@@ -305,20 +290,18 @@ Mitty supplies some tools to help with benchmarking and debugging of aligner/cal
 ## Alignment accuracy
 
 ```
-mitty -v4 debug alignment-analysis-plot \
-  bwac.bam lqc.txt \
-  bwac.alignment.npy \
-  --fig-prefix bwac.alignment \
+mitty -v4 debug alignment-analysis process\
+  ${BAM} \
+  ${FASTQ_PREFIX}-corrupt-lq.txt \
+  ${BAM}.alignment.npy \
+  --fig-prefix ${BAM}.alignment \
   --max-d 200 \
   --max-size 50 \
-  --plot-bin-size 5
+  --plot-bin-size 10
 ```
 
-This invocation will process `bwac.bam` (using the long qname side car file `lqc.txt`) and summarize the alignment
-performance in a numpy data file (`bwac.alignment.npy`). It will plot them in a set of figures named with the prefix
-`bwac.alignment`. The alignment error will be assessed upto a maximum of 200bp. The program will check variants 
-from 50bp deletions to 50bp insertions, putting them into 5bp size 
-bins. SNPs are always counted and placed in their own spearate bin. 
+This invocation will process `${BAM}` and summarize the alignment performance in a numpy data file (`${BAM}.alignment.npy`). It will plot them in a set of figures named with the prefix
+`${BAM}.alignment`. The alignment error will be assessed upto a maximum of 200bp. The program will check variants from 50bp deletions to 50bp insertions, putting them into 10bp size bins. SNPs are always counted and placed in their own spearate bin. 
 
 ![MQ plots](docs/images/aligner-report-example-1.png?raw=true "MQ plots")
 
@@ -328,24 +311,22 @@ bins. SNPs are always counted and placed in their own spearate bin.
 ## Variant calling accuracy, parametrized by variant size
 
 We can use a set of tools developed by the GA4GH consortium to compare a VCF produced by a pipeline with a truth VCF.
-This comparison is presented as another VCF annotated with information about each call - whether it is a TP, FN, FP or GT
-call. `pr-by-size` is a program that summarizes the data in such an evaluation VCF in terms of variant size.
+One of the outputs of the comparator tools is a VCF (called an evaluation VCF) where each call is annotated with by whether it is a TP, FN, FP or GT error.
+
+`variant-call-analysis` is a program that summarizes the data in such an evaluation VCF in terms of variant size.
 
 ```
-mitty -v4 debug pr-by-size \
-  evcf.in.vcf.gz \
-  out.csv \
-  --title "Demo P/R plot parametrized by variant size" \
-  --region-label "HG002_GIAB" \  # full name of high confidence region if desired
-  --max-size 50 \
-  --plot-bin-size 5 \
-  --fig-file pr.size.pdf
+mitty -v4 debug variant-call-analysis process \
+  eval.vcf.gz \
+  caller.analysis.csv \
+  --max-size 200 \
+  --fig-file demo.png \
+  --plot-bin-size 10  \
+  --title 'Example'
 ```
 
-This invocation will process `evcf.in.vcf.gz`, write the results as a comma separated file (`out.csv`) and also plot them
-in `pr.size.pdf`. The program will check variants from 50bp deletions to 50bp insertions, putting them into 5bp size 
-bins. SNPs are always counted and placed in their own spearate bin. Since we have supplied a region-label,
-only variants scored in that region will be processed.
+This invocation will process `evcf.vcf.gz`, write the results as a comma separated file (`caller.analysis.csv`) and also plot them
+in `demo.png`. 
 
 ![P/R plots](docs/images/caller-report-example.png?raw=true "P/R plots")
 
