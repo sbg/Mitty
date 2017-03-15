@@ -2,6 +2,7 @@ Release Notes
 =============
 
 2.13.0
+- Bugfix: simulate-variants no longer generates 0 length deletions (looking like Ref=A, Alt=A etc. in VCF)
 - Improvements to alignment analysis plots
 - Bugfix: Reads in long insertions now properly placed just after the anchoring reference base
 - Enhancement: Improved CLI for processing/replotting alignment metrics. The CLI is now split into two subcommands. You no longer have to pass in the BAM and qname side-car file when you just want to replot an existing alignment metrics data file.

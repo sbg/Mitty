@@ -102,7 +102,7 @@ def genotype(p_het, rng, l):
 
 
 def snp_model(rng, region, seq, p, p_het, **args):
-  base_sub  = {
+  base_sub = {
     'A': 'CTG',
     'C': 'ATG',
     'T': 'ACG',
@@ -160,7 +160,7 @@ def ins_model(rng, region, seq, p, p_het, min_size, max_size):
 
 def del_model(rng, region, seq, p, p_het, min_size, max_size):
   pos = place_poisson_seq(rng, p, seq)
-  ref = [seq[x:x + l] for x, l in zip(pos, rng.randint(min_size, max_size, size=pos.shape[0]))]
+  ref = [seq[x:x + l + 1] for x, l in zip(pos, rng.randint(min_size, max_size, size=pos.shape[0]))]
   alt = [seq[x] for x in pos]
   gt = genotype(p_het, rng, pos.shape[0])
   return [pos + region[1] + 1, ref, alt, gt]
