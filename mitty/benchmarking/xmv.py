@@ -8,6 +8,7 @@ The dimensions are:
 The histogram is saved as a numpy array and different views of the histogram are plotted.
 """
 from multiprocessing import Pool
+from multiprocessing import Process, Queue
 import time
 import logging
 
@@ -21,7 +22,7 @@ import numpy as np
 from mitty.benchmarking.alignmentscore import score_alignment_error, load_qname_sidecar, parse_qname
 from mitty.benchmarking.plot.byvsize import plot_panels
 
-
+__process_stop_code__ = 'SETECASTRONOMY'
 logger = logging.getLogger(__name__)
 
 
@@ -43,13 +44,36 @@ def main(bam_fname, sidecar_fname, max_xd=200, max_MQ=70, strict_scoring=False, 
   :param processes:
   :return:
   """
+  # Set up the I/O queues and place all BAM contigs on the work queue
+  work_q, result_q = Queue(), Queue()
+  for ref in pysam.AlignmentFile(bam_fname).references:
+    work_q.put(ref)
+  for _ in range(processes):
+    work_q.put(__process_stop_code__)
+
+  # Start workers
   long_qname_table = load_qname_sidecar(sidecar_fname)
+  p_list = [
+    Process(target=worker, args=(i, bam_fname, long_qname_table, max_xd, max_MQ, max_vlen, strict_scoring,
+                                 work_q, result_q))
+    for i in range(processes)
+  ]
+  for p in p_list:
+    p.start()
+
+  # Sum the results from each worker together
+  t0 = time.time()
   xmv_mat = None
-  pool = Pool(processes=processes)
-  for this_xmv_mat in pool.imap_unordered(
-    worker, ((bam_fname, long_qname_table, ref, max_xd, max_MQ, max_vlen)
-             for ref in pysam.AlignmentFile(bam_fname).references)):
-    xmv_mat = this_xmv_mat if xmv_mat is None else xmv_mat + this_xmv_mat
+  for _ in range(processes):
+    xmv_mat_shard = result_q.get()
+    xmv_mat = (xmv_mat + xmv_mat_shard) if xmv_mat is not None else xmv_mat_shard
+  t1 = time.time()
+  logger.debug('Matrix summation took {:2f}s'.format(t1 - t0))
+
+  # Orderly exit
+  for p in p_list:
+    p.join()
+
   return xmv_mat
 
 
@@ -57,13 +81,10 @@ def save(xmv_mat, fname):
   np.save(fname, xmv_mat)
 
 
-def worker(args):
-  return process_fragment(*args)
-
-
-def process_fragment(bam_fname, long_qname_table, reference, max_xd=200, max_MQ=70, max_vlen=200, strict_scoring=False):
+def worker(worker_id, bam_fname, long_qname_table, max_xd=200, max_MQ=70, max_vlen=200, strict_scoring=False,
+           in_q=None, out_q=None):
   """
-
+  :param worker_id:
   :param bam_fname:
   :param long_qname_table:
   :param contig:
@@ -75,13 +96,31 @@ def process_fragment(bam_fname, long_qname_table, reference, max_xd=200, max_MQ=
   :param strict_scoring:
   :return:
   """
-  logger.debug('Processing {} ...'.format(reference))
+  logger.debug('Starting worker {} ...'.format(worker_id))
 
-  t0, cnt = time.time(), -1
+  t0, tot_cnt = time.time(), 0
 
   xmv_mat = np.zeros(shape=(2 * max_xd + 3, max_MQ + 1, 2 * max_vlen + 1 + 2 + 1), dtype=int)
   v_off_idx, max_v_idx = max_vlen + 2, 2 * max_vlen + 3
   bam_fp = pysam.AlignmentFile(bam_fname)
+  for reference in iter(in_q.get, __process_stop_code__):
+    logger.debug('Worker {}: Contig: {} ...'.format(worker_id, reference))
+    t1, cnt = time.time(), -1
+    cnt = process_contig(bam_fp, cnt, long_qname_table, max_MQ, max_v_idx, max_xd, reference, strict_scoring, v_off_idx,
+                         xmv_mat)
+    t2 = time.time()
+    logger.debug(
+      'Processed {}: {} reads in {:2f}s ({:2f} r/s)'.format(reference, cnt + 1, t1 - t0, (cnt + 1) / (t2 - t1)))
+    tot_cnt += cnt + 1
+
+  out_q.put(xmv_mat)
+
+  t1 = time.time()
+  logger.debug('Worker {}: Processed {} reads in {:2f}s ({:2f} r/s)'.format(worker_id, tot_cnt, t1 - t0, tot_cnt / (t1 - t0)))
+
+
+def process_contig(bam_fp, cnt, long_qname_table, max_MQ, max_v_idx, max_xd, reference, strict_scoring, v_off_idx,
+                   xmv_mat):
   for cnt, r in enumerate(bam_fp.fetch(reference=reference)):
     ri = parse_qname(r.qname, long_qname_table=long_qname_table)[1 if r.is_read2 else 0]
     d_err = score_alignment_error(r, ri=ri, max_d=max_xd, strict=strict_scoring)
@@ -90,11 +129,7 @@ def process_fragment(bam_fname, long_qname_table, reference, max_xd=200, max_MQ=
     else:
       for v_size in ri.v_list:
         xmv_mat[max_xd + d_err, min(r.mapping_quality, max_MQ), min(max_v_idx, max(1, v_off_idx + v_size))] += 1
-
-  t1 = time.time()
-  logger.debug('Processed {}: {} reads in {:2f}s ({:2f} r/s)'.format(reference, cnt + 1, t1 - t0, (cnt + 1) / (t1 - t0)))
-
-  return xmv_mat
+  return cnt
 
 
 def plot_figures(xmv_mat, fig_prefix=None, plot_bin_size=5):
