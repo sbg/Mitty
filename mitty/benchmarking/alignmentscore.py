@@ -30,10 +30,10 @@ def score_alignment_error(r, ri, max_d=200, strict=False):
   elif r.reference_name != ri.chrom:
     d_err = max_d + 1
   else:
+    # This is what we score against when we are 'strict' or inside an insertion
     correct_pos = ri.pos
-    # Both the strict case and the case where the read comes from inside a long insertion are scored
-    # similarly
-    if not (strict or ri.cigar[0] == '>'):
+    # If we are not strict AND not in an insertion we account for left side soft-clipping
+    if not strict and ri.special_cigar is None:
       # Score read considering soft clipping
       cigar_op = r.cigartuples[0]
       if 0 < cigar_op[0] < 6:
