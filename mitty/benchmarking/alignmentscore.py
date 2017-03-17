@@ -36,7 +36,7 @@ def score_alignment_error(r, ri, max_d=200, strict=False):
     if not strict and ri.special_cigar is None:
       # Score read considering soft clipping
       cigar_op = r.cigartuples[0]
-      if 0 < cigar_op[0] < 6:
+      if 2 < cigar_op[0] < 6:  # N, S, H
         correct_pos += cigar_op[1]
 
     d_err = max(min((r.pos + 1 - correct_pos), max_d), -max_d)
