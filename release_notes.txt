@@ -2,6 +2,7 @@ Release Notes
 =============
 
 2.13.0
+- Enhancement: xmv code made faster
 - Bugfix: logic error in alignment scoring fixed. Only affected scoring of reads from inside insertions
 - Bugfix: simulate-variants no longer generates 0 length deletions (looking like Ref=A, Alt=A etc. in VCF)
 - Improvements to alignment analysis plots
