@@ -4,3 +4,4 @@ While the tutorial in the main Readme should help you get up and running the doc
  
 
 - [Read generation POS and CIGAR algorithm](readgeneration.md)
+- [Alignment scoring](alignmentscoring.md)
