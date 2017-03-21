@@ -69,7 +69,7 @@ def main(bam_fname, sidecar_fname, max_xd=200, max_MQ=70, strict_scoring=False, 
     tot_cnt += cnt
     xmv_mat = (xmv_mat + xmv_mat_shard) if xmv_mat is not None else xmv_mat_shard
   t1 = time.time()
-  logger.debug('Processed {} reads in {}s ({:.2f})'.format(tot_cnt, t1 - t0, tot_cnt/(t1 - t0)))
+  logger.debug('Processed {} reads in {:.2f}s ({:.2f} r/s)'.format(tot_cnt, t1 - t0, tot_cnt/(t1 - t0)))
 
   # Orderly exit
   for p in p_list:
@@ -138,7 +138,7 @@ def plot_figures(xmv_mat, fig_prefix=None, plot_bin_size=5):
   plot_AA(xmv_mat, fig_prefix=fig_prefix, plot_bin_size=plot_bin_size)
 
 
-def plot_MQ(xmv_mat, fig_prefix=None):
+def plot_MQ(xmv_mat, fig_prefix):
   fig = plt.figure(figsize=(8, 18))
   plt.subplots_adjust(bottom=0.05, top=0.98, hspace=.3, right=0.97, left=0.18)
 
@@ -231,7 +231,7 @@ def plot_mean_MQ_vs_derr(ax, xmv_mat):
 def plot_perr_vs_MQ(ax, xmv_mat, yscale='linear'):
   mq = np.arange(xmv_mat.shape[1])
   mq_mat = xmv_mat.sum(axis=2)
-  for fmt, d_margin, label in zip(['g*', 'ro'], [0, 10], [r'$d_{err} = 0$', r'$|d_{err}| \leq 10$']):
+  for fmt, d_margin, label in zip(['g*', 'ro'], [0, 50], [r'$d_{err} = 0$', r'$|d_{err}| \leq 50$']):
     p_err = compute_p_err(mq_mat, d_margin)
     ax.plot(mq, p_err, fmt, mfc='none', label=label)
 
@@ -259,19 +259,19 @@ def plot_read_fate(ax, xmv_mat):
   d_max = int((xmv_mat.shape[0] - 3) / 2)
 
   d0 = xmv_mat[d_max:d_max + 1, :, :].sum()
-  within_d10 = xmv_mat[d_max - 10:d_max + 1 + 10, :, :].sum()
+  within_d50 = xmv_mat[d_max - 50:d_max + 1 + 50, :, :].sum()
   within_dmax = xmv_mat[:2 * d_max + 1, :, :].sum()
   wc = xmv_mat[2 * d_max + 1, :, :].sum()
   um = xmv_mat[2 * d_max + 2, :, :].sum()
 
   ax.barh(0, d0, color='g', align='center')
-  ax.barh(1, within_d10 - d0, color='y', align='center')
-  ax.barh(2, within_dmax - within_d10, color='r', align='center')
+  ax.barh(1, within_d50 - d0, color='y', align='center')
+  ax.barh(2, within_dmax - within_d50, color='r', align='center')
   ax.barh(3, wc, color='pink', align='center')
   ax.barh(4, um, color='c', align='center')
 
   ax.set_yticks([0, 1, 2, 3, 4])
-  ax.set_yticklabels([r'$d_{err} = 0$', r'$0 < |d_{err}| \leq 10$', r'10 < $|d_{err}|$', 'WC', 'UM'])
+  ax.set_yticklabels([r'$d_{err} = 0$', r'$0 < |d_{err}| \leq 50$', r'50 < $|d_{err}|$', 'WC', 'UM'])
   ax.set_ylim([-0.5, 4.5])
   ax.set_ylabel('Read fate')
 
@@ -311,7 +311,7 @@ def plot_alignment_accuracy_by_vsize(ax, xmv_mat, plot_bin_size=5):
   :return:
   """
   n0, d0 = alignment_accuracy_by_vsize(xmv_mat, 0)
-  n10, d10 = alignment_accuracy_by_vsize(xmv_mat, 10)
+  n50, d50 = alignment_accuracy_by_vsize(xmv_mat, 50)
 
   d0_p = plot_panels(ax,
                     num=n0,
@@ -319,13 +319,13 @@ def plot_alignment_accuracy_by_vsize(ax, xmv_mat, plot_bin_size=5):
                     bin_size=plot_bin_size,
                     yticks=[0.0, 0.5, 1.0], ylim=[-0.05, 1.05],
                     color='b', label=r'$d_{err} = 0$')
-  d10_p = plot_panels(ax,
-                    num=n10,
-                    den=d10,
+  d50_p = plot_panels(ax,
+                    num=n50,
+                    den=d50,
                     bin_size=plot_bin_size,
                     yticks=[0.0, 0.5, 1.0], ylim=[-0.05, 1.05],
-                    color='r', label=r'$|d_{err}| \leq 10$')
-  plt.legend(handles=[d0_p, d10_p], loc='lower center', fontsize=9)
+                    color='r', label=r'$|d_{err}| \leq 50$')
+  plt.legend(handles=[d0_p, d50_p], loc='lower center', fontsize=9)
   ax.set_ylabel('Fraction correctly aligned')
 
 
