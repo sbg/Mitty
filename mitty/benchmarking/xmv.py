@@ -7,7 +7,6 @@ The dimensions are:
 
 The histogram is saved as a numpy array and different views of the histogram are plotted.
 """
-from multiprocessing import Pool
 from multiprocessing import Process, Queue
 import time
 import logging
@@ -19,6 +18,7 @@ from matplotlib.colors import LogNorm
 import pysam
 import numpy as np
 
+from mitty.lib.bamfetch import fetch
 from mitty.benchmarking.alignmentscore import score_alignment_error, load_qname_sidecar, parse_qname
 from mitty.benchmarking.plot.byvsize import plot_panels
 
@@ -63,12 +63,13 @@ def main(bam_fname, sidecar_fname, max_xd=200, max_MQ=70, strict_scoring=False, 
 
   # Sum the results from each worker together
   t0 = time.time()
-  xmv_mat = None
+  xmv_mat, tot_cnt = None, 0
   for _ in range(processes):
-    xmv_mat_shard = result_q.get()
+    xmv_mat_shard, cnt = result_q.get()
+    tot_cnt += cnt
     xmv_mat = (xmv_mat + xmv_mat_shard) if xmv_mat is not None else xmv_mat_shard
   t1 = time.time()
-  logger.debug('Matrix summation took {:2f}s'.format(t1 - t0))
+  logger.debug('Processed {} reads in {}s ({:.2f})'.format(tot_cnt, t1 - t0, tot_cnt/(t1 - t0)))
 
   # Orderly exit
   for p in p_list:
@@ -113,7 +114,7 @@ def worker(worker_id, bam_fname, long_qname_table, max_xd=200, max_MQ=70, max_vl
       'Processed {}: {} reads in {:2f}s ({:2f} r/s)'.format(reference, cnt + 1, t1 - t0, (cnt + 1) / (t2 - t1)))
     tot_cnt += cnt + 1
 
-  out_q.put(xmv_mat)
+  out_q.put([xmv_mat, tot_cnt])
 
   t1 = time.time()
   logger.debug('Worker {}: Processed {} reads in {:2f}s ({:2f} r/s)'.format(worker_id, tot_cnt, t1 - t0, tot_cnt / (t1 - t0)))
@@ -121,7 +122,7 @@ def worker(worker_id, bam_fname, long_qname_table, max_xd=200, max_MQ=70, max_vl
 
 def process_contig(bam_fp, cnt, long_qname_table, max_MQ, max_v_idx, max_xd, reference, strict_scoring, v_off_idx,
                    xmv_mat):
-  for cnt, r in enumerate(bam_fp.fetch(reference=reference)):
+  for cnt, r in enumerate(fetch(bam_fp, reference=reference)):
     ri = parse_qname(r.qname, long_qname_table=long_qname_table)[1 if r.is_read2 else 0]
     d_err = score_alignment_error(r, ri=ri, max_d=max_xd, strict=strict_scoring)
     if not ri.v_list:
