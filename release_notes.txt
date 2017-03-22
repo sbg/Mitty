@@ -1,6 +1,9 @@
 Release Notes
 =============
 
+2.13.1
+- Bugfix: xmv code processes unmapped reads at end of file, only considers primary alignments
+
 2.13.0
 - Enhancement: xmv code made faster
 - Bugfix: logic error in alignment scoring fixed. Only affected scoring of reads from inside insertions

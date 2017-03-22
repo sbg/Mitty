@@ -105,14 +105,14 @@ def worker(worker_id, bam_fname, long_qname_table, max_xd=200, max_MQ=70, max_vl
   v_off_idx, max_v_idx = max_vlen + 2, 2 * max_vlen + 3
   bam_fp = pysam.AlignmentFile(bam_fname)
   for reference in iter(in_q.get, __process_stop_code__):
-    logger.debug('Worker {}: Contig: {} ...'.format(worker_id, reference))
-    t1, cnt = time.time(), -1
-    cnt = process_contig(bam_fp, cnt, long_qname_table, max_MQ, max_v_idx, max_xd, reference, strict_scoring, v_off_idx,
+    logger.debug('Worker {}: Contig {} ...'.format(worker_id, reference))
+    t1 = time.time()
+    cnt = process_contig(bam_fp, long_qname_table, max_MQ, max_v_idx, max_xd, reference, strict_scoring, v_off_idx,
                          xmv_mat)
     t2 = time.time()
     logger.debug(
-      'Processed {}: {} reads in {:2f}s ({:2f} r/s)'.format(reference, cnt + 1, t1 - t0, (cnt + 1) / (t2 - t1)))
-    tot_cnt += cnt + 1
+      'Worker {}: Contig {}: {} reads in {:2f}s ({:2f} r/s)'.format(worker_id, reference, cnt, t2 - t1, cnt / (t2 - t1)))
+    tot_cnt += cnt
 
   out_q.put([xmv_mat, tot_cnt])
 
@@ -120,9 +120,12 @@ def worker(worker_id, bam_fname, long_qname_table, max_xd=200, max_MQ=70, max_vl
   logger.debug('Worker {}: Processed {} reads in {:2f}s ({:2f} r/s)'.format(worker_id, tot_cnt, t1 - t0, tot_cnt / (t1 - t0)))
 
 
-def process_contig(bam_fp, cnt, long_qname_table, max_MQ, max_v_idx, max_xd, reference, strict_scoring, v_off_idx,
+def process_contig(bam_fp, long_qname_table, max_MQ, max_v_idx, max_xd, reference, strict_scoring, v_off_idx,
                    xmv_mat):
-  for cnt, r in enumerate(fetch(bam_fp, reference=reference)):
+  cnt = 0
+  for r in fetch(bam_fp, reference=reference):
+    if r.flag & 0b100100000000: continue  # Skip supplementary or secondary alignments
+    cnt += 1
     ri = parse_qname(r.qname, long_qname_table=long_qname_table)[1 if r.is_read2 else 0]
     d_err = score_alignment_error(r, ri=ri, max_d=max_xd, strict=strict_scoring)
     if not ri.v_list:
