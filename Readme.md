@@ -491,6 +491,25 @@ tabix -p vcf sim-filt.vcf.gz
 
 Please see `examples/variants/run.sh` for an example script.
 
+The `CINS` model works just like the `INS` model except the insertion sequences, instead of being 
+novel DNA sequences created with a Markov chain generator, are exact copies of random parts of 
+the input reference genome. This creates insertions that are more challenging to align to and 
+assemble, especially when their lengths start to exceed the template size of the sequencing 
+technology used.
+
+
+```
+mitty -v4 simulate-variants \
+  cins.vcf \
+  ~/Data/human_g1k_v37_decoy.fasta \
+  S1 \
+  region.bed \
+  7 \
+  --p-het 0.6 \
+  --model CINS 0.0001 100 1000
+```
+
+
 
 Miscellaneous utilities
 -----------------------

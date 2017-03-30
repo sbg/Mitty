@@ -1,20 +1,11 @@
-"""
-mitty -v4 simulate-variants \
-  ~/Data/human_g1k_v37_decoy.fasta \
-  mysample \ # The name of the sample to add to
-  region.bed \
-  7 \  # This is the random number generator seed
-  --p-het 0.6 \   # The probability for heterozygous variants
-  --model SNP 0.001 1 1 \   #  <model type> <p> <min-size> <max-size>
-  --model INS 0.0001 10 100 \
-  --model DEL 0.0001 10 100 | bgzip -c > sim.vcf.gz
-"""
 import time
+from itertools import chain
 
 import pysam
 import numpy as np
 
 from mitty.lib.bedfile import read_bed
+from mitty.lib.sanitizeseq import sanitize
 
 import logging
 
@@ -166,9 +157,41 @@ def del_model(rng, region, seq, p, p_het, min_size, max_size):
   return [pos + region[1] + 1, ref, alt, gt]
 
 
+def copy_ins_model(rng, region, seq, p, p_het, min_size, max_size):
+  seq = sanitize(seq)
+  pos = place_poisson_seq(rng, p, seq)
+  ref = [seq[x] for x in pos]
+  alt = [copied_insertion(r, rng, seq, l) for r, l in zip(ref, rng.randint(min_size, max_size, size=pos.shape[0]))]
+  gt = genotype(p_het, rng, pos.shape[0])
+  try:
+    pos, ref, alt, gt = zip(*filter_none_alt(pos + region[1] + 1, ref, alt, gt))
+  except ValueError:
+    pos, ref, alt, gt = [[], [], [], []]
+  return pos, ref, alt, gt
+
+
+def copied_insertion(ref, rng, seq, l):
+  if len(seq) <= l:
+    return None
+  n0 = rng.randint(len(seq) - l)
+  n1 = n0 + l
+
+  if 'N' in seq[n0:n1]:
+    return None
+
+  return ref + seq[n0:n1]
+
+
+def filter_none_alt(pos, ref, alt, gt):
+  for p, r, a, g in zip(pos, ref, alt, gt):
+    if a is not None:
+      yield p, r, a, g
+
+
 model_dispatch = {
   'SNP': snp_model,
   'INS': ins_model,
+  'CINS': copy_ins_model,
   'DEL': del_model
 }
 
@@ -184,13 +207,13 @@ def write_out_variants(fp_out, region, v_l):
   """
   gt_str = ['0|1', '1|0', '1|1']
   contig = region[0]
-  conc_l = [
-    np.concatenate([v[n] for v in v_l])
-    for n in range(4)
-  ]
-  v_cnt = conc_l[0].shape[0]
-  pos, ref, alt, gt = conc_l
-  for idx in np.argsort(conc_l[0]):  # Sort by position
+
+  pos = list(chain(*(v[0] for v in v_l)))
+  ref = list(chain(*(v[1] for v in v_l)))
+  alt = list(chain(*(v[2] for v in v_l)))
+  gt = list(chain(*(v[3] for v in v_l)))
+
+  for idx in np.argsort(np.array(pos)):  # Sort by position
     #CHROM\tPOS\tID\tREF\tALT\tQUAL\tFILTER\tINFO\tFORMAT\tGT\n
     fp_out.write('{}\t{}\t.\t{}\t{}\t100\tPASS\t.\tGT\t{}\n'.format(contig, pos[idx], ref[idx], alt[idx], gt_str[gt[idx]]))
-  return v_cnt
+  return len(pos)
