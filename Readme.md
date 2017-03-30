@@ -415,50 +415,6 @@ Generating samples (genomes)
 ----------------------------
 Mitty also has features to generate simulated genomes in the form of VCF files. 
 
-### Sampled Genomes
-
-The `sampled-genome` command can, given a VCF representing all variants in a population and their allele 
-frequencies, return a diploid sample VCF based on random sampling of the main list.
-
-**Populations:** 
-
-  The program is passed an `info-af` parameter that looks for an INFO field of that name. The
-  program interprets the value of that field as the alternative allele frequency and uses that to sample the
-  respective variant. If you have a file, say like that from the 1000G project, that represents allele frequencies
-  from multiple populations for each variant, you can simulate individuals from these different populations
-  by selecting the appropriate tags. e.g. for the 1000G VCFs, `EUR_AF` for Europeans, `AMR_AF` for Americans etc.
-
-  If this parameter is omitted the `af` parameter needs to be supplied. This sets a flat alternative allele 
-  frequency for all variants that is used for sampling.
-
-
-**Ploidy and BED files:** 
-
-  The program accepts multiple BED files. A chromosome may appear zero or more times in each bed file. 
-  The ploidy of each simulated chromosome is the number of BED files in which it appears at least once.
-
-  Say, for example, we have bed files that look like
-
-```
-1.bed:
-1 10  1000
-2 10  5000
-
-2.bed:
-1 2000  3000
-
-3.bed:
-2 1000 2000
-```
-
-If all three bed files are passed this would result in a simulated genome with two copies of both chrom 1 and chrom 2.
-Due to the regions in the BED files, chrom1 would contain only HET variants while chrom2 may carry HOM variants in the
-overlap region 1000-2000
-
-If only 1.bed and 2.bed were passed the resulting simulated genome would have two copies of chrom 1 but one copy of
-chrom 2
-
-
 ### Simulated variants
 
 The `simulate-variants` command generates a VCF with simulated variants. 
