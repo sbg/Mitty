@@ -1,6 +1,11 @@
 Release Notes
 =============
 
+2.14.0
+- Enhancement: added copy sequence insertion model
+- docs: removed reference to `sampled-genome` which is not implemented yet
+- Enhancement: can now truncate reads to any length shorter than the original model
+
 2.13.1
 - Bugfix: xmv code processes unmapped reads at end of file, only considers primary alignments
 

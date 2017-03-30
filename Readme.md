@@ -207,6 +207,31 @@ Note the use of `0/0` for all the autosomes and the `0` for the X and Y chromoso
 to indicate the proper ploidy to the simulator via these VCF files.
 
 
+#### Truncating reads
+For some experiments you might want to generate custom sized reads. `generate-reads` allows you to do 
+this with the `--truncate-to` argument
+
+```
+FASTQ_PREFIX=hg001-truncated-reads
+mitty -v4 generate-reads \
+  ${FASTA} \
+  ${FILTVCF} \
+  ${SAMPLENAME} \
+  ${REGION_BED} \
+  ${READMODEL} \
+  ${COVERAGE} \
+  ${READ_GEN_SEED} \
+  >(gzip > ${FASTQ_PREFIX}1.fq.gz) \
+  ${FASTQ_PREFIX}-lq.txt \
+  --fastq2 >(gzip > ${FASTQ_PREFIX}2.fq.gz) \
+  --truncate-to 60 \
+  --threads 2
+```
+
+This generates the same kind of reads as before, but all the reads are 60bp long, instead of their usual length. 
+Naturally, you can not make reads longer than what the model originally specifies.
+
+
 ### Corrupting reads
 
 The reads generated using the previous command have no base call errors. Base call errors can be introduced into the reads using the following command.

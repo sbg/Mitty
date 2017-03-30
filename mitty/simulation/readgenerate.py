@@ -39,7 +39,9 @@ vcf_df = None
 #TODO: Add to readme the note that a single ended model will still produce two files, r2 will be empty
 def process_multi_threaded(fasta_fname, vcf_fname, sample_name, bed_fname,
                            read_module, model, coverage,
-                           fastq1_fname, sidecar_fname, fastq2_fname, threads=2, seed=7):
+                           fastq1_fname, sidecar_fname, fastq2_fname,
+                           truncate_to=None,
+                           threads=2, seed=7):
   """
 
   :param fasta_fname:
@@ -52,11 +54,14 @@ def process_multi_threaded(fasta_fname, vcf_fname, sample_name, bed_fname,
   :param fastq1_fname:
   :param sidecar_fname:
   :param fastq2_fname:
+  :param truncate_to:
   :param threads:
   :param seed:
   :return:
   """
-
+  if truncate_to is not None:
+    model['mean_rlen'] = min(truncate_to, model['mean_rlen'])
+    logger.debug('Truncating mean read length to: {}bp'.format(model['mean_rlen']))
   read_model = read_module.read_model_params(model, coverage)
 
   global vcf_df

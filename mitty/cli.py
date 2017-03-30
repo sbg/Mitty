@@ -130,16 +130,19 @@ def print_qname(ctx, param, value):
 @click.argument('fastq1', type=click.Path())
 @click.argument('longqname', type=click.Path())
 @click.option('--fastq2', type=click.Path())
+@click.option('--truncate-to', type=int)
 @click.option('--threads', default=2)
 @click.option('--qname', is_flag=True, callback=print_qname, expose_value=False, is_eager=True, help='Print documentation for information encoded in qname')
-def generate_reads(fasta, vcf, sample_name, bed, modelfile, coverage, seed, fastq1, longqname, fastq2, threads):
+def generate_reads(fasta, vcf, sample_name, bed, modelfile, coverage, seed, fastq1, longqname, fastq2, truncate_to, threads):
   """Generate simulated reads"""
   import mitty.simulation.readgenerate as reads
 
   read_module, model = get_read_model(modelfile)
   reads.process_multi_threaded(
     fasta, vcf, sample_name, bed, read_module, model, coverage,
-    fastq1, longqname, fastq2, threads=threads, seed=seed)
+    fastq1, longqname, fastq2,
+    truncate_to=truncate_to,
+    threads=threads, seed=seed)
 
 
 @cli.command('corrupt-reads', short_help='Apply corruption model to FASTQ file of reads')
