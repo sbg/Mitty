@@ -15,13 +15,9 @@ setup(
     'setuptools>=11.0.0',
     'numpy>=1.9.0',
     'click>=3.3',
-    'pysam',
+    'pysam>=0.10.0',
     'matplotlib>=1.3.0',
     'scipy',
-#    'pandas>=0.18.1',
-#    'tables>=3.2.2'
-#    'sphinx',
-#    'sphinx_rtd_theme',
     'nose'
   ],
   test_suite='nose.collector',

@@ -1,6 +1,9 @@
 Release Notes
 =============
 
+2.14.1
+- Bugfix: `filter-variants` should keep at least one 0/0 or 0 entry per contig. Fixes issue #4
+
 2.14.0
 - Enhancement: added copy sequence insertion model
 - docs: removed reference to `sampled-genome` which is not implemented yet

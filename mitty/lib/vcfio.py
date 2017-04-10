@@ -65,6 +65,13 @@ def sniff_ploidy(vcf_fp, contig):
   return ploidy
 
 
+def fetch_first_variant_in_contig_as_empty(vcf_fp, contig):
+  v = next(vcf_fp.fetch(contig=contig), None)
+  if v is not None:
+    v.samples[0]['GT'] = (0,) * len(v.samples[0]['GT'])
+  return v
+
+
 def split_copies(region, vl, ploidy):
   """Given a list of pysam.cbcf.VariantRecord split it into multiple lists, one for each chromosome copy
 
@@ -182,21 +189,33 @@ def prepare_variant_file(fname_in, sample, bed_fname, fname_out, write_mode='w')
   vcf_in = pysam.VariantFile(fname_in, mode)
   vcf_in.subset_samples([sample])
   vcf_out = pysam.VariantFile(fname_out, mode=write_mode, header=vcf_in.header)
-  v_cnt, exclude_cnt, include_cnt = 0, 0, 0
+  processed_cnt, exclude_cnt, include_cnt = 0, 0, 0
+  contig_dict = set()
+
   for region in read_bed(bed_fname):
     logger.debug('Filtering {}'.format(region))
-    n = -1
-    unusable_variant.p_overlap = [0, 0, 0, 0, 0]  # Quintisomy should be enough for anyone
+    n, this_include_cnt = -1, 0
+    empty_gt = None
+    if region[0] not in contig_dict:
+      empty_gt = fetch_first_variant_in_contig_as_empty(vcf_in, region[0])
+      contig_dict.add(region[0])
+    unusable_variant.p_overlap = [0] * sniff_ploidy(vcf_in, contig=region[0])
+
     for n, v in enumerate(vcf_in.fetch(contig=region[0], start=region[1], stop=region[2])):
       if not any(v.samples.values()[0]['GT']): continue  # This variant does not exist in this sample
       if unusable_variant(v):
         exclude_cnt += 1
         continue
       vcf_out.write(v)
-      include_cnt += 1
-    v_cnt += (n + 1)
+      this_include_cnt += 1
 
-  logger.debug('Processed {} variants'.format(v_cnt))
+    if this_include_cnt == 0 and empty_gt is not None:
+      vcf_out.write(empty_gt)
+
+    include_cnt += this_include_cnt
+    processed_cnt += (n + 1)
+
+  logger.debug('Processed {} variants'.format(processed_cnt))
   logger.debug('Sample had {} variants'.format(exclude_cnt + include_cnt))
   logger.debug('Discarded {} variants'.format(exclude_cnt))
   t1 = time.time()
