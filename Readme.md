@@ -342,18 +342,28 @@ One of the outputs of the comparator tools is a VCF (called an evaluation VCF) w
 
 ```
 mitty -v4 debug variant-call-analysis process \
-  eval.vcf.gz \
-  caller.analysis.csv \
-  --max-size 200 \
-  --fig-file demo.png \
-  --plot-bin-size 10  \
-  --title 'Example'
+ my.eval.vcf.gz 
+ my.eval.data.csv 
+ --max-size 75 \
+ --fig-file caller-report-example.png \
+ --plot-bin-size 5 \
+ --title 'Example call analysis plot'
 ```
 
-This invocation will process `evcf.vcf.gz`, write the results as a comma separated file (`caller.analysis.csv`) and also plot them
-in `demo.png`. 
+This invocation will process `my.eval.vcf.gz` produced by vcfeval, write the results as a comma 
+separated file (`my.eval.data.csv`) and then plot them in `caller-report-example.png`. 
 
 ![P/R plots](docs/images/caller-report-example.png?raw=true "P/R plots")
+
+To replot already processed data use the `plot` subcommand instead of the `process` subcommand
+```
+mitty -v4 debug variant-call-analysis plot \
+  my.eval.data.csv \
+  caller-report-example.png \
+  --plot-bin-size 5 \ 
+  --plot-range 75 \
+  --title 'Example call analysis plot'
+```
 
 
 ## Find differences in alignments
