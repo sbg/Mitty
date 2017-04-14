@@ -13,13 +13,13 @@ logger = logging.getLogger(__name__)
 
 def create_partition_list():
   partitions = {
-    '{}-{}'.format(a, b): {'count': 0, 'fp': None}
+    '{}-{}'.format(a, b): {'count': {vtype: 0 for vtype in ['SNP', 'INDEL']}, 'fp': None}
     for a in ['TP', 'FN', 'GT']
     for b in ['TP', 'FN', 'GT']
   }
 
   partitions.update(
-    {'{}-{}'.format(a, b): {'count': 0, 'fp': None}
+    {'{}-{}'.format(a, b): {'count': {vtype: 0 for vtype in ['SNP', 'INDEL']}, 'fp': None}
      for a in ['FP', 'N']
      for b in ['FP', 'N']
      if not (a == b == 'N')
@@ -36,14 +36,15 @@ def key_v(v, alt):
 def process_v(v):
   cat, sz, alt = parse_line(v) if v is not None else (None, None, None)
   k = key_v(v, alt) if sz is not None else None
-  return k, cat
+  return k, cat, sz
 
 
-def update(v, var_k, var_cat, file_no, partitions, working_dict):
+def update(v, var_k, var_cat, var_type, file_no, partitions, working_dict):
   """
   :param v: the variant
   :param var_k:
   :param var_cat:
+  :param var_type: 'SNP' or 'INDEL'
   :param file_no: 0 or 1 depending on which file the variant came from
   :param partitions:
   :param working_dict:
@@ -53,14 +54,14 @@ def update(v, var_k, var_cat, file_no, partitions, working_dict):
   if val is not None:  # You complete me
     if val[1 - file_no] is None:
       raise ValueError('Repeated identical entry: {}'.format(var_k))
-    val[file_no] = {'cat': var_cat, 'v': v}
+    val[file_no] = {'cat': var_cat, 'type': var_type, 'v': v}
     cat_key = '{}-{}'.format(val[0]['cat'], val[1]['cat'])
-    partitions[cat_key]['count'] += 1
+    partitions[cat_key]['count'][var_type] += 1
     partitions[cat_key]['vcf'].write(val[0]['v'])
     del working_dict[var_k]
   elif var_k is not None:
     working_dict[var_k] = [None, None]
-    working_dict[var_k][file_no] = {'cat': var_cat, 'v': v}
+    working_dict[var_k][file_no] = {'cat': var_cat, 'type': var_type, 'v': v}
 
 
 def main(fname_a, fname_b, out_prefix, high_confidence_region=None):
@@ -84,11 +85,11 @@ def main(fname_a, fname_b, out_prefix, high_confidence_region=None):
       if high_confidence_region not in vb.info.get('Regions', []):
         vb = None
 
-    var_k_a, var_cat_a = process_v(va)
-    var_k_b, var_cat_b = process_v(vb)
+    var_k_a, var_cat_a, var_sz_a = process_v(va)
+    var_k_b, var_cat_b, var_sz_b = process_v(vb)
 
-    update(va, var_k_a, var_cat_a, 0, partitions, working_dict)
-    update(vb, var_k_b, var_cat_b, 1, partitions, working_dict)
+    update(va, var_k_a, var_cat_a, 'SNP' if var_sz_a == 0 else 'INDEL', 0, partitions, working_dict)
+    update(vb, var_k_b, var_cat_b, 'SNP' if var_sz_a == 0 else 'INDEL', 1, partitions, working_dict)
 
     if var_k_a is not None: ctr += 1
     if var_k_b is not None: ctr += 1
@@ -105,7 +106,7 @@ def main(fname_a, fname_b, out_prefix, high_confidence_region=None):
   for k, v in working_dict.items():
     v_to_use, cat_k = (v[1], 'N-FP') if v[0] is None else (v[0], 'FP-N')
     assert v_to_use['cat'] == 'FP', '{}: Not a FP. There is a bug in the code'.format(k)
-    partitions[cat_k]['count'] += 1
+    partitions[cat_k]['count'][v_to_use['type']] += 1
     partitions[cat_k]['vcf'].write(v_to_use['v'])
 
   summary = summary_table_text(partitions)
@@ -116,19 +117,24 @@ def main(fname_a, fname_b, out_prefix, high_confidence_region=None):
 
 
 def summary_table_text(partitions):
-  def line(k):
-    return ['{}: {}'.format(k.replace('-', ' -> '), partitions[k]['count'])]
+  def line(k, vt):
+    return ['{}: {}'.format(k.replace('-', ' -> '), partitions[k]['count'][vt])]
 
-  res = ['', 'Improvements', '--------------']
-  for key in ['FN-TP', 'FN-GT', 'GT-TP', 'FP-N']:
-    res += line(key)
+  res = []
 
-  res += ['', 'Unchanged', '--------------']
-  for key in ['TP-TP', 'FN-FN', 'GT-GT', 'FP-FP']:
-    res += line(key)
+  for v_type in ['SNP', 'INDEL']:
 
-  res += ['', 'Regression', '--------------']
-  for key in ['TP-FN', 'TP-GT', 'GT-FN', 'N-FP']:
-    res += line(key)
+    res += ['', '***', v_type, '***']
+    res += ['', 'Improvements', '--------------']
+    for key in ['FN-TP', 'FN-GT', 'GT-TP', 'FP-N']:
+      res += line(key, v_type)
+
+    res += ['', 'Unchanged', '--------------']
+    for key in ['TP-TP', 'FN-FN', 'GT-GT', 'FP-FP']:
+      res += line(key, v_type)
+
+    res += ['', 'Regression', '--------------']
+    for key in ['TP-FN', 'TP-GT', 'GT-FN', 'N-FP']:
+      res += line(key, v_type)
 
   return '\n'.join(res)
