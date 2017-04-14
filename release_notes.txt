@@ -1,6 +1,9 @@
 Release Notes
 =============
 
+2.15.0
+- Enhancement: `call-fate` implemented
+
 2.14.1
 - Bugfix: `filter-variants` should keep at least one 0/0 or 0 entry per contig. Fixes issue #4
 

@@ -294,6 +294,44 @@ def variant_by_size(vcf, out, max_size, title, fig_file, plot_bin_size, replot):
     vsd.plot(data, fig_fname=fig_file, bin_size=plot_bin_size, title=title)
 
 
+@debug_tools.command('call-fate', short_help="Tracks fate of TP, FN, FP .. between two eval VCFs")
+@click.argument('vcfa')
+@click.argument('vcfb')
+@click.argument('outprefix')
+@click.option('--region-label', help='Name of high confidence region if desired')
+def call_fate(vcfa, vcfb, outprefix, region_label):
+  """This tool tracks the fate of every variant call across the two supplied files and divides
+  the calls up into the following 12 transitions
+
+  \b
+  Improvements
+  ------------
+  FN -> TP
+  FN -> GT
+  GT -> TP
+  FP -> N  (FP call removed)
+
+  \b
+  Status quo
+  ----------
+  TP -> TP
+  FN -> FN
+  GT -> GT
+  FP -> FP
+
+  \b
+  Regressions
+  -----------
+  TP -> FN
+  TP -> GT
+  GT -> FN
+  N  -> FP (New FP calls)
+
+  """
+  import mitty.benchmarking.callfate as cf
+  cf.main(fname_a=vcfa, fname_b=vcfb, out_prefix=outprefix, high_confidence_region=region_label)
+
+
 def partition_bam_choices():
   from mitty.benchmarking.partition_bams import scoring_fn_dict
   return scoring_fn_dict.keys()

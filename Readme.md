@@ -366,6 +366,45 @@ mitty -v4 debug variant-call-analysis plot \
 ```
 
 
+## Improvements, regressions in variant calling
+
+When comparing different versions of a pipeline, or two different pipelines the Precision and Recall 
+curves and summary tables give some information about the improvements and regressions introduced, but
+only at a very coarse level. The `call-fate` tool compares two evaluation VCFs and tracks the transitions 
+of variant calls between different call categories (TP, FN, GT, FP) which allow us to see in greater detail
+the improvements and regressions going from one pipeline to the other.
+
+In the examples below we are comparing two evaluation VCF files `{0.9.29, 0.9.32}.eval.vcf.gz` 
+```
+mitty -v4 debug call-fate 0.9.29.eval.vcf.gz 0.9.32.eval.vcf.gz fate-29-32
+```
+The program produces a summary table output:
+```
+Improvements
+--------------
+FN -> TP: 978
+FN -> GT: 169
+GT -> TP: 771
+FP -> N: 32390
+
+Unchanged
+--------------
+TP -> TP: 4185282
+FN -> FN: 16830
+GT -> GT: 14490
+FP -> FP: 591241
+
+Regression
+--------------
+TP -> FN: 839
+TP -> GT: 439
+GT -> FN: 156
+N -> FP: 20854
+```
+
+And a set of 12 VCF files (one for each category) with the relevant variants in them. 
+
+
 ## Find differences in alignments
 
 (This requires bamUtils to be installed. I found release 1.0.14 to work, but repository head NOT to)
