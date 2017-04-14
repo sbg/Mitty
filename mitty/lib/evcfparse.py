@@ -44,5 +44,10 @@ def parse_line(v):
   """
   t, q = v.samples['TRUTH'], v.samples['QUERY']
   cat = cat_dict.get(t['BD'] + q['BD'], None)
-  sz = len(alt_dict[cat](t, q)) - len(v.ref) if cat is not None and cat is not 'skip' else None
-  return cat, sz
+  if cat is not None and cat is not 'skip':
+    alt = alt_dict[cat](t, q)
+    sz = len(alt) - len(v.ref)
+  else:
+    alt, sz = None, None
+
+  return cat, sz, alt

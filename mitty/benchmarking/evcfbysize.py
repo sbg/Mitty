@@ -19,7 +19,7 @@ def main(evcf_fname, out_csv_fname, max_size=50, high_confidence_region=None):
   for v in vcf_in:
     if high_confidence_region is not None and high_confidence_region not in v.info.get('Regions', []):
       continue
-    c, s = parse_line(v)
+    c, s, _ = parse_line(v)
     if c is None:
       print(v)
     elif c is not 'skip':
