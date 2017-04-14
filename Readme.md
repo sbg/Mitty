@@ -390,8 +390,8 @@ FP -> N:		23710	8680
 Unchanged		SNP		INDEL
 ------------------------------
 TP -> TP:		3500966	684316
-FN -> FN:		4827		12003
-GT -> GT:		2177		12313
+FN -> FN:		4827	12003
+GT -> GT:		2177	12313
 FP -> FP:		382158	209083
 
 Regression	SNP		INDEL
