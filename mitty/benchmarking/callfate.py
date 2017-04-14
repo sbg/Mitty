@@ -66,6 +66,8 @@ def update(v, var_k, var_cat, var_type, file_no, partitions, working_dict):
 
 def main(fname_a, fname_b, out_prefix, high_confidence_region=None):
   partitions = create_partition_list()
+  print(summary_table_text(partitions))
+
   vcf_a = pysam.VariantFile(fname_a, mode='rb' if fname_a.endswith('bcf') else 'r')
   vcf_b = pysam.VariantFile(fname_b, mode='rb' if fname_a.endswith('bcf') else 'r')
   for k, v in partitions.items():
@@ -117,24 +119,21 @@ def main(fname_a, fname_b, out_prefix, high_confidence_region=None):
 
 
 def summary_table_text(partitions):
-  def line(k, vt):
-    return ['{}: {}'.format(k.replace('-', ' -> '), partitions[k]['count'][vt])]
+  def line(k):
+    return ['{}:\t{}\t{}'.format(k.replace('-', ' -> '), partitions[k]['count']['SNP'], partitions[k]['count']['INDEL'])]
 
   res = []
 
-  for v_type in ['SNP', 'INDEL']:
+  res += ['', 'Improvements\tSNP\tINDEL', '-' * 30]
+  for key in ['FN-TP', 'FN-GT', 'GT-TP', 'FP-N']:
+    res += line(key)
 
-    res += ['', '***', v_type, '***']
-    res += ['', 'Improvements', '--------------']
-    for key in ['FN-TP', 'FN-GT', 'GT-TP', 'FP-N']:
-      res += line(key, v_type)
+  res += ['', 'Unchanged\tSNP\tINDEL', '-' * 30]
+  for key in ['TP-TP', 'FN-FN', 'GT-GT', 'FP-FP']:
+    res += line(key)
 
-    res += ['', 'Unchanged', '--------------']
-    for key in ['TP-TP', 'FN-FN', 'GT-GT', 'FP-FP']:
-      res += line(key, v_type)
-
-    res += ['', 'Regression', '--------------']
-    for key in ['TP-FN', 'TP-GT', 'GT-FN', 'N-FP']:
-      res += line(key, v_type)
+  res += ['', 'Regression\tSNP\tINDEL', '-' * 30]
+  for key in ['TP-FN', 'TP-GT', 'GT-FN', 'N-FP']:
+    res += line(key)
 
   return '\n'.join(res)

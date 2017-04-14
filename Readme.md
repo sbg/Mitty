@@ -380,26 +380,26 @@ mitty -v4 debug call-fate 0.9.29.eval.vcf.gz 0.9.32.eval.vcf.gz fate-29-32
 ```
 The program produces a summary table output:
 ```
-Improvements
---------------
-FN -> TP: 978
-FN -> GT: 169
-GT -> TP: 771
-FP -> N: 32390
+Improvements	SNP		INDEL
+------------------------------
+FN -> TP:		406		572
+FN -> GT:		36		133
+GT -> TP:		356		415
+FP -> N:		23710	8680
 
-Unchanged
---------------
-TP -> TP: 4185282
-FN -> FN: 16830
-GT -> GT: 14490
-FP -> FP: 591241
+Unchanged		SNP		INDEL
+------------------------------
+TP -> TP:		3500966	684316
+FN -> FN:		4827		12003
+GT -> GT:		2177		12313
+FP -> FP:		382158	209083
 
-Regression
---------------
-TP -> FN: 839
-TP -> GT: 439
-GT -> FN: 156
-N -> FP: 20854
+Regression	SNP		INDEL
+------------------------------
+TP -> FN:		358		481
+TP -> GT:		141		298
+GT -> FN:		32		124
+N -> FP:		16994	3860
 ```
 
 And a set of 12 VCF files (one for each category) with the relevant variants in them. 
