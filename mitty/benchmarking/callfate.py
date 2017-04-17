@@ -48,7 +48,10 @@ def write_output_header(out_fp, vcf_fp):
       hdr.formats.remove_header(k)
 
   hdr_lines = str(hdr).splitlines(keepends=True)
-  hdr_lines[-1] = '\t'.join(hdr_lines[-1].split('\t')[:-2] + partition_list())
+  column_line = '\t'.join(hdr_lines[-1].split('\t')[:-2] + partition_list())  # Add the 12 samples
+
+  hdr_lines[-1] = '##INFO=<ID=Vtype,Number=1,Type=String,Description="High-level variant type (SNP|INDEL).">\n'
+  hdr_lines += [column_line]
 
   out_fp.writelines(hdr_lines)
 
@@ -70,10 +73,16 @@ def process_v(v):
   return k, cat, sz
 
 
-def write_out_v(out_fp, v, var_change_cat):
+def construct_info_field(v, var_type):
+  info_str = 'Vtype=' + var_type
   info = v.info.get('Regions', None)
-  info_str = 'Regions={}'.format(info) if info is not None else '.'
-  row = [str(v.chrom), str(v.pos), '.', v.ref, ','.join(v.alts), '.', '.', info_str, 'GT']
+  info_str += ';Regions={}'.format(','.join(info)) if info is not None else ''
+  return info_str
+
+
+def write_out_v(out_fp, v, var_type, var_change_cat):
+  row = [str(v.chrom), str(v.pos), '.', v.ref, ','.join(v.alts), '.',
+         'LowQual' if v.filter.get('LowQual', None) else '.', construct_info_field(v, var_type), 'GT']
   gt = gt_str(v.samples['QUERY']) \
     if var_change_cat[:2] == 'FP' or var_change_cat[-2:] == 'FP' \
     else gt_str(v.samples['TRUTH'])
@@ -100,7 +109,7 @@ def update(out_fp, v, var_k, var_cat, var_type, file_no, partitions, working_dic
     val[file_no] = {'cat': var_cat, 'type': var_type, 'v': v}
     cat_key = '{}->{}'.format(val[0]['cat'], val[1]['cat'])
     partitions[cat_key][var_type] += 1
-    write_out_v(out_fp, val[0]['v'], cat_key)  # We use val[0] because these are guaranteed not to be N->FP
+    write_out_v(out_fp, val[0]['v'], var_type, cat_key)  # We use val[0] because these are guaranteed not to be N->FP
     del working_dict[var_k]
   elif var_k is not None:
     working_dict[var_k] = [None, None]
@@ -146,7 +155,7 @@ def main(fname_a, fname_b, vcf_out, summary_out, high_confidence_region=None):
     v_to_use, cat_k = (v[1], 'N->FP') if v[0] is None else (v[0], 'FP->N')
     assert v_to_use['cat'] == 'FP', '{}: Not a FP. There is a bug in the code'.format(k)
     partitions[cat_k][v_to_use['type']] += 1
-    write_out_v(vcf_out, v_to_use['v'], cat_k)
+    write_out_v(vcf_out, v_to_use['v'], v_to_use['type'], cat_k)
 
   summary = summary_table_text(partitions)
   logger.debug(summary)
