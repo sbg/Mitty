@@ -11,36 +11,78 @@ import logging
 logger = logging.getLogger(__name__)
 
 
-def create_partition_list():
-  partitions = {
-    '{}-{}'.format(a, b): {'count': {vtype: 0 for vtype in ['SNP', 'INDEL']}, 'fp': None}
-    for a in ['TP', 'FN', 'GT']
-    for b in ['TP', 'FN', 'GT']
+def gt_str(s):
+  return '{}{}{}'.format(s['GT'][0], '|' if s.phased else '/', s['GT'][1])
+
+
+def partition_list():
+  return [
+    'FN->TP',
+    'FN->GT',
+    'GT->TP',
+    'FP->N',
+    'TP->TP',
+    'FN->FN',
+    'GT->GT',
+    'FP->FP',
+    'TP->FN',
+    'TP->GT',
+    'GT->FN',
+    'N->FP'
+  ]
+
+
+def write_output_header(out_fp, vcf_fp):
+  """Write the header for the output file
+
+  :param out_fp:
+  :param vcf_fp:
+  :param partitions:
+  :return:
+  """
+  hdr = vcf_fp.header.copy()
+  for k in hdr.info.keys():
+    if k != 'Regions':
+      hdr.info.remove_header(k)
+  for k in hdr.formats.keys():
+    if k != 'GT':
+      hdr.formats.remove_header(k)
+
+  hdr_lines = str(hdr).splitlines(keepends=True)
+  hdr_lines[-1] = '\t'.join(hdr_lines[-1].split('\t')[:-2] + partition_list())
+
+  out_fp.writelines(hdr_lines)
+
+
+def partition_count_dict():
+  return {
+    k: {vtype: 0 for vtype in ['SNP', 'INDEL']}
+    for k in partition_list()
   }
 
-  partitions.update(
-    {'{}-{}'.format(a, b): {'count': {vtype: 0 for vtype in ['SNP', 'INDEL']}, 'fp': None}
-     for a in ['FP', 'N']
-     for b in ['FP', 'N']
-     if not (a == b == 'N')
-     }
-  )
 
-  return partitions
-
-
-def key_v(v, alt):
+def variant_hash(v, alt):
   return '{}.{}.{}.{}'.format(v.chrom, v.pos, v.ref, alt)
 
 
 def process_v(v):
   cat, sz, alt = parse_line(v) if v is not None else (None, None, None)
-  k = key_v(v, alt) if sz is not None else None
+  k = variant_hash(v, alt) if sz is not None else None
   return k, cat, sz
 
 
-def update(v, var_k, var_cat, var_type, file_no, partitions, working_dict):
+def write_out_v(out_fp, v, var_change_cat):
+  row = [str(v.chrom), str(v.pos), '.', v.ref, ','.join(v.alts)]
+  gt = gt_str(v.samples['QUERY']) \
+    if var_change_cat[:2] == 'FP' or var_change_cat[-2:] == 'FP' \
+    else gt_str(v.samples['TRUTH'])
+  row += ['0/0' if k != var_change_cat else gt for k in partition_list()]
+  out_fp.write('\n' + '\t'.join(row))
+
+
+def update(out_fp, v, var_k, var_cat, var_type, file_no, partitions, working_dict):
   """
+  :param out_fp:
   :param v: the variant
   :param var_k:
   :param var_cat:
@@ -55,9 +97,9 @@ def update(v, var_k, var_cat, var_type, file_no, partitions, working_dict):
     if val[1 - file_no] is None:
       raise ValueError('Repeated identical entry: {}'.format(var_k))
     val[file_no] = {'cat': var_cat, 'type': var_type, 'v': v}
-    cat_key = '{}-{}'.format(val[0]['cat'], val[1]['cat'])
-    partitions[cat_key]['count'][var_type] += 1
-    partitions[cat_key]['vcf'].write(val[0]['v'])
+    cat_key = '{}->{}'.format(val[0]['cat'], val[1]['cat'])
+    partitions[cat_key][var_type] += 1
+    write_out_v(out_fp, val[0]['v'], cat_key)  # We use val[0] because these are guaranteed not to be N->FP
     del working_dict[var_k]
   elif var_k is not None:
     working_dict[var_k] = [None, None]
@@ -65,36 +107,31 @@ def update(v, var_k, var_cat, var_type, file_no, partitions, working_dict):
 
 
 def main(fname_a, fname_b, out_prefix, high_confidence_region=None):
-  partitions = create_partition_list()
-  print(summary_table_text(partitions))
+  partitions = partition_count_dict()
 
-  vcf_a = pysam.VariantFile(fname_a, mode='rb' if fname_a.endswith('bcf') else 'r')
-  vcf_b = pysam.VariantFile(fname_b, mode='rb' if fname_a.endswith('bcf') else 'r')
-  for k, v in partitions.items():
-    v['vcf'] = pysam.VariantFile(out_prefix + '-' + k + '.vcf', mode='w', header=vcf_a.header)
+  vcf_in = [
+    pysam.VariantFile(fname_a, mode='rb' if fname_a.endswith('bcf') else 'r'),
+    pysam.VariantFile(fname_b, mode='rb' if fname_a.endswith('bcf') else 'r')
+  ]
+  vcf_out = open(out_prefix + '.vcf', 'w')
+  write_output_header(vcf_out, vcf_in[0])
 
   logger.debug('Reading variants ...')
   t0 = time.time()
-  ctr = 0
+  ctr, null_ctr = 0, 0
   working_dict = {}
-  while 1:
-    va, vb = next(vcf_a, None), next(vcf_b, None)
-    if va is None and vb is None: break
+  while null_ctr < 2:
+    null_ctr = 0
+    for file_no in [0, 1]:
+      v = next(vcf_in[file_no], None)
+      if v is None: null_ctr += 1
+      if high_confidence_region is not None:
+        if high_confidence_region not in v.info.get('Regions', []):
+          v = None
 
-    if high_confidence_region is not None:
-      if high_confidence_region not in va.info.get('Regions', []):
-        va = None
-      if high_confidence_region not in vb.info.get('Regions', []):
-        vb = None
-
-    var_k_a, var_cat_a, var_sz_a = process_v(va)
-    var_k_b, var_cat_b, var_sz_b = process_v(vb)
-
-    update(va, var_k_a, var_cat_a, 'SNP' if var_sz_a == 0 else 'INDEL', 0, partitions, working_dict)
-    update(vb, var_k_b, var_cat_b, 'SNP' if var_sz_a == 0 else 'INDEL', 1, partitions, working_dict)
-
-    if var_k_a is not None: ctr += 1
-    if var_k_b is not None: ctr += 1
+      var_k, var_cat, var_sz = process_v(v)
+      update(vcf_out, v, var_k, var_cat, 'SNP' if var_sz == 0 else 'INDEL', file_no, partitions, working_dict)
+      if var_k is not None: ctr += 1
 
     if 0 <= ctr % 100000 <= 1:
       t1 = time.time()
@@ -106,10 +143,10 @@ def main(fname_a, fname_b, out_prefix, high_confidence_region=None):
 
   # At this point, the working_dict better only contain N -> FP and FP -> N
   for k, v in working_dict.items():
-    v_to_use, cat_k = (v[1], 'N-FP') if v[0] is None else (v[0], 'FP-N')
+    v_to_use, cat_k = (v[1], 'N->FP') if v[0] is None else (v[0], 'FP->N')
     assert v_to_use['cat'] == 'FP', '{}: Not a FP. There is a bug in the code'.format(k)
-    partitions[cat_k]['count'][v_to_use['type']] += 1
-    partitions[cat_k]['vcf'].write(v_to_use['v'])
+    partitions[cat_k][v_to_use['type']] += 1
+    write_out_v(vcf_out, v_to_use['v'], cat_k)
 
   summary = summary_table_text(partitions)
   logger.debug(summary)
@@ -120,20 +157,20 @@ def main(fname_a, fname_b, out_prefix, high_confidence_region=None):
 
 def summary_table_text(partitions):
   def line(k):
-    return ['{}:\t{}\t{}'.format(k.replace('-', ' -> '), partitions[k]['count']['SNP'], partitions[k]['count']['INDEL'])]
+    return ['{}:\t\t{}\t{}'.format(k, partitions[k]['SNP'], partitions[k]['INDEL'])]
 
   res = []
 
   res += ['', 'Improvements\tSNP\tINDEL', '-' * 30]
-  for key in ['FN-TP', 'FN-GT', 'GT-TP', 'FP-N']:
+  for key in partition_list()[:4]:
     res += line(key)
 
   res += ['', 'Unchanged\tSNP\tINDEL', '-' * 30]
-  for key in ['TP-TP', 'FN-FN', 'GT-GT', 'FP-FP']:
+  for key in partition_list()[4:8]:
     res += line(key)
 
   res += ['', 'Regression\tSNP\tINDEL', '-' * 30]
-  for key in ['TP-FN', 'TP-GT', 'GT-FN', 'N-FP']:
+  for key in partition_list()[8:]:
     res += line(key)
 
   return '\n'.join(res)
