@@ -619,7 +619,7 @@ Corresponding read after passing through read corruption model:
 
 
 ```
-@8           - simulated reads serial number (in base 26)
+@8           - simulated reads serial number
 INTEGRATION  - name of sample (from VCF) reads are generated from
 1:1          - read is from chromosome 1, copy 1 (copy numbers start 0, 1, ...)
 1:1930067:27=1X63=1I158=:0,1:126T29T16G15G28C0T2T8C9T0C6T 
