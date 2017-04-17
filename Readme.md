@@ -412,7 +412,7 @@ And a VCF file with 12 samples, corresponding to the 12 categories above. For ea
 for all samples except the one corresponding to the transition category it belongs to. This allows us to easily
 visualize the fate of individual variants using, for example, IGV.
 
-![call-fate VCF overlay on IGV](docs/images/call-fate.png?raw=true "call-fate VCF overlay on IGV")
+![call-fate VCF overlay on IGV](docs/images/call-fate-igv.png?raw=true "call-fate VCF overlay on IGV")
 
 
 ## Find differences in alignments
