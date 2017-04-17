@@ -295,11 +295,12 @@ def variant_by_size(vcf, out, max_size, title, fig_file, plot_bin_size, replot):
 
 
 @debug_tools.command('call-fate', short_help="Tracks fate of TP, FN, FP .. between two eval VCFs")
-@click.argument('vcfa')
-@click.argument('vcfb')
-@click.argument('outprefix')
+@click.argument('vcfa', type=click.Path(exists=True))
+@click.argument('vcfb', type=click.Path(exists=True))
+@click.argument('vcfout', type=click.File('w'))
+@click.argument('summaryout', type=click.File('w'))
 @click.option('--region-label', help='Name of high confidence region if desired')
-def call_fate(vcfa, vcfb, outprefix, region_label):
+def call_fate(vcfa, vcfb, vcfout, summaryout, region_label):
   """This tool tracks the fate of every variant call across the two supplied files and divides
   the calls up into the following 12 transitions
 
@@ -309,7 +310,7 @@ def call_fate(vcfa, vcfb, outprefix, region_label):
   FN -> TP
   FN -> GT
   GT -> TP
-  FP -> N  (FP call removed)
+  FP -> N  (FP calls removed)
 
   \b
   Status quo
@@ -329,7 +330,7 @@ def call_fate(vcfa, vcfb, outprefix, region_label):
 
   """
   import mitty.benchmarking.callfate as cf
-  cf.main(fname_a=vcfa, fname_b=vcfb, out_prefix=outprefix, high_confidence_region=region_label)
+  cf.main(fname_a=vcfa, fname_b=vcfb, vcf_out=vcfout, summary_out=summaryout, high_confidence_region=region_label)
 
 
 def partition_bam_choices():

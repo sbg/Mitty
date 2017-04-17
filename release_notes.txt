@@ -1,6 +1,9 @@
 Release Notes
 =============
 
+2.15.1
+- Enhancement: `call-fate`. Simplified code (removing a bug), changed output format to single VCF
+
 2.15.0
 - Enhancement: `call-fate` implemented
 

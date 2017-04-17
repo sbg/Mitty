@@ -37,7 +37,6 @@ def write_output_header(out_fp, vcf_fp):
 
   :param out_fp:
   :param vcf_fp:
-  :param partitions:
   :return:
   """
   hdr = vcf_fp.header.copy()
@@ -72,7 +71,9 @@ def process_v(v):
 
 
 def write_out_v(out_fp, v, var_change_cat):
-  row = [str(v.chrom), str(v.pos), '.', v.ref, ','.join(v.alts)]
+  info = v.info.get('Regions', None)
+  info_str = 'Regions={}'.format(info) if info is not None else '.'
+  row = [str(v.chrom), str(v.pos), '.', v.ref, ','.join(v.alts), '.', '.', info_str, 'GT']
   gt = gt_str(v.samples['QUERY']) \
     if var_change_cat[:2] == 'FP' or var_change_cat[-2:] == 'FP' \
     else gt_str(v.samples['TRUTH'])
@@ -106,14 +107,13 @@ def update(out_fp, v, var_k, var_cat, var_type, file_no, partitions, working_dic
     working_dict[var_k][file_no] = {'cat': var_cat, 'type': var_type, 'v': v}
 
 
-def main(fname_a, fname_b, out_prefix, high_confidence_region=None):
+def main(fname_a, fname_b, vcf_out, summary_out, high_confidence_region=None):
   partitions = partition_count_dict()
 
   vcf_in = [
     pysam.VariantFile(fname_a, mode='rb' if fname_a.endswith('bcf') else 'r'),
     pysam.VariantFile(fname_b, mode='rb' if fname_a.endswith('bcf') else 'r')
   ]
-  vcf_out = open(out_prefix + '.vcf', 'w')
   write_output_header(vcf_out, vcf_in[0])
 
   logger.debug('Reading variants ...')
@@ -151,8 +151,7 @@ def main(fname_a, fname_b, out_prefix, high_confidence_region=None):
   summary = summary_table_text(partitions)
   logger.debug(summary)
 
-  with open(out_prefix + '-summary.txt', 'w') as fp:
-    fp.write(summary)
+  summary_out.write(summary)
 
 
 def summary_table_text(partitions):
@@ -161,15 +160,15 @@ def summary_table_text(partitions):
 
   res = []
 
-  res += ['', 'Improvements\tSNP\tINDEL', '-' * 30]
+  res += ['', 'Improved\tSNP\tINDEL', '-' * 20]
   for key in partition_list()[:4]:
     res += line(key)
 
-  res += ['', 'Unchanged\tSNP\tINDEL', '-' * 30]
+  res += ['', 'Unchanged\tSNP\tINDEL', '-' * 20]
   for key in partition_list()[4:8]:
     res += line(key)
 
-  res += ['', 'Regression\tSNP\tINDEL', '-' * 30]
+  res += ['', 'Regressed\tSNP\tINDEL', '-' * 20]
   for key in partition_list()[8:]:
     res += line(key)
 

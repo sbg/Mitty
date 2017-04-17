@@ -376,33 +376,43 @@ the improvements and regressions going from one pipeline to the other.
 
 In the examples below we are comparing two evaluation VCF files `{0.9.29, 0.9.32}.eval.vcf.gz` 
 ```
-mitty -v4 debug call-fate 0.9.29.eval.vcf.gz 0.9.32.eval.vcf.gz fate-29-32
+ mitty -v4 debug call-fate \
+ 0.9.29.eval.vcf.gz \
+ 0.9.32.eval.vcf.gz \
+ - \
+ fate-29-32-summary.txt | vcf-sort | bgzip -c > fate-29-32.vcf.gz
 ```
+(This assumes we have vcf-tools available so we can sort the VCF)
+
 The program produces a summary table output:
 ```
-Improvements	SNP		INDEL
-------------------------------
-FN -> TP:		406		572
-FN -> GT:		36		133
-GT -> TP:		356		415
-FP -> N:		23710	8680
+Improved	SNP	INDEL
+--------------------
+FN->TP:		391	587
+FN->GT:		35	134
+GT->TP:		342	429
+FP->N:		23710	8680
 
-Unchanged		SNP		INDEL
-------------------------------
-TP -> TP:		3500966	684316
-FN -> FN:		4827	12003
-GT -> GT:		2177	12313
-FP -> FP:		382158	209083
+Unchanged	SNP	INDEL
+--------------------
+TP->TP:		3504751	680531
+FN->FN:		4571	12259
+GT->GT:		1851	12639
+FP->FP:		379274	211967
 
-Regression	SNP		INDEL
-------------------------------
-TP -> FN:		358		481
-TP -> GT:		141		298
-GT -> FN:		32		124
-N -> FP:		16994	3860
+Regressed	SNP	INDEL
+--------------------
+TP->FN:		351	488
+TP->GT:		134	305
+GT->FN:		27	129
+N->FP:		13674	7180
 ```
 
-And a set of 12 VCF files (one for each category) with the relevant variants in them. 
+And a VCF file with 12 samples, corresponding to the 12 categories above. For each variant the GT field is 0/0 
+for all samples except the one corresponding to the transition category it belongs to. This allows us to easily
+visualize the fate of individual variants using, for example, IGV.
+
+![call-fate VCF overlay on IGV](docs/images/call-fate.png?raw=true "call-fate VCF overlay on IGV")
 
 
 ## Find differences in alignments
