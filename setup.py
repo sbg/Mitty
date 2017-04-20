@@ -16,7 +16,7 @@ setup(
     'setuptools>=24.3.0',
     'numpy>=1.11.0',
     'click>=3.3',
-    'pysam>=0.10.0',
+    'pysam==0.10.0',
     'matplotlib>=1.3.0',
     'scipy',
     'nose'
