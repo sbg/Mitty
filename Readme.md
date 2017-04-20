@@ -1,4 +1,4 @@
-Mitty is a data simulator meant to help debug aligners and variant callers. 
+Mitty is a data simulator meant to help debug aligners and variant callers. It requires Python 3.4 or later
 It is released under the [Apache](LICENSE.txt) license.
 
 ![Genome simulation](docs/images/genome-simulation.png?raw=true)
@@ -34,9 +34,10 @@ conda create -n mymitty python=3.5
 * Using a virtual env is recommended, but it's a personal choice
 * Mitty requires Python3 to run
 
-Install Mitty from the public github repository
+Install Mitty from the public github repository. **Requires pip 9.0 or later**
 
 ```
+pip install --upgrade setuptools pip
 pip install git+https://github.com/sbg/Mitty.git
 ```
 
@@ -74,26 +75,32 @@ mitty -v{1,2,3,4} <command>
 Detailed tutorial with commentary
 =================================
 
-Note on the files used here
----------------------------
-A script containing all the commands in this tutorial is found under [`examples/tutorial/script.sh`](examples/tutorial/script.sh). Some parts of the script assume external tools such as an aligner, a variant caller and the GA4GH benchmarking tools are installed. 
-I assume that the GRC37 (or HG19) FASTA and it's index is available and aliased to `$FASTA`. On my development machine, for example, `FASTA=~/Data/human_g1k_v37_decoy.fasta`.
-The VCF refered to as `hg001.vcf.gz` has been downloaded from the [NIH NCBI website](ftp://ftp-trace.ncbi.nih.gov/giab/ftp/release/NA12878_HG001/NISTv3.3.2/GRCh37/)
+Example scripts and data
+------------------------
+If you want to follow along with this tutorial you will find the relevant example scripts and test data
+in the https://github.com/kghosesbg/mitty-demo-data project. 
+
+*The separate project has been created to avoid making the main source tree bulky 
+by filling it with binary files not needed for program operation.*
+
+Some of the examples require other tools such as `samtools`, `bwa`, `vcftools` and 
+some GA4GH VCF benchmarking tools to also be installed.
+
 
 Generating reads
 ----------------
 
 ### Aliases used
 ```
-FASTA=~/Data/human_g1k_v37_decoy.fasta
-SAMPLEVCF=hg001.vcf.gz
-SAMPLENAME=HG001
+FASTA=../data/human_g1k_v37.fa.gz
+SAMPLEVCF=../data/1kg.20.22.vcf.gz
+SAMPLENAME=HG00119
 REGION_BED=region.bed
-FILTVCF=hg001-filt.vcf.gz
+FILTVCF=HG00119-filt.vcf.gz
 READMODEL=1kg-pcr-free.pkl
 COVERAGE=30
 READ_GEN_SEED=7
-FASTQ_PREFIX=hg001-reads
+FASTQ_PREFIX=HG00119-reads
 READ_CORRUPT_SEED=8
 ```
 
@@ -212,7 +219,7 @@ For some experiments you might want to generate custom sized reads. `generate-re
 this with the `--truncate-to` argument
 
 ```
-FASTQ_PREFIX=hg001-truncated-reads
+FASTQ_PREFIX=HG00119-truncated-reads
 mitty -v4 generate-reads \
   ${FASTA} \
   ${FILTVCF} \
@@ -263,25 +270,8 @@ Mate 2:
 
 can be compared with the empirical model profile shown in the Appendix for the `1kg-pcr-free.pkl` model.
 
-
-### Alignment with BWA
-
-_(Assumes bwa and samtools are installed)_
-```
-FASTA=~/Data/human_g1k_v37_decoy.fasta
-FASTQ_PREFIX=hg001-reads
-BAM=hg001-bwa.bam
-
-bwa mem \
-  ${FASTA} \
-  ${FASTQ_PREFIX}-corrupt1.fq.gz \
-  ${FASTQ_PREFIX}-corrupt2.fq.gz | samtools view -bSho temp.bam
-samtools sort temp.bam > ${BAM}
-samtools index ${BAM}
-```
-
-
-These alignments are easy to inspect using a genome browser
+After passing these reads through an aligner and viewing them on a genome browser, such as IGV one can make
+a quick inspection of the alignments.
 
 ![IGV screenshot showing read qname and one het variant](docs/images/igv-alignment-qname.png?raw=true "IGV screenshot showing read qname and one het variant")
 
@@ -296,7 +286,9 @@ for comparing alignments from different aligners. This truth BAM can also be use
 removing one moving part (the aligner) from the analysis chain.
 
 ```
-GODBAM=hg001-god.bam
+FASTA=../data/human_g1k_v37.fa.gz
+FASTQ_PREFIX=../generating-reads/HG00119-reads
+GODBAM=HG00119-god.bam
 
 mitty -v4 god-aligner \
   ${FASTA} \
@@ -314,7 +306,17 @@ Mitty supplies some tools to help with benchmarking and debugging of aligner/cal
 
 ## Alignment accuracy
 
+_(Assumes bwa and samtools are installed)_
 ```
+BAM=hg001-bwa.bam
+
+bwa mem \
+  ${FASTA} \
+  ${FASTQ_PREFIX}-corrupt1.fq.gz \
+  ${FASTQ_PREFIX}-corrupt2.fq.gz | samtools view -bSho temp.bam
+samtools sort temp.bam > ${BAM}
+samtools index ${BAM}
+
 mitty -v4 debug alignment-analysis process\
   ${BAM} \
   ${FASTQ_PREFIX}-corrupt-lq.txt \
@@ -341,27 +343,31 @@ One of the outputs of the comparator tools is a VCF (called an evaluation VCF) w
 `variant-call-analysis` is a program that summarizes the data in such an evaluation VCF in terms of variant size.
 
 ```
+EVCF=../data/0.9.29.eval.vcf.gz
+CSV=0.9.29.eval.data.csv
+FIG=caller-report-example.png
+
 mitty -v4 debug variant-call-analysis process \
- my.eval.vcf.gz 
- my.eval.data.csv 
+ ${EVCF} \
+ ${CSV} \
  --max-size 75 \
- --fig-file caller-report-example.png \
+ --fig-file ${FIG} \
  --plot-bin-size 5 \
  --title 'Example call analysis plot'
 ```
 
-This invocation will process `my.eval.vcf.gz` produced by vcfeval, write the results as a comma 
-separated file (`my.eval.data.csv`) and then plot them in `caller-report-example.png`. 
+This invocation will process `0.9.29.eval.vcf.gz` produced by vcfeval, write the results as a comma 
+separated file (`0.9.29.eval.data.csv`) and then plot them in `caller-report-example.png`. 
 
 ![P/R plots](docs/images/caller-report-example.png?raw=true "P/R plots")
 
 To replot already processed data use the `plot` subcommand instead of the `process` subcommand
 ```
 mitty -v4 debug variant-call-analysis plot \
-  my.eval.data.csv \
-  caller-report-example.png \
-  --plot-bin-size 5 \ 
-  --plot-range 75 \
+  ${CSV} \
+  caller-report-example2.png \
+  --plot-bin-size 10 \
+  --plot-range 50 \
   --title 'Example call analysis plot'
 ```
 
@@ -376,11 +382,15 @@ the improvements and regressions going from one pipeline to the other.
 
 In the examples below we are comparing two evaluation VCF files `{0.9.29, 0.9.32}.eval.vcf.gz` 
 ```
- mitty -v4 debug call-fate \
- 0.9.29.eval.vcf.gz \
- 0.9.32.eval.vcf.gz \
+EVCF1=../data/0.9.29.eval.vcf.gz
+EVCF2=../data/0.9.32.eval.vcf.gz
+OUTPREFIX=fate-29-32
+
+mitty -v4 debug call-fate \
+ ${EVCF1} \
+ ${EVCF2} \
  - \
- fate-29-32-summary.txt | vcf-sort | bgzip -c > fate-29-32.vcf.gz
+ ${OUTPREFIX}-summary.txt | vcf-sort | bgzip -c > ${OUTPREFIX}.vcf.gz
 ```
 (This assumes we have vcf-tools available so we can sort the VCF)
 
