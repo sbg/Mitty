@@ -425,17 +425,6 @@ visualize the fate of individual variants using, for example, IGV.
 ![call-fate VCF overlay on IGV](docs/images/call-fate-igv.png?raw=true "call-fate VCF overlay on IGV")
 
 
-## Find differences in alignments
-
-(This requires bamUtils to be installed. I found release 1.0.14 to work, but repository head NOT to)
-
-```
-bam diff --in1 bwac.bam --in2 perfect.bam --out diffd.unsorted.bam
-samtools sort diffd.unsorted.bam > diffd.bam
-samtools index diffd.bam
-```
-
-
 ## Set differences of two or more BAM files derived from the same FASTQ(s)
 
 Often, we would like to tweak alignment algorithm parameters, or even test new algorithms. Sometimes we just look at
