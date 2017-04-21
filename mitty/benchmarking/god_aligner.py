@@ -167,7 +167,7 @@ def write_perfect_reads(qname, rg_id, long_qname_table, ref_dict, read_data, fp)
   ]
 
   for n, (ri, rd, read) in enumerate(zip(parse_qname(qname, long_qname_table), read_data, reads)):
-    read.qname = qname[:254]
+    read.qname = qname
     read.reference_id = ref_dict[ri.chrom]
     read.pos = ri.pos - 1
     read.cigarstring = ri.cigar
