@@ -83,8 +83,7 @@ in the https://github.com/kghosesbg/mitty-demo-data project.
 *The separate project has been created to avoid making the main source tree bulky 
 by filling it with binary files not needed for program operation.*
 
-Some of the examples require other tools such as `samtools`, `bwa`, `vcftools` and 
-some GA4GH VCF benchmarking tools to also be installed.
+(Some of the examples require other tools such as `samtools`, `bwa` and `vcftools`)
 
 
 Generating reads
@@ -427,43 +426,42 @@ visualize the fate of individual variants using, for example, IGV.
 
 ## Set differences of two or more BAM files derived from the same FASTQ(s)
 
-Often, we would like to tweak alignment algorithm parameters, or even test new algorithms. Sometimes we just look at
-the global effect of these tweaks, for example, by looking at variant calling performance. Often, however, we want to
-examine more directly the effects of these experiments. One way to do this is to look in detail at the differences in
-alignments for the same set of reads run through the different pipelines.
+One way of making a detailed examination of the effects of changes to alignment algorithms is to track how read
+alignments from the same FASTQ change. The `partition-bams` subtool allows us to take 2 or more BAMs and apply a
+membership criterion to each read and classify the reads according to how they fared in each of the BAMs.
 
-The Mitty `partition-bams` subtool allows us to do this. For a full example please see the script `examples/debug-alignments/run.sh`
-In brief, say we have three different BAM files obtained by passing the same FASTQ through three different aligner tools.
-In the example we run bwa mem with three different values of the `-f` parameter which trades off speed for accuracy.
-
-We can then check (since this is a simulated FASTQ) how accurate the alignments were compared to each other by running
+In the [associated example](https://github.com/kghosesbg/mitty-demo-data/blob/master/partition-bams/partition-bams.sh) 
+`bwa mem` is run with three different values of the `-r` parameter on a small FASTQ. We
+then apply the membership criterion |d_err| < 10 and analyze the three BAMs.
 
 ```
+FASTQ_PREFIX=../generating-reads/HG00119-reads
+
 mitty -v4 debug partition-bams \
   myderr \
-  d_err --threshold 10 \
-  --sidecar_in lq.txt --bam bwa_1.5.bam --bam bwa_10.bam --bam bwa_20.bam
+  d_err \
+  --threshold 10 \
+  --sidecar_in ${FASTQ_PREFIX}-corrupt-lq.txt \
+  --bam HG00119-bwa1.bam \
+  --bam HG00119-bwa2.bam \
+  --bam HG00119-bwa3.bam
 ```
-
-This command line asks the tool to use |d_err| < 10 as the set membership function. We are passing it three BAM files
-(the file names refer to the `-r` values we passed `bwa mem` (1.5, 10 and 20)) and `lq.txt` is the sidecar file carrying
-the qnames > 254 characters (as described previously). 
 
 This tool produces a summary file `myderr_summary.txt` that looks like:
 
 ```
-(A)(B)(C) 22331
-(A)(B)C   234
-(A)B(C)   0
-(A)BC     3
-A(B)(C)   0
-A(B)C     0
-AB(C)     208
-ABC       199126
+(A)(B)(C)	576
+(A)(B)C	0
+(A)B(C)	0
+(A)BC	57
+A(B)(C)	84
+A(B)C	0
+AB(C)	0
+ABC	359793
 ```
 
 In this nomenclature A is the set and (A) is the complement of this set. The set labels A, B, C ... (upto a maximum of 10)
-refer to the BAM files in sequence, in this case 1.5, 10 and 20. 
+refer to the BAM files in sequence they were supplied.
 
 Thus, ABC means all the reads which have a |d_err| < 10 in all the three files. AB(C) means all the reads which have 
 a |d_err| < 10 in A and B but not C, and so on. A reader familiar with Venn diagrams is referred to the chart below
@@ -504,50 +502,35 @@ The `simulate-variants` command generates a VCF with simulated variants.
 The program carries three basic models for variant simulation - SNPs, insertions and deletions and is invoked as follows:
 
 ```
+FASTA=../data/human_g1k_v37.fa.gz
+SAMPLENAME=S0
+BED=region.bed
+VCF=sim.vcf.gz
+
 mitty -v4 simulate-variants \
-  - \                                      # Write the VCF to std out
-  ~/Data/human_g1k_v37_decoy.fasta \       # reference
-  mysample \                               # The name of the sample to add to
-  region.bed \                             # region over which to generate variants
-  7 \                                      # random number generator seed
-  --p-het 0.6 \                            # probability for heterozygous variants
-  --model SNP 0.001 1 1 \                  #  <model type> <p> <min-size> <max-size>
+  - \
+  ${FASTA} \
+  ${SAMPLENAME} \
+  ${BED} \
+  7 \
+  --p-het 0.6 \
+  --model SNP 0.001 1 1 \
   --model INS 0.0001 10 100 \
-  --model DEL 0.0001 10 100 | bgzip -c > sim.vcf.gz
-  
-tabix -p vcf sim.vcf.gz
+  --model DEL 0.0001 10 100 | bgzip -c > ${VCF}
+
+tabix ${VCF}
 ```  
-p is the probability of a variant being placed on any given base 
-min-size and max-size indicate the size ranges of the variants produced. These are ignored for SNP
+
+The model parameters are given by <MODEL NAME> <P> <MIN-SIZE> <MAX-SIZE>
+
+<MODEL NAME> refers to the variant model to use
+<P> is the probability of a variant being placed on any given base 
+<MIN-SIZE> <MAX-SIZE> indicate the size ranges of the variants produced. These are ignored for SNP
 
 This VCF should be run through the `filter-variants` program as usual before taking reads. This is especially
 important because the simulation can produce illegaly overlapping variants which will be taken out by this step.
   
-```  
-mitty -v4 filter-variants sim.vcf.gz mysample region.bed - 2> sim-vcf-filter.log | bgzip -c > sim-filt.vcf.gz
-tabix -p vcf sim-filt.vcf.gz  
-```
-
-Please see `examples/variants/run.sh` for an example script.
-
-The `CINS` model works just like the `INS` model except the insertion sequences, instead of being 
-novel DNA sequences created with a Markov chain generator, are exact copies of random parts of 
-the input reference genome. This creates insertions that are more challenging to align to and 
-assemble, especially when their lengths start to exceed the template size of the sequencing 
-technology used.
-
-
-```
-mitty -v4 simulate-variants \
-  cins.vcf \
-  ~/Data/human_g1k_v37_decoy.fasta \
-  S1 \
-  region.bed \
-  7 \
-  --p-het 0.6 \
-  --model CINS 0.0001 100 1000
-```
-
+Invoking `mitty simulate-variants --list-models` will list available models
 
 
 Miscellaneous utilities
