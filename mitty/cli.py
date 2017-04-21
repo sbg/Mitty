@@ -164,6 +164,18 @@ def read_corruption(modelfile, fastq1_in, fastq1_out, sidecar_in, sidecar_out, s
                    fastq2_in, fastq2_out, processes=threads, seed=seed)
 
 
+def print_variant_model_list(ctx, param, value):
+  import mitty.simulation.genome.simulatevariants as simvar
+  if not value or ctx.resilient_parsing:
+    return
+
+  for k in sorted(simvar.model_dispatch.keys()):
+    print('{}:\n------'.format(k))
+    print(simvar.model_dispatch[k].__doc__)
+    print()
+  ctx.exit()
+
+
 @cli.command('simulate-variants', short_help='Create a fully simulated VCF')
 @click.argument('vcfout', type=click.File('w'))
 @click.argument('fasta', type=click.Path(exists=True))
@@ -172,6 +184,7 @@ def read_corruption(modelfile, fastq1_in, fastq1_out, sidecar_in, sidecar_out, s
 @click.argument('seed', type=int)
 @click.option('--p-het', default=0.6, type=float, help='Probability for heterozygous variants')
 @click.option('--model', type=(str, float, int, int), multiple=True, help='<model type> <p> <min-size> <max-size>')
+@click.option('--list-models', is_flag=True, callback=print_variant_model_list, expose_value=False, is_eager=True, help='Print list of variant models')
 def simulate_variants(vcfout, fasta, sample, bed, seed, p_het, model):
   """Generates a VCF with simulated variants. The program carries three basic models for variant simulation
 - SNPs, insertions and deletions and is invoked as follows:

@@ -93,6 +93,7 @@ def genotype(p_het, rng, l):
 
 
 def snp_model(rng, region, seq, p, p_het, **args):
+  """Places SNPs"""
   base_sub = {
     'A': 'CTG',
     'C': 'ATG',
@@ -142,6 +143,8 @@ def markov_chain(ref, rng, l):
 
 
 def ins_model(rng, region, seq, p, p_het, min_size, max_size):
+  """Insertions uniformly spanning minimum and maximum lengths. Sequences are generated using a Markov chain
+generator"""
   pos = place_poisson_seq(rng, p, seq)
   ref = [seq[x] for x in pos]
   alt = [markov_chain(r, rng, l) for r, l in zip(ref, rng.randint(min_size, max_size, size=pos.shape[0]))]
@@ -150,6 +153,7 @@ def ins_model(rng, region, seq, p, p_het, min_size, max_size):
 
 
 def del_model(rng, region, seq, p, p_het, min_size, max_size):
+  """Deletions uniformly spanning minimum and maximum lengths"""
   pos = place_poisson_seq(rng, p, seq)
   ref = [seq[x:x + l + 1] for x, l in zip(pos, rng.randint(min_size, max_size, size=pos.shape[0]))]
   alt = [seq[x] for x in pos]
@@ -158,6 +162,12 @@ def del_model(rng, region, seq, p, p_het, min_size, max_size):
 
 
 def copy_ins_model(rng, region, seq, p, p_het, min_size, max_size):
+  """The `CINS` model works just like the `INS` model except the insertion sequences, instead of being
+novel DNA sequences created with a Markov chain generator, are exact copies of random parts of
+the input reference genome. This creates insertions that are more challenging to align to and
+assemble, especially when their lengths start to exceed the template size of the sequencing
+technology used.
+"""
   seq = sanitize(seq)
   pos = place_poisson_seq(rng, p, seq)
   ref = [seq[x] for x in pos]
