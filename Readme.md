@@ -89,6 +89,8 @@ by filling it with binary files not needed for program operation.*
 Generating reads
 ----------------
 
+([Example script](https://github.com/kghosesbg/mitty-demo-data/blob/master/generating-reads/gen-reads.sh))
+
 ### Aliases used
 ```
 FASTA=../data/human_g1k_v37.fa.gz
@@ -212,6 +214,8 @@ representing the reference genome. One Mitty feature to be aware of is ploidy in
 if there are no variants in a contig, Mitty assumes that contig is diploid, otherwise Mitty uses the
 GT (genotype) tag to infer ploidy.
 
+([Example script](https://github.com/kghosesbg/mitty-demo-data/blob/master/reference-reads/ref-reads-m.sh))
+
 Hence for a human male we set up the VCF (`human-m-ref.vcf`) as:
 
 ```
@@ -241,6 +245,8 @@ DEBUG:mitty.lib.vcfio:Contig: Y, ploidy: 1
 which tells us that contig 1 has been assumed to be diploid, whereas X and Y are inferred to be 
 haploid because of the dummy entries we set.
 
+([Example script](https://github.com/kghosesbg/mitty-demo-data/blob/master/reference-reads/ref-reads-f.sh))
+
 Technically the human female VCF could be set up as a VCF with just the header (Mitty would infer
 all contigs to be diploid), but it turns out that some tools (including pysam) operate 
 incorrectly when the VCF is completely empty, so we supply one dummy line for the 
@@ -263,6 +269,8 @@ X       1       .       A       G       50      PASS    .       GT      0/0
 
 
 #### Truncating reads
+([Example script](https://github.com/kghosesbg/mitty-demo-data/blob/master/generating-reads/truncated-reads.sh))
+
 For some experiments you might want to generate custom sized reads. `generate-reads` allows you to do 
 this with the `--truncate-to` argument
 
@@ -329,6 +337,7 @@ CIGAR string for spot checks.
 
 
 ### Perfect BAM (God aligner)
+([Example script](https://github.com/kghosesbg/mitty-demo-data/blob/master/god-aligner/god-aligner.sh))
 
 Passing the simulated FASTQ through the god aligner produces a "perfect BAM" which can be used as a truth BAM
 for comparing alignments from different aligners. This truth BAM can also be used to test variant callers by
@@ -354,6 +363,7 @@ Analysis
 Mitty supplies some tools to help with benchmarking and debugging of aligner/caller pipelines.
 
 ## Alignment accuracy
+([Example script](https://github.com/kghosesbg/mitty-demo-data/blob/master/alignment-accuracy/alignment-accuracy.sh))
 
 _(Assumes bwa and samtools are installed)_
 ```
@@ -385,6 +395,7 @@ This invocation will process `${BAM}` and summarize the alignment performance in
 
 
 ## Variant calling accuracy, parametrized by variant size
+([Example script](https://github.com/kghosesbg/mitty-demo-data/blob/master/variant-call-analysis/call-analysis.sh))
 
 We can use a set of tools developed by the GA4GH consortium to compare a VCF produced by a pipeline with a truth VCF.
 One of the outputs of the comparator tools is a VCF (called an evaluation VCF) where each call is annotated with by whether it is a TP, FN, FP or GT error.
@@ -422,6 +433,7 @@ mitty -v4 debug variant-call-analysis plot \
 
 
 ## Improvements, regressions in variant calling
+([Example script](https://github.com/kghosesbg/mitty-demo-data/blob/master/call-fate/call-fate.sh))
 
 When comparing different versions of a pipeline, or two different pipelines the Precision and Recall 
 curves and summary tables give some information about the improvements and regressions introduced, but
@@ -475,6 +487,7 @@ visualize the fate of individual variants using, for example, IGV.
 
 
 ## Set differences of two or more BAM files derived from the same FASTQ(s)
+([Example script](https://github.com/kghosesbg/mitty-demo-data/blob/master/partition-bams/partition-bams.sh))
 
 One way of making a detailed examination of the effects of changes to alignment algorithms is to track how read
 alignments from the same FASTQ change. The `partition-bams` subtool allows us to take 2 or more BAMs and apply a
@@ -547,6 +560,7 @@ Generating samples (genomes)
 Mitty also has features to generate simulated genomes in the form of VCF files. 
 
 ### Simulated variants
+([Example script](https://github.com/kghosesbg/mitty-demo-data/blob/master/simulating-variants/simulate-variants.sh))
 
 The `simulate-variants` command generates a VCF with simulated variants. 
 The program carries three basic models for variant simulation - SNPs, insertions and deletions and is invoked as follows:
