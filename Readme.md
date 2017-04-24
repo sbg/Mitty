@@ -1,5 +1,6 @@
-Mitty is a data simulator meant to help debug aligners and variant callers. It requires Python 3.4 or later
-It is released under the [Apache](LICENSE.txt) license.
+Mitty is a data simulator meant to help debug aligners and variant callers. 
+
+It requires Python 3.4 or later. It is released under the [Apache](LICENSE.txt) license.
 
 ![Genome simulation](docs/images/genome-simulation.png?raw=true)
 
