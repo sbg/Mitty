@@ -15,6 +15,17 @@ bwa mem \
 samtools sort temp.bam > ${BAM}
 samtools index ${BAM}
 
+# Alignment analysis
+
+mitty -v4 debug alignment-analysis process\
+  ${BAM} \
+  ${FASTQ_PREFIX}-corrupt-lq.txt \
+  ${BAM}.alignment.npy \
+  --fig-prefix ${BAM}.alignment \
+  --max-d 200 \
+  --max-size 50 \
+  --plot-bin-size 5
+
 
 # God aligner
 mitty -v4 god-aligner \
@@ -26,13 +37,3 @@ mitty -v4 god-aligner \
   --threads 2
 
 
-# Alignment analysis
-
-mitty -v4 debug alignment-analysis process\
-  ${BAM} \
-  ${FASTQ_PREFIX}-corrupt-lq.txt \
-  ${BAM}.alignment.npy \
-  --fig-prefix ${BAM}.alignment \
-  --max-d 200 \
-  --max-size 50 \
-  --plot-bin-size 5
