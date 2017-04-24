@@ -207,10 +207,59 @@ The qname format can be obtained by executing `mitty qname`
 
 
 #### Reference reads
-As you might expect, by passing a VCF with a sample having no variants (see `human-m-ref.vcf` or `human-f-ref.vcf` under
-`examples/empty-vcfs`) we can generate reads with no variants, representing the reference genome.
-Note the use of `0/0` for all the autosomes and the `0` for the X and Y chromosomes in the male
-to indicate the proper ploidy to the simulator via these VCF files.
+As you might expect, by passing a VCF with no variants we can generate reads with no variants, 
+representing the reference genome. One Mitty feature to be aware of is ploidy inference from the VCF:
+if there are no variants in a contig, Mitty assumes that contig is diploid, otherwise Mitty uses the
+GT (genotype) tag to infer ploidy.
+
+Hence for a human male we set up the VCF (`human-m-ref.vcf`) as:
+
+```
+##fileformat=VCFv4.2
+##FILTER=<ID=PASS,Description="All filters passed">
+##fileDate=20160824
+##contig=<ID=1,length=249250621>
+##contig=<ID=2,length=243199373>
+...
+##contig=<ID=X,length=155270560>
+##contig=<ID=Y,length=59373566>
+##contig=<ID=MT,length=16569>
+##FORMAT=<ID=GT,Number=1,Type=String,Description="Consensus Genotype across all datasets with called genotype">
+#CHROM  POS     ID      REF     ALT     QUAL    FILTER  INFO    FORMAT  ref
+X       1       .       A       G       50      PASS    .       GT      0
+Y       1       .       A       G       50      PASS    .       GT      0
+```
+
+When we generate reads from this VCF say from chromosome 1, X and Y we see the following trace:
+
+```
+DEBUG:mitty.lib.vcfio:Contig: 1, ploidy: 2 (Assumed. Contig was empty)
+DEBUG:mitty.lib.vcfio:Contig: X, ploidy: 1 
+DEBUG:mitty.lib.vcfio:Contig: Y, ploidy: 1 
+```
+
+which tells us that contig 1 has been assumed to be diploid, whereas X and Y are inferred to be 
+haploid because of the dummy entries we set.
+
+Technically the human female VCF could be set up as a VCF with just the header (Mitty would infer
+all contigs to be diploid), but it turns out that some tools (including pysam) operate 
+incorrectly when the VCF is completely empty, so we supply one dummy line for the 
+VCF (`human-f-ref.vcf`) as:
+
+```
+##fileformat=VCFv4.2
+##FILTER=<ID=PASS,Description="All filters passed">
+##fileDate=20160824
+##contig=<ID=1,length=249250621>
+##contig=<ID=2,length=243199373>
+...
+##contig=<ID=X,length=155270560>
+##contig=<ID=Y,length=59373566>
+##contig=<ID=MT,length=16569>
+##FORMAT=<ID=GT,Number=1,Type=String,Description="Consensus Genotype across all datasets with called genotype">
+#CHROM  POS     ID      REF     ALT     QUAL    FILTER  INFO    FORMAT  ref
+X       1       .       A       G       50      PASS    .       GT      0/0
+```
 
 
 #### Truncating reads
@@ -235,7 +284,8 @@ mitty -v4 generate-reads \
 ```
 
 This generates the same kind of reads as before, but all the reads are 60bp long, instead of their usual length. 
-Naturally, you can not make reads longer than what the model originally specifies.
+You can not make reads longer than what the model originally specifies (This to ensure that the read corruption
+code will work seamlessly with such truncated reads.)
 
 
 ### Corrupting reads
