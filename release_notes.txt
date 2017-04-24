@@ -1,6 +1,9 @@
 Release Notes
 =============
 
+2.15.2
+- Bugfix: alignment-analysis bin_size is now adjusted such that we get at least two bins given the variant size range
+
 2.15.1
 - Enhancement: `call-fate`. Simplified code (removing a bug), changed output format to single VCF
 

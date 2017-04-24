@@ -41,7 +41,7 @@ def bin_data_by_variant_size(num, den=None, bin_size=None):
   :return:
   """
   N_orig = int((num.shape[0] - 3) / 2)
-  bin_size = bin_size or 1
+  bin_size = min(bin_size or 1, int(N_orig / 2.0))
   b_num = bin_array(num, b=bin_size)
   b_den = None if den is None else bin_array(den, b=bin_size)
   y = np.array(b_num, dtype=[('y', int)]) if b_den is None else bootstrap(b_num / (b_den + 1e-6), b_den)
