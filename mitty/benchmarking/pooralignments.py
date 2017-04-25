@@ -67,6 +67,7 @@ def worker(worker_id, bam_fname, long_qname_table, bam_out, xd_threshold, strict
       'Worker {}: Contig {}: {} reads in {:2f}s ({:2f} r/s)'.format(worker_id, reference, cnt, t2 - t1, cnt / (t2 - t1)))
     tot_cnt += cnt
 
+  out_fp.close()
   t1 = time.time()
   logger.debug(
     'Worker {}: Processed {} reads in {:2f}s ({:2f} r/s)'.format(worker_id, tot_cnt, t1 - t0, tot_cnt / (t1 - t0)))
@@ -106,7 +107,7 @@ def merge_sorted_fragments(bam_fname, file_fragments):
   for f in file_fragments:
    os.remove(f + '.sorted')
 
-  logger.debug('BAM index ...')
+  logger.debug('BAM index {} ...'.format(bam_fname))
   t0 = time.time()
   pysam.index(bam_fname)
   t1 = time.time()
