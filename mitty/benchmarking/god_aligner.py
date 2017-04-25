@@ -212,6 +212,6 @@ def merge_sorted_fragments(bam_fname, file_fragments, threads):
 
   logger.debug('BAM index ...')
   t0 = time.time()
-  pysam.index(bam_fname)
+  pysam.index(bam_fname, bam_fname + 'bai')
   t1 = time.time()
   logger.debug('... {:0.2f}s'.format(t1 - t0))
