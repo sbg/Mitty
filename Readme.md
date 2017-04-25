@@ -409,6 +409,10 @@ mitty -v4 debug poor-alignments \
   5
 ```
 
+The image below shows a genome browser view of a cluster of poor alignments near a group of three variants.
+![Poor alignments near variants](docs/images/igv-poor-alignments-example.png?raw=true "Poor alignments near variants")
+
+
 
 ## Variant calling accuracy, parametrized by variant size
 ([Example script](https://github.com/kghosesbg/mitty-demo-data/blob/master/variant-call-analysis/call-analysis.sh))
