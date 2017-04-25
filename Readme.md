@@ -396,6 +396,8 @@ This invocation will process `${BAM}` and summarize the alignment performance in
 
 
 ## Problem reads BAM
+([Example script](https://github.com/kghosesbg/mitty-demo-data/blob/master/poor-alignments/extract-poor-alignments.sh))
+
 The `poor-alignments` subtool will produce a subset of an input BAM containing the reads which
 have alignment errors above a given threshold
 
@@ -406,8 +408,6 @@ mitty -v4 debug poor-alignments \
   poor-${BAM} \
   5
 ```
-
-
 
 
 ## Variant calling accuracy, parametrized by variant size
