@@ -1,5 +1,7 @@
 Release Notes
 =============
+2.16.0
+- Enhancement: poor-alignments implemented
 
 2.15.2
 - Bugfix: alignment-analysis bin_size is now adjusted such that we get at least two bins given the variant size range

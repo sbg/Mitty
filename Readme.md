@@ -395,6 +395,21 @@ This invocation will process `${BAM}` and summarize the alignment performance in
 ![Alignment accuracy plots](docs/images/aligner-report-example-2.png?raw=true "Alignment accuracy plots")
 
 
+## Problem reads BAM
+The `poor-alignments` subtool will produce a subset of an input BAM containing the reads which
+have alignment errors above a given threshold
+
+```
+mitty -v4 debug poor-alignments \
+  ${BAM} \
+  ${FASTQ_PREFIX}-corrupt-lq.txt \
+  poor-${BAM} \
+  5
+```
+
+
+
+
 ## Variant calling accuracy, parametrized by variant size
 ([Example script](https://github.com/kghosesbg/mitty-demo-data/blob/master/variant-call-analysis/call-analysis.sh))
 
