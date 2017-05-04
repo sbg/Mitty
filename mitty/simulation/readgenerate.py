@@ -41,6 +41,7 @@ def process_multi_threaded(fasta_fname, vcf_fname, sample_name, bed_fname,
                            read_module, model, coverage,
                            fastq1_fname, sidecar_fname, fastq2_fname,
                            truncate_to=None,
+                           unpair=False,
                            threads=2, seed=7):
   """
 
@@ -54,7 +55,8 @@ def process_multi_threaded(fasta_fname, vcf_fname, sample_name, bed_fname,
   :param fastq1_fname:
   :param sidecar_fname:
   :param fastq2_fname:
-  :param truncate_to:
+  :param truncate_to: If set, shorten reads to this length
+  :param unpair: If True, for models that produce paired-end reads, produce single end, instead
   :param threads:
   :param seed:
   :return:
@@ -62,6 +64,10 @@ def process_multi_threaded(fasta_fname, vcf_fname, sample_name, bed_fname,
   if truncate_to is not None:
     model['mean_rlen'] = min(truncate_to, model['mean_rlen'])
     logger.debug('Truncating mean read length to: {}bp'.format(model['mean_rlen']))
+  if unpair:
+    logger.debug('Un-pairing reads')
+    model['unpaired'] = True
+    assert fastq2_fname is None, 'For unpaired reads, no FASTQ2 should be supplied'
   read_model = read_module.read_model_params(model, coverage)
 
   global vcf_df

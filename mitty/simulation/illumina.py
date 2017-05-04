@@ -35,7 +35,8 @@ def read_model_params(model, diploid_coverage=30.0):
     'passes': passes,
     'rlen': rlen,
     'cum_tlen': model['cum_tlen'],
-    'cum_bq_mat': model['cum_bq_mat']
+    'cum_bq_mat': model['cum_bq_mat'],
+    'unpaired': model.get('unpaired', False)
   }
 
 
@@ -95,20 +96,30 @@ def _reads_for_template_in_region(model, file_order_rng, ts, te):
   r0p = ts
   r1p = te - rlen
 
-  return [
-    {
-      'file_order': r0fo,
-      'strand': np.full(ts.size, 0, dtype=np.uint8),
-      'pos': r0p,
-      'len': r0l
-    },
-    {
-      'file_order': r1fo,
-      'strand': np.full(ts.size, 1, dtype=np.uint8),
-      'pos': r1p,
-      'len': r1l
-    }
-  ]
+  if model.get('unpaired', False):
+    return [
+      {
+        'file_order': np.zeros((2 * ts.size,), dtype='i1'),
+        'strand': np.concatenate((np.full(ts.size, 0, dtype=np.uint8), np.full(ts.size, 1, dtype=np.uint8))),
+        'pos': np.concatenate((r0p, r1p)),
+        'len': np.concatenate((r0l, r1l))
+      }
+    ]
+  else:
+    return [
+      {
+        'file_order': r0fo,
+        'strand': np.full(ts.size, 0, dtype=np.uint8),
+        'pos': r0p,
+        'len': r0l
+      },
+      {
+        'file_order': r1fo,
+        'strand': np.full(ts.size, 1, dtype=np.uint8),
+        'pos': r1p,
+        'len': r1l
+      }
+    ]
 
 
 def corrupt_template(model, template, corrupt_rng):

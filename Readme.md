@@ -171,15 +171,36 @@ DEBUG:mitty.lib.vcfio:Took 0.28023505210876465 s
 See later for a list of read models supplied with Mitty and their characteristics
 
 
-### Prepare a Illumina type read model from a BAM
+### Creating custom read models
 
-**This is only needed if one of the existing read models does not match your requirements. This allows you to 
-sample reads from a BAM and build an empirical read model for Illumina**
+**This is only needed if none of the existing read models match your requirements**
+
+#### Prepare a Illumina type read model from a BAM
 _The example assumes that a sample BAM file (sample.bam) has been downloaded to the working directory_
 
 ```
-mitty -v4 bam2illumina sample.bam ./rd-model.pkl "This model is taken from a BAM of unknown provenance" --every 5 --min-mq 30
+mitty -v4 bam2illumina \ 
+  sample.bam \
+  ./rd-model.pkl \
+  "This model is taken from a BAM of unknown provenance" \
+  --every 5 \
+  --min-mq 30
 ```
+
+
+#### Create arbitrary Illumina type read models
+The read model file is just a Python pickle file of a dictionary carrying specifications for 
+the model. You can create arbitrary models by specifying your own parameters. Please see
+the [read model documentation](docs/readmodelformat.md) for a description of all the parameters.
+
+
+#### Prepare completely synthetic read models
+Mitty also supplies a synthetic read model class and a corresponding model generator to generate custom 
+models for this class. This allows us to quickly create reads with a wide variety of independently 
+variable parameters.
+
+As an example, we will prepare a read model from scratch with the following properties: single end reads, 
+read length of 121, 
 
   
 ### Generating perfect reads
@@ -295,6 +316,31 @@ mitty -v4 generate-reads \
 This generates the same kind of reads as before, but all the reads are 60bp long, instead of their usual length. 
 You can not make reads longer than what the model originally specifies (This to ensure that the read corruption
 code will work seamlessly with such truncated reads.)
+
+
+#### Un-pairing reads
+([Example script](https://github.com/kghosesbg/mitty-demo-data/blob/master/generating-reads/unpaired-reads.sh))
+
+For some experiments you might want to use the existing Illumina or other modle that is normally 
+paired-end model but generate  single-end reads instead. The `--unpair` argument allows you to do this. 
+Note that in this case you should not pass in a second output FASTQ file.
+
+```
+FASTQ_PREFIX=HG00119-unpaired-reads
+mitty -v4 generate-reads \
+  ${FASTA} \
+  ${FILTVCF} \
+  ${SAMPLENAME} \
+  ${REGION_BED} \
+  ${READMODEL} \
+  ${COVERAGE} \
+  ${READ_GEN_SEED} \
+  >(gzip > ${FASTQ_PREFIX}.fq.gz) \
+   ${FASTQ_PREFIX}-lq.txt \
+   --unpair \
+   --threads 2
+```
+ 
 
 
 ### Corrupting reads

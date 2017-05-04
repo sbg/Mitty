@@ -51,7 +51,12 @@ def sample_bq(bam, pkl, threads):
   bbq.process_bam_parallel(bam, pkl, threads=threads)
 
 
-@cli.command('bam2illumina', short_help='Create read model from BAM file')
+@cli.group('create-read-model', short_help='Create read model from different sources')
+def create_read_model():
+  pass
+
+
+@create_read_model.command('bam2illumina', short_help='Create read model from BAM file')
 @click.argument('bam', type=click.Path(exists=True))
 @click.argument('pkl')
 @click.argument('desc')
@@ -66,6 +71,13 @@ def bam2illumina(bam, pkl, desc, every, min_mq, threads, max_bp, max_tlen):
   import mitty.empirical.bam2illumina as b2m
   b2m.process_bam_parallel(bam, pkl, model_description=desc, every=max(1, every), min_mq=min_mq,
                            threads=threads, max_bq=94, max_bp=max_bp, max_tlen=max_tlen)
+
+
+@create_read_model.command('synth', short_help='Create fully synthetic read model')
+@click.argument('pkl')
+
+def synth_read_model():
+  """This generates a read model to order which """
 
 
 @cli.command('list-read-models')
@@ -130,10 +142,15 @@ def print_qname(ctx, param, value):
 @click.argument('fastq1', type=click.Path())
 @click.argument('longqname', type=click.Path())
 @click.option('--fastq2', type=click.Path())
-@click.option('--truncate-to', type=int)
+@click.option('--truncate-to', type=int, help='Truncate all reads to these many bp (If set)')
+@click.option('--unpair', is_flag=True, help='unpair reads for models that normally produce paired reads')
 @click.option('--threads', default=2)
 @click.option('--qname', is_flag=True, callback=print_qname, expose_value=False, is_eager=True, help='Print documentation for information encoded in qname')
-def generate_reads(fasta, vcf, sample_name, bed, modelfile, coverage, seed, fastq1, longqname, fastq2, truncate_to, threads):
+def generate_reads(fasta, vcf, sample_name, bed, modelfile,
+                   coverage, seed,
+                   fastq1, longqname, fastq2,
+                   truncate_to, unpair,
+                   threads):
   """Generate simulated reads"""
   import mitty.simulation.readgenerate as reads
 
@@ -142,6 +159,7 @@ def generate_reads(fasta, vcf, sample_name, bed, modelfile, coverage, seed, fast
     fasta, vcf, sample_name, bed, read_module, model, coverage,
     fastq1, longqname, fastq2,
     truncate_to=truncate_to,
+    unpair=unpair,
     threads=threads, seed=seed)
 
 
@@ -517,7 +535,7 @@ def get_read_model(modelfile):
 
   model = pickle.load(open(mod_fname, 'rb'))
   read_module = {
-    'illumina': mitty.simulation.illumina
+    'illumina': mitty.simulation.illumina,
   }.get(model['model_class'])
 
   return read_module, model

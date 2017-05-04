@@ -1,5 +1,9 @@
 Release Notes
 =============
+
+2.17.0
+- Enhancement: un-paired read generation implemented
+
 2.16.0
 - Enhancement: poor-alignments implemented
 
