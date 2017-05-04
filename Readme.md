@@ -197,7 +197,7 @@ the [read model documentation](docs/readmodelformat.md) for a description of all
 #### Prepare completely synthetic Illumina type read model
 ([Example script](https://github.com/kghosesbg/mitty-demo-data/blob/master/read-models/synthetic-model.sh))
 
-Mitty also supplies a model generator (``) to generate custom Illumina like read models
+Mitty also supplies a model generator (`synth-illumina`) to generate custom Illumina like read models
 with template sizes and base quality patterns following simple mathematical 
 distributions. This model generator allows us to quickly create reads with a 
 wide variety of independently variable parameters.
@@ -217,6 +217,7 @@ mitty create-read-model synth-illumina \
 ```
 
 The generated read model looks like:
+
 ![](docs/images/synthetic-model.pkl.png?raw=true)
 
   
