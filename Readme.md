@@ -176,15 +176,23 @@ See later for a list of read models supplied with Mitty and their characteristic
 **This is only needed if none of the existing read models match your requirements**
 
 #### Prepare a Illumina type read model from a BAM
-_The example assumes that a sample BAM file (sample.bam) has been downloaded to the working directory_
+([Example script](https://github.com/kghosesbg/mitty-demo-data/blob/master/read-models/sampled-model.sh))
 
 ```
-mitty -v4 create-read-model bam2illumina \ 
-  sample.bam \
-  ./rd-model.pkl \
-  "This model is taken from a BAM of unknown provenance" \
-  --every 5 \
-  --min-mq 30
+BAM=../data/sample.bam
+MODELNAME=sampled-model.pkl
+
+mitty -v4 create-read-model bam2illumina \
+  --every 10 \
+  --min-mq 20 \
+  -t 2 \
+  --max-bp 300 \
+  --max-tlen 1000 \
+  ${BAM} \
+  ${MODELNAME} \
+  'Sampled model created for the demo'
+
+mitty describe-read-model ${MODELNAME} ${MODELNAME}.png
 ```
 
 
@@ -194,12 +202,12 @@ the model. You can create arbitrary models by specifying your own parameters. Pl
 the [read model documentation](docs/readmodelformat.md) for a description of all the parameters.
 
 
-#### Prepare completely synthetic Illumina type read model
+#### Easily prepare completely synthetic Illumina type read model
 ([Example script](https://github.com/kghosesbg/mitty-demo-data/blob/master/read-models/synthetic-model.sh))
 
 Mitty also supplies a model generator (`synth-illumina`) to generate custom Illumina like read models
 with template sizes and base quality patterns following simple mathematical 
-distributions. This model generator allows us to quickly create reads with a 
+distributions. This model generator allows us to quickly create reads models with a 
 wide variety of independently variable parameters.
 
 ```
@@ -339,8 +347,8 @@ code will work seamlessly with such truncated reads.)
 #### Un-pairing reads
 ([Example script](https://github.com/kghosesbg/mitty-demo-data/blob/master/generating-reads/unpaired-reads.sh))
 
-For some experiments you might want to use the existing Illumina or other modle that is normally 
-paired-end model but generate  single-end reads instead. The `--unpair` argument allows you to do this. 
+For some experiments you might want to use the existing Illumina or other model that normally produces
+paired-end reads to generate single-end reads instead. The `--unpair` argument allows you to do this. 
 Note that in this case you should not pass in a second output FASTQ file.
 
 ```
