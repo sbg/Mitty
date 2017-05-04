@@ -73,11 +73,24 @@ def bam2illumina(bam, pkl, desc, every, min_mq, threads, max_bp, max_tlen):
                            threads=threads, max_bq=94, max_bp=max_bp, max_tlen=max_tlen)
 
 
-@create_read_model.command('synth', short_help='Create fully synthetic read model')
+@create_read_model.command('synth-illumina', short_help='Create fully synthetic Illumina-like read model')
 @click.argument('pkl')
-
-def synth_read_model():
-  """This generates a read model to order which """
+@click.option('--read-length', type=int, default=100)
+@click.option('--mean-template-length', type=int, default=500)
+@click.option('--std-template-length', type=int, default=50)
+@click.option('--bq0', type=int, default=30, help='Maximum BQ')
+@click.option('--k', type=float, default=200, help='Steepness of BQ curve. Larger => more steep')
+@click.option('--sigma', type=float, default=10, help='Spread of BQ about mean value')
+@click.option('--comment', help='Additional comments')
+@click.option('--max-tlen', type=int, default=1000, help='Maximum template length we will generate')
+def synth_read_model(pkl, read_length, mean_template_length, std_template_length, max_tlen, bq0, k, sigma, comment):
+  """This generates a synthetic read model based on the parameters we pass it"""
+  import mitty.simulation.sequencing.syntheticsequencer as synth
+  synth.create_model(
+    pkl,
+    read_length=read_length,
+    mean_template_length=mean_template_length, std_template_length=std_template_length, max_tlen=max_tlen,
+    bq0=bq0, k=k, sigma=sigma, comment=comment)
 
 
 @cli.command('list-read-models')

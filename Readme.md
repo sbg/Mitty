@@ -179,7 +179,7 @@ See later for a list of read models supplied with Mitty and their characteristic
 _The example assumes that a sample BAM file (sample.bam) has been downloaded to the working directory_
 
 ```
-mitty -v4 bam2illumina \ 
+mitty -v4 create-read-model bam2illumina \ 
   sample.bam \
   ./rd-model.pkl \
   "This model is taken from a BAM of unknown provenance" \
@@ -194,13 +194,30 @@ the model. You can create arbitrary models by specifying your own parameters. Pl
 the [read model documentation](docs/readmodelformat.md) for a description of all the parameters.
 
 
-#### Prepare completely synthetic read models
-Mitty also supplies a synthetic read model class and a corresponding model generator to generate custom 
-models for this class. This allows us to quickly create reads with a wide variety of independently 
-variable parameters.
+#### Prepare completely synthetic Illumina type read model
+([Example script](https://github.com/kghosesbg/mitty-demo-data/blob/master/read-models/synthetic-model.sh))
 
-As an example, we will prepare a read model from scratch with the following properties: single end reads, 
-read length of 121, 
+Mitty also supplies a model generator (``) to generate custom Illumina like read models
+with template sizes and base quality patterns following simple mathematical 
+distributions. This model generator allows us to quickly create reads with a 
+wide variety of independently variable parameters.
+
+```
+MODELNAME=synthetic-model.pkl
+
+mitty create-read-model synth-illumina \
+  ${MODELNAME} \
+  --read-length 121 \
+  --mean-template-length 400 \
+  --std-template-length 20 \
+  --bq0 30 \
+  --k 200 \
+  --sigma 5 \
+  --comment 'Model created for the demo' \
+```
+
+The generated read model looks like:
+![](docs/images/synthetic-model.pkl.png?raw=true)
 
   
 ### Generating perfect reads
