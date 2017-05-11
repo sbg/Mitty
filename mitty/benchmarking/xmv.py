@@ -139,6 +139,7 @@ def process_contig(bam_fp, long_qname_table, max_MQ, max_v_idx, max_xd, referenc
 def plot_figures(xmv_mat, fig_prefix=None, plot_bin_size=5):
   plot_MQ(xmv_mat, fig_prefix=fig_prefix)
   plot_AA(xmv_mat, fig_prefix=fig_prefix, plot_bin_size=plot_bin_size)
+  plot_mean_MQ_heatmap(xmv_mat, fig_prefix=fig_prefix, variant_bin_size=plot_bin_size, derr_bin_size=5)
 
 
 def plot_MQ(xmv_mat, fig_prefix):
@@ -343,3 +344,58 @@ def plot_vcounts(ax, xmv_mat, plot_bin_size=5):
                       color='k', label='Count', show_ax_label=True, yscale='log')
   plt.legend(handles=[tot_p], loc='lower center', fontsize=9)
   ax.set_ylabel('Read count')
+
+
+def plot_mean_MQ_heatmap(xmv_mat, fig_prefix, variant_bin_size=5, derr_bin_size=5):
+  fig = plt.figure(figsize=(6, 6))
+  plt.subplots_adjust(bottom=0.1, left=0.2, top=0.98, right=0.90, hspace=.01)
+  binned_MQ, v_bins, d_bins = bin_MQ_xmv_2d(xmv_mat, variant_bin_size=variant_bin_size, derr_bin_size=derr_bin_size)
+
+  plt.imshow(binned_MQ, cmap=plt.cm.gray_r,
+            origin='lower', extent=(v_bins[0], v_bins[-1], d_bins[0], d_bins[-1]),
+            aspect='auto', interpolation='none')
+  plt.colorbar(label='MQ')
+  plt.xlabel('Variant size')
+  plt.ylabel(r'$d_{err}$')
+
+  plt.savefig(fig_prefix + '_MQ_hm.png')
+
+
+def bin_MQ_xmv_2d(xmv_mat, variant_bin_size=5, derr_bin_size=20):
+  """Bin the xmv_mat in cells variant_bin_size x derr_bin_size and fill it with mean MQ for each cell
+
+  :param xmv_mat:
+  :param variant_bin_size:
+  :param derr_bin_size:
+  :return:
+  """
+  b_v, b_d = variant_bin_size, derr_bin_size
+  d_max = int((xmv_mat.shape[0] - 3) / 2)
+  n_d = max(2, int(d_max / b_d))
+  v_max = int((xmv_mat.shape[2] - 3) / 2)
+  n_v = max(2, int(v_max / b_v))
+
+  mq_vector = np.arange(xmv_mat.shape[1])
+
+  binned_MQ, v_bins, d_bins = np.zeros(shape=(2 * n_d + 1, 2 * n_v + 1), dtype=float), [], []
+  for i in range(-n_d, n_d + 1):
+    for j in range(-n_v, n_v + 1):
+      d_slice, v_slice = slice(i, b_d), slice(j, b_v)
+      mq_mat = xmv_mat[d_max + d_slice[0]:d_max + d_slice[1], :, v_max + 2 + v_slice[0]:v_max + 2 + v_slice[1]].sum(axis=0).sum(axis=1)
+      binned_MQ[n_d + i, n_v + j] = (mq_vector * mq_mat).sum() / max(1, mq_mat.sum())
+
+      if i == 0:
+        v_bins += [(v_slice[0] + v_slice[1] - 1) / 2]
+      if j == 0:
+        d_bins += [(d_slice[0] + d_slice[1] - 1) / 2]
+
+  return binned_MQ, v_bins, d_bins
+
+
+def slice(k, b_k):
+  k_slice = (0, 1)
+  if k < 0:
+    k_slice = (b_k * k, b_k * (k + 1))
+  elif k > 0:
+    k_slice = (b_k * (k - 1) + 1, b_k * k + 1)
+  return k_slice
