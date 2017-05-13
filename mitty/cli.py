@@ -503,18 +503,34 @@ def alignment_debug_plot(datafile, fig_prefix, plot_bin_size):
   xmv.plot_figures(xmv_mat, fig_prefix=fig_prefix, plot_bin_size=plot_bin_size)
 
 
-@debug_tools.command('poor-alignments', short_help="Extract the poorly aligned reads from a BAM")
+@debug_tools.command('subset-bam', short_help="Extract the poorly aligned reads from a BAM")
 @click.argument('bamin', type=click.Path(exists=True))
 @click.argument('sidecar', type=click.Path(exists=True))
 @click.argument('bamout', type=click.Path())
-@click.argument('threshold', type=int)
+@click.option('--d-range', type=(int, int), default=(-200, 200))
+@click.option('--reject-d-range', help='Reject reads inside the range instead of outside')
+@click.option('--v-range', type=(int, int), default=(-200, 200))
+@click.option('--reject-v-range', help='Reject reads inside the range instead of outside')
+@click.option('--reject-reads-with-variants', is_flag=True, help='Reject any reads carrying variants')
+@click.option('--reject-reference-reads', is_flag=True, help='Reject reads with no variants')
 @click.option('--no-sort', is_flag=True, help='Leave the unsorted BAM fragments as is. Required if using an external tool to merge + sort + index')
 @click.option('--strict-scoring', is_flag=True, help="Don't consider breakpoints when scoring alignment")
 @click.option('--processes', default=2, help='How many processes to use for computation')
-def poor_alignments(bamin, sidecar, bamout, threshold, no_sort, strict_scoring, processes):
+def subset_bam(bamin, sidecar, bamout,
+               d_range, reject_d_range,
+               v_range, reject_v_range,
+               reject_reads_with_variants, reject_reference_reads,
+               no_sort, strict_scoring, processes):
   """Produce a subset of an input BAM containing the reads which have alignment errors above a given threshold"""
-  import mitty.benchmarking.pooralignments as pal
-  pal.main(bam_fname=bamin, sidecar_fname=sidecar, out_fname=bamout, xd_threshold=threshold,
+  import mitty.benchmarking.subsetbam as sub
+  assert d_range[0] <= d_range[1], 'd_range error ({})'.format(d_range)
+  assert v_range[0] <= v_range[1], 'v_range error ({})'.format(v_range)
+  assert not (reject_reads_with_variants and reject_reference_reads), 'Can not reject both variant and reference reads'
+  sub.main(bam_fname=bamin, sidecar_fname=sidecar, out_fname=bamout,
+           d_range=d_range, reject_d_range=reject_d_range,
+           v_range=v_range, reject_v_range=reject_v_range,
+           reject_reads_with_variants=reject_reads_with_variants,
+           reject_reference_reads=reject_reference_reads,
            strict_scoring=strict_scoring, sort_and_index=not no_sort, processes=processes)
 
 

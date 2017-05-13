@@ -1,5 +1,8 @@
 Release Notes
 =============
+2.19.0
+- Enhancement: subset-bam tool (formerly poor-alignments) now performs many
+functions related to extracting reads from a BAM based on d_err and variant size
 
 2.18.0
 - Enhancement: Added mean MQ heatmap over d_err and variant size

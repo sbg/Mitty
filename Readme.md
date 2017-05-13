@@ -467,19 +467,43 @@ This invocation will process `${BAM}` and summarize the alignment performance in
 ![Alignment accuracy plots](docs/images/aligner-report-example-2.png?raw=true "Alignment accuracy plots")
 
 
-## Problem reads BAM
+## Subset a BAM for detailed analysis
 ([Example script](https://github.com/kghosesbg/mitty-demo-data/blob/master/poor-alignments/extract-poor-alignments.sh))
 
-The `poor-alignments` subtool will produce a subset of an input BAM containing the reads which
-have alignment errors above a given threshold
+The `subset-bam` debug subtool allows us to select out reads from a BAM based on whether they contain
+variants and whether they fall within a certain d_err range
 
+### Ex 1: Extract reads from SNPs only
 ```
-mitty -v4 debug poor-alignments \
-  ${BAM} \
+BAMOUT=HG00119-bwa-snps.bam
+mitty -v4 debug subset-bam \
+  ${BAMIN} \
   ${FASTQ_PREFIX}-corrupt-lq.txt \
-  poor-${BAM} \
-  5
+  ${BAMOUT} \
+  --v-range 0 0 \
+  --reject-reference-reads \
+  --processes 2
 ```
+
+![Reads with SNPs only](docs/images/igv-poor-alignments-example.png?raw=true "Poor alignments near variants")
+
+
+
+### Ex 2: Extract reads from misaligned long indels only
+```
+BAMOUT=HG00119-bwa-long-indels.bam
+mitty -v4 debug subset-bam \
+  ${BAMIN} \
+  ${FASTQ_PREFIX}-corrupt-lq.txt \
+  ${BAMOUT} \
+  --v-range -10000 -50 \
+  --d-range 5 5 \
+  --reject-d-range \
+  --reject-reference-reads \
+  --processes 2
+```
+
+
 
 The image below shows a genome browser view of a cluster of poor alignments near a group of three variants.
 ![Poor alignments near variants](docs/images/igv-poor-alignments-example.png?raw=true "Poor alignments near variants")
