@@ -488,10 +488,22 @@ mitty -v4 debug subset-bam \
 ![Reads with SNPs only](docs/images/igv-subsetbam-snp-example.png?raw=true "Reads under SNPs")
 
 
-
-### Ex 2: Extract only reads from deletions mis-aligned by more than 5 bp
+### Ex 2: Extract only correctly aligned reads from deletions
 ```
-BAMOUT=HG00119-bwa-pool-del.bam
+BAMOUT=HG00119-bwa-good-del.bam
+mitty -v4 debug subset-bam \
+  ${BAMIN} \
+  ${FASTQ_PREFIX}-corrupt-lq.txt \
+  ${BAMOUT} \
+  --v-range -10000 -1 \
+  --d-range -5 5 \
+  --reject-reference-reads \
+  --processes 2
+```
+
+### Ex 3: Extract only reads from deletions mis-aligned by more than 5 bp
+```
+BAMOUT=HG00119-bwa-poor-del.bam
 mitty -v4 debug subset-bam \
   ${BAMIN} \
   ${FASTQ_PREFIX}-corrupt-lq.txt \
@@ -503,11 +515,7 @@ mitty -v4 debug subset-bam \
   --processes 2
 ```
 
-
-
-The image below shows a genome browser view of a cluster of poor alignments near a group of three variants.
-![Poor alignments near variants](docs/images/igv-poor-alignments-example.png?raw=true "Poor alignments near variants")
-
+![Reads undel DELs](docs/images/igv-subsetbam-del-example.png?raw=true "Reads undel DELs")
 
 
 ## Variant calling accuracy, parametrized by variant size
