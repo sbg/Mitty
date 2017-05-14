@@ -11,13 +11,13 @@ from mitty.benchmarking.alignmentscore import score_alignment_error, load_qname_
 __process_stop_code__ = 'SETECASTRONOMY'
 logger = logging.getLogger(__name__)
 
-# ref_reads = {'keep', 'discard', 'only-keep'}
+
 def main(bam_fname, sidecar_fname, out_fname,
          d_range=(-200, 200), reject_d_range=False,
          v_range=(-200, 200), reject_v_range=False,
          reject_reads_with_variants=False,
          reject_reference_reads=False,
-         strict_scoring=False, sort_and_index=True, processes=2):
+         strict_scoring=False, do_not_index=True, processes=2):
   """This function extracts poorly aligned reads from a BAM from simulated reads"""
   # Set up the I/O queues and place all BAM contigs on the work queue
   work_q = Queue()
@@ -36,7 +36,7 @@ def main(bam_fname, sidecar_fname, out_fname,
                   v_range, reject_v_range,
                   reject_reads_with_variants,
                   reject_reference_reads,
-                  strict_scoring, work_q, sort_and_index))
+                  strict_scoring, work_q))
     for i in range(processes)
   ]
   for p in p_list:
@@ -46,8 +46,7 @@ def main(bam_fname, sidecar_fname, out_fname,
   for p in p_list:
     p.join()
 
-  if sort_and_index:
-    merge_sorted_fragments(out_fname, file_fragments)
+  merge_sorted_fragments(out_fname, file_fragments, do_not_index)
 
 
 def worker(worker_id, bam_fname, long_qname_table, bam_out,
@@ -55,7 +54,7 @@ def worker(worker_id, bam_fname, long_qname_table, bam_out,
            v_range, reject_v_range,
            reject_reads_with_variants,
            reject_reference_reads,
-           strict_scoring=False, in_q=None, sort=True):
+           strict_scoring=False, in_q=None):
   logger.debug('Starting worker {} ...'.format(worker_id))
 
   t0, tot_cnt = time.time(), 0
@@ -82,13 +81,12 @@ def worker(worker_id, bam_fname, long_qname_table, bam_out,
   logger.debug(
     'Worker {}: Processed {} reads in {:2f}s ({:2f} r/s)'.format(worker_id, tot_cnt, t1 - t0, tot_cnt / (t1 - t0)))
 
-  if sort:
-    logger.debug('Sorting {} -> {}'.format(bam_out, bam_out + '.sorted'))
-    t0 = time.time()
-    pysam.sort('-m', '1G', '-o', bam_out + '.sorted', bam_out)
-    os.remove(bam_out)
-    t1 = time.time()
-    logger.debug('... {:0.2f}s'.format(t1 - t0))
+  logger.debug('Sorting {} -> {}'.format(bam_out, bam_out + '.sorted'))
+  t0 = time.time()
+  pysam.sort('-m', '1G', '-o', bam_out + '.sorted', bam_out)
+  os.remove(bam_out)
+  t1 = time.time()
+  logger.debug('... {:0.2f}s'.format(t1 - t0))
 
 
 def process_contig(bam_fp, reference, long_qname_table,
@@ -133,7 +131,7 @@ def process_contig(bam_fp, reference, long_qname_table,
   return cnt
 
 
-def merge_sorted_fragments(bam_fname, file_fragments):
+def merge_sorted_fragments(bam_fname, file_fragments, do_not_index):
   logger.debug('Merging sorted BAM fragments ...')
   t0 = time.time()
   pysam.merge('-rpcf', bam_fname, *[f + '.sorted' for f in file_fragments])
@@ -144,8 +142,9 @@ def merge_sorted_fragments(bam_fname, file_fragments):
   for f in file_fragments:
    os.remove(f + '.sorted')
 
-  logger.debug('BAM index {} ...'.format(bam_fname))
-  t0 = time.time()
-  pysam.index(bam_fname, bam_fname + '.bai')
-  t1 = time.time()
-  logger.debug('... {:0.2f}s'.format(t1 - t0))
+  if not do_not_index:
+    logger.debug('BAM index {} ...'.format(bam_fname))
+    t0 = time.time()
+    pysam.index(bam_fname, bam_fname + '.bai')
+    t1 = time.time()
+    logger.debug('... {:0.2f}s'.format(t1 - t0))

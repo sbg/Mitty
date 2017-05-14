@@ -513,14 +513,15 @@ def alignment_debug_plot(datafile, fig_prefix, plot_bin_size):
 @click.option('--reject-v-range', is_flag=True, help='Reject reads inside the range instead of outside')
 @click.option('--reject-reads-with-variants', is_flag=True, help='Reject any reads carrying variants')
 @click.option('--reject-reference-reads', is_flag=True, help='Reject reads with no variants')
-@click.option('--no-sort', is_flag=True, help='Leave the unsorted BAM fragments as is. Required if using an external tool to merge + sort + index')
+@click.option('--do-not-index', is_flag=True, help='Do not index BAM file')
 @click.option('--strict-scoring', is_flag=True, help="Don't consider breakpoints when scoring alignment")
 @click.option('--processes', default=2, help='How many processes to use for computation')
 def subset_bam(bamin, sidecar, bamout,
                d_range, reject_d_range,
                v_range, reject_v_range,
                reject_reads_with_variants, reject_reference_reads,
-               no_sort, strict_scoring, processes):
+               strict_scoring,
+               do_not_index, processes):
   """Produce a subset of an input BAM based on d_err and variant size"""
   import mitty.benchmarking.subsetbam as sub
   assert d_range[0] <= d_range[1], 'd_range error ({})'.format(d_range)
@@ -531,7 +532,7 @@ def subset_bam(bamin, sidecar, bamout,
            v_range=v_range, reject_v_range=reject_v_range,
            reject_reads_with_variants=reject_reads_with_variants,
            reject_reference_reads=reject_reference_reads,
-           strict_scoring=strict_scoring, sort_and_index=not no_sort, processes=processes)
+           strict_scoring=strict_scoring, do_not_index=do_not_index, processes=processes)
 
 
 @cli.command('filter-eval-vcf', short_help='Split out the FP and FN from an eval.vcf')
