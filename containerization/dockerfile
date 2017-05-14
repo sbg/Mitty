@@ -13,13 +13,8 @@ RUN apt-get update && apt-get install -y \
   zlib1g-dev \
   git \
   tabix \
-  vcftools
-
-# Install bam util, which is what we use for bam diffs
-RUN git clone https://github.com/statgen/bamUtil.git \
- && cd bamUtil \
- && make cloneLib \
- && make install INSTALLDIR=/usr/local/bin
+  vcftools \
+  samtools
 
 # Run these before adding mitty3 code so we can cache the libraries
 RUN pip3 install -U pip
