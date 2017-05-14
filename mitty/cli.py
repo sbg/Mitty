@@ -503,14 +503,14 @@ def alignment_debug_plot(datafile, fig_prefix, plot_bin_size):
   xmv.plot_figures(xmv_mat, fig_prefix=fig_prefix, plot_bin_size=plot_bin_size)
 
 
-@debug_tools.command('subset-bam', short_help="Extract the poorly aligned reads from a BAM")
+@debug_tools.command('subset-bam', short_help="Subset a BAM based on d_err and variant size")
 @click.argument('bamin', type=click.Path(exists=True))
 @click.argument('sidecar', type=click.Path(exists=True))
 @click.argument('bamout', type=click.Path())
 @click.option('--d-range', type=(int, int), default=(-200, 200))
-@click.option('--reject-d-range', help='Reject reads inside the range instead of outside')
+@click.option('--reject-d-range', is_flag=True, help='Reject reads inside the range instead of outside')
 @click.option('--v-range', type=(int, int), default=(-200, 200))
-@click.option('--reject-v-range', help='Reject reads inside the range instead of outside')
+@click.option('--reject-v-range', is_flag=True, help='Reject reads inside the range instead of outside')
 @click.option('--reject-reads-with-variants', is_flag=True, help='Reject any reads carrying variants')
 @click.option('--reject-reference-reads', is_flag=True, help='Reject reads with no variants')
 @click.option('--no-sort', is_flag=True, help='Leave the unsorted BAM fragments as is. Required if using an external tool to merge + sort + index')
@@ -521,7 +521,7 @@ def subset_bam(bamin, sidecar, bamout,
                v_range, reject_v_range,
                reject_reads_with_variants, reject_reference_reads,
                no_sort, strict_scoring, processes):
-  """Produce a subset of an input BAM containing the reads which have alignment errors above a given threshold"""
+  """Produce a subset of an input BAM based on d_err and variant size"""
   import mitty.benchmarking.subsetbam as sub
   assert d_range[0] <= d_range[1], 'd_range error ({})'.format(d_range)
   assert v_range[0] <= v_range[1], 'v_range error ({})'.format(v_range)
