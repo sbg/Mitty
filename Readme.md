@@ -473,7 +473,7 @@ This invocation will process `${BAM}` and summarize the alignment performance in
 The `subset-bam` debug subtool allows us to select out reads from a BAM based on whether they contain
 variants and whether they fall within a certain d_err range
 
-### Ex 1: Extract reads from SNPs only
+### Ex 1: Extract only reads from SNPs
 ```
 BAMOUT=HG00119-bwa-snps.bam
 mitty -v4 debug subset-bam \
@@ -485,19 +485,19 @@ mitty -v4 debug subset-bam \
   --processes 2
 ```
 
-![Reads with SNPs only](docs/images/igv-poor-alignments-example.png?raw=true "Poor alignments near variants")
+![Reads with SNPs only](docs/images/igv-subsetbam-snp-example.png?raw=true "Reads under SNPs")
 
 
 
-### Ex 2: Extract reads from misaligned long indels only
+### Ex 2: Extract only reads from deletions mis-aligned by more than 5 bp
 ```
-BAMOUT=HG00119-bwa-long-indels.bam
+BAMOUT=HG00119-bwa-pool-del.bam
 mitty -v4 debug subset-bam \
   ${BAMIN} \
   ${FASTQ_PREFIX}-corrupt-lq.txt \
   ${BAMOUT} \
-  --v-range -10000 -50 \
-  --d-range 5 5 \
+  --v-range -10000 -1 \
+  --d-range -5 5 \
   --reject-d-range \
   --reject-reference-reads \
   --processes 2
