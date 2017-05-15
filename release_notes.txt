@@ -1,7 +1,11 @@
 Release Notes
 =============
+2.19.2
+- Enhancement: god-aligner outputs V1 CIGARs by default, V2 CIGARs if requested
+
 2.19.1
-- workaround: pysam.index is finicky (on Linux). Adding option to skip indexing
+- workaround: pysam.index is finicky (on Linux). Adding option to god-aligner to skip indexing
+Used on the platform and on platforms where pysam.index is finicky
 
 2.19.0
 - Enhancement: subset-bam tool (formerly poor-alignments) now performs many

@@ -3,6 +3,7 @@ import time
 import logging
 from multiprocessing import Process, Queue
 import os
+import re
 
 import pysam
 
@@ -47,6 +48,7 @@ def process_multi_threaded(
   fasta, bam_fname, fastq1, sidecar_fname, fastq2=None, threads=1, max_templates=None,
   platform='Illumina',
   sample_name='Seven',
+  cigar_v2=True,
   do_not_index=False):
   """
 
@@ -59,6 +61,7 @@ def process_multi_threaded(
   :param max_templates:
   :param platform:
   :param sample_name:
+  :param cigar_v2: If True, write out CIGARs in V2 format
   :param do_not_index: If True, the output BAMs will be collated into one bam, sorted and indexed
                        the N output BAMs created by the individual workers will be deleted at the end.
                        If False, the N output BAMs created by the individual workers will remain. This
@@ -78,7 +81,10 @@ def process_multi_threaded(
   file_fragments = ['{}.{:04}.bam'.format(bam_fname, i) for i in range(threads)]
 
   in_queue = Queue()
-  p_list = [Process(target=disciple, args=(file_fragments[i], bam_hdr, rg_id, long_qname_table, in_queue)) for i in range(threads)]
+  p_list = [Process(target=disciple,
+                    args=(file_fragments[i], bam_hdr, rg_id, long_qname_table, cigar_v2,
+                          in_queue))
+            for i in range(threads)]
   for p in p_list:
     p.start()
 
@@ -115,13 +121,14 @@ def process_multi_threaded(
   merge_sorted_fragments(bam_fname, file_fragments, do_not_index=do_not_index)
 
 
-def disciple(bam_fname, bam_hdr, rg_id, long_qname_table, in_queue):
+def disciple(bam_fname, bam_hdr, rg_id, long_qname_table, cigar_v2, in_queue):
   """Create a BAM file from the FASTQ lines fed to it via in_queue
 
   :param bam_fname:
   :param bam_hdr:
   :param rg_id:
   :param long_qname_table:
+  :param cigar_v2:
   :param in_queue:
   :return:
   """
@@ -131,7 +138,7 @@ def disciple(bam_fname, bam_hdr, rg_id, long_qname_table, in_queue):
   ref_dict = {k['SN']: n for n, k in enumerate(bam_hdr['SQ'])}
   cnt = 0
   for cnt, (qname, read_data) in enumerate(iter(in_queue.get, __process_stop_code__)):
-    write_perfect_reads(qname, rg_id, long_qname_table, ref_dict, read_data, fp)
+    write_perfect_reads(qname, rg_id, long_qname_table, ref_dict, read_data, cigar_v2, fp)
   fp.close()
   t1 = time.time()
   logger.debug('... {}: {} reads in {:0.2f}s ({:0.2f} t/s)'.format(bam_fname, cnt, t1 - t0, cnt/(t1 - t0)))
@@ -146,7 +153,8 @@ def disciple(bam_fname, bam_hdr, rg_id, long_qname_table, in_queue):
   logger.debug('Shutting down thread for {}'.format(bam_fname))
 
 
-def write_perfect_reads(qname, rg_id, long_qname_table, ref_dict, read_data, fp):
+def write_perfect_reads(qname, rg_id, long_qname_table, ref_dict, read_data, cigar_v2,
+                        fp):
   """Given reads begining to a template, write out the perfect alignments to file
 
   :param qname:
@@ -155,6 +163,7 @@ def write_perfect_reads(qname, rg_id, long_qname_table, ref_dict, read_data, fp)
   :param ref_dict: dict containing reference names mapped to ref_id
   :param read_data: [x1, x2, ... ] where xi is (seq, qual)
                      and, e.g. [x1, x2] constitute a pair, if the input is paired end
+  :param cigar_v2: output CIGARs in V2 format
   :param fp: pysam file pointer to write out
   :return:
   """
@@ -167,7 +176,7 @@ def write_perfect_reads(qname, rg_id, long_qname_table, ref_dict, read_data, fp)
     read.qname = qname
     read.reference_id = ref_dict[ri.chrom]
     read.pos = ri.pos - 1
-    read.cigarstring = ri.cigar
+    read.cigarstring = ri.cigar if cigar_v2 else cigarv2_v1(ri.cigar)
     read.mapq = 60
     read.set_tag('RG', rg_id, value_type='Z')
 
@@ -194,6 +203,28 @@ def write_perfect_reads(qname, rg_id, long_qname_table, ref_dict, read_data, fp)
 
   for r in reads:
     fp.write(r)
+
+
+pattern = re.compile('([MIDNSHPX=])')
+
+
+def cigarv2_v1(cigar_v2):
+  """Convert a V2 cigar_v1 string to V1
+
+  :param cigarstring:
+  :return:
+  """
+  values = pattern.split(cigar_v2.replace('=', 'M').replace('X', 'M'))
+  cigar_v1 = []
+  last_op, op_cnt = values[1], 0
+  for op in zip(values[::2], values[1::2]):
+    if op[1] == last_op:
+      op_cnt += int(op[0])
+    else:
+      cigar_v1 += [str(op_cnt), last_op]
+      last_op, op_cnt = op[1], int(op[0])
+  cigar_v1 += [str(op_cnt), last_op]
+  return ''.join(cigar_v1)
 
 
 def merge_sorted_fragments(bam_fname, file_fragments, do_not_index=False):
