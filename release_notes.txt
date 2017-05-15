@@ -1,5 +1,8 @@
 Release Notes
 =============
+2.19.1
+- workaround: pysam.index is finicky (on Linux). Adding option to skip indexing
+
 2.19.0
 - Enhancement: subset-bam tool (formerly poor-alignments) now performs many
 functions related to extracting reads from a BAM based on d_err and variant size

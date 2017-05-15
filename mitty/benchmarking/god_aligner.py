@@ -47,7 +47,7 @@ def process_multi_threaded(
   fasta, bam_fname, fastq1, sidecar_fname, fastq2=None, threads=1, max_templates=None,
   platform='Illumina',
   sample_name='Seven',
-  sort_and_index=True):
+  do_not_index=False):
   """
 
   :param bam_fname:
@@ -59,10 +59,10 @@ def process_multi_threaded(
   :param max_templates:
   :param platform:
   :param sample_name:
-  :param sort_and_index: If True, the output BAMs will be collated into one bam, sorted and indexed
-                         the N output BAMs created by the individual workers will be deleted at the end.
-                         If False, the N output BAMs created by the individual workers will remain. This
-                         option allows users to merge, sort and index the BAM fragments with their own tools
+  :param do_not_index: If True, the output BAMs will be collated into one bam, sorted and indexed
+                       the N output BAMs created by the individual workers will be deleted at the end.
+                       If False, the N output BAMs created by the individual workers will remain. This
+                       option allows users to merge, sort and index the BAM fragments with their own tools
   :return:
 
   Note: The pysam sort invocation expects 1GB/thread to be available
@@ -78,7 +78,7 @@ def process_multi_threaded(
   file_fragments = ['{}.{:04}.bam'.format(bam_fname, i) for i in range(threads)]
 
   in_queue = Queue()
-  p_list = [Process(target=disciple, args=(file_fragments[i], bam_hdr, rg_id, long_qname_table, in_queue, sort_and_index)) for i in range(threads)]
+  p_list = [Process(target=disciple, args=(file_fragments[i], bam_hdr, rg_id, long_qname_table, in_queue)) for i in range(threads)]
   for p in p_list:
     p.start()
 
@@ -112,11 +112,10 @@ def process_multi_threaded(
   t1 = time.time()
   logger.debug('Processed {} templates in {:0.2f}s ({:0.2f} t/s)'.format(cnt, t1 - t0, cnt/(t1 - t0)))
 
-  if sort_and_index:
-    merge_sorted_fragments(bam_fname, file_fragments, threads)
+  merge_sorted_fragments(bam_fname, file_fragments, do_not_index=do_not_index)
 
 
-def disciple(bam_fname, bam_hdr, rg_id, long_qname_table, in_queue, sort=False):
+def disciple(bam_fname, bam_hdr, rg_id, long_qname_table, in_queue):
   """Create a BAM file from the FASTQ lines fed to it via in_queue
 
   :param bam_fname:
@@ -124,7 +123,6 @@ def disciple(bam_fname, bam_hdr, rg_id, long_qname_table, in_queue, sort=False):
   :param rg_id:
   :param long_qname_table:
   :param in_queue:
-  :param sort: If False, don't sort the BAM fragments
   :return:
   """
   logger.debug('Writing to {} ...'.format(bam_fname))
@@ -138,13 +136,12 @@ def disciple(bam_fname, bam_hdr, rg_id, long_qname_table, in_queue, sort=False):
   t1 = time.time()
   logger.debug('... {}: {} reads in {:0.2f}s ({:0.2f} t/s)'.format(bam_fname, cnt, t1 - t0, cnt/(t1 - t0)))
 
-  if sort:
-    logger.debug('Sorting {} -> {}'.format(bam_fname, bam_fname + '.sorted'))
-    t0 = time.time()
-    pysam.sort('-m', '1G', '-o', bam_fname + '.sorted', bam_fname)
-    os.remove(bam_fname)
-    t1 = time.time()
-    logger.debug('... {:0.2f}s'.format(t1 - t0))
+  logger.debug('Sorting {} -> {}'.format(bam_fname, bam_fname + '.sorted'))
+  t0 = time.time()
+  pysam.sort('-m', '1G', '-o', bam_fname + '.sorted', bam_fname)
+  os.remove(bam_fname)
+  t1 = time.time()
+  logger.debug('... {:0.2f}s'.format(t1 - t0))
 
   logger.debug('Shutting down thread for {}'.format(bam_fname))
 
@@ -199,7 +196,7 @@ def write_perfect_reads(qname, rg_id, long_qname_table, ref_dict, read_data, fp)
     fp.write(r)
 
 
-def merge_sorted_fragments(bam_fname, file_fragments, threads):
+def merge_sorted_fragments(bam_fname, file_fragments, do_not_index=False):
   logger.debug('Merging sorted BAM fragments ...')
   t0 = time.time()
   pysam.merge('-rpcf', bam_fname, *[f + '.sorted' for f in file_fragments])
@@ -210,8 +207,9 @@ def merge_sorted_fragments(bam_fname, file_fragments, threads):
   for f in file_fragments:
    os.remove(f + '.sorted')
 
-  logger.debug('BAM index ...')
-  t0 = time.time()
-  pysam.index(bam_fname, bam_fname + 'bai')
-  t1 = time.time()
-  logger.debug('... {:0.2f}s'.format(t1 - t0))
+  if not do_not_index:
+    logger.debug('BAM index ...')
+    t0 = time.time()
+    pysam.index(bam_fname, bam_fname + '.bai')
+    t1 = time.time()
+    logger.debug('... {:0.2f}s'.format(t1 - t0))

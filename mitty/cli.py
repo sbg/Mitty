@@ -246,8 +246,11 @@ def simulate_variants(vcfout, fasta, sample, bed, seed, p_het, model):
 @click.option('--platform-name', default='Illumina', help='If supplied, this is put into the BAM header')
 @click.option('--max-templates', type=int, help='For debugging: quits after processing these many templates')
 @click.option('--threads', default=2)
-@click.option('--no-sort', is_flag=True, help='Leave the unsorted BAM fragments as is. Required if using an external tool to merge + sort + index')
-def god_aligner(fasta, bam, sample_name, platform_name, fastq1, sidecar_in, fastq2, max_templates, threads, no_sort):
+@click.option('--do-not-index', is_flag=True, help='Leave the unsorted BAM fragments as is. Required if using an external tool to merge + sort + index')
+def god_aligner(fasta, bam, sample_name, platform_name, fastq1, sidecar_in, fastq2,
+                max_templates,
+                threads,
+                do_not_index):
   """Given a FASTA.ann file and FASTQ made of simulated reads,
      construct a perfectly aligned BAM from them.
 
@@ -260,7 +263,8 @@ def god_aligner(fasta, bam, sample_name, platform_name, fastq1, sidecar_in, fast
      Note: The program uses the fasta.ann file to construct the BAM header"""
   import mitty.benchmarking.god_aligner as god
   god.process_multi_threaded(
-    fasta, bam, fastq1, sidecar_in, fastq2, threads, max_templates, platform_name, sample_name, not no_sort)
+    fasta, bam, fastq1, sidecar_in, fastq2, threads, max_templates, platform_name, sample_name,
+    do_not_index=do_not_index)
 
 
 @cli.command('filter-bam', short_help='Refine alignment scoring')
