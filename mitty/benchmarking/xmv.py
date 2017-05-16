@@ -274,6 +274,12 @@ def plot_read_fate(ax, xmv_mat):
   ax.barh(3, wc, color='pink', align='center')
   ax.barh(4, um, color='c', align='center')
 
+  ax.text(d0, 0, d0, va='center', ha='right')
+  ax.text(within_d50 - d0, 1, within_d50 - d0, va='center', ha='left')
+  ax.text(within_dmax - within_d50, 2, within_dmax - within_d50, va='center', ha='left')
+  ax.text(wc, 3, wc, va='center', ha='left')
+  ax.text(um, 4, um, va='center', ha='left')
+
   ax.set_yticks([0, 1, 2, 3, 4])
   ax.set_yticklabels([r'$d_{err} = 0$', r'$0 < |d_{err}| \leq 50$', r'50 < $|d_{err}|$', 'WC', 'UM'])
   ax.set_ylim([-0.5, 4.5])
