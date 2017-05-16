@@ -102,7 +102,6 @@ def process_contig(bam_fp, reference, long_qname_table,
     if r.flag & 0b100100000000: continue  # Skip supplementary or secondary alignments
     cnt += 1
     ri = parse_qname(r.qname, long_qname_table=long_qname_table)[1 if r.is_read2 else 0]
-    d_err = score_alignment_error(r, ri=ri, max_d=max_d, strict=strict_scoring)
 
     is_ref_read = len(ri.v_list) == 0
     if is_ref_read and reject_reference_reads:
@@ -111,18 +110,15 @@ def process_contig(bam_fp, reference, long_qname_table,
     if not is_ref_read and reject_reads_with_variants:
       continue
 
+    d_err = score_alignment_error(r, ri=ri, max_d=max_d, strict=strict_scoring)
+
     in_d_err_range = d_range[0] <= d_err <= d_range[1]
     if in_d_err_range == reject_d_range:
       continue
 
     if not is_ref_read:
-      keep_read = False
-      for v in ri.v_list:
-        in_v_range = v_range[0] < v < v_range[1]
-        if in_v_range != reject_v_range:
-          keep_read = True
-          break
-      if not keep_read:
+      # All variants are inside/outside v_range and we want to/do not want to reject the range
+      if all((v_range[0] <= v <= v_range[1]) == reject_v_range for v in ri.v_list):
         continue
 
     r.set_tag('XD', d_err)
