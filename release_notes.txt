@@ -2,7 +2,7 @@ Release Notes
 =============
 2.19.3
 - bugfix: subset-bam: fixed v range to be inclusive
-
+- enhancement: read count heatmap added to alignment analysis
 
 2.19.2
 - Enhancement: god-aligner outputs V1 CIGARs by default, V2 CIGARs if requested
