@@ -468,7 +468,7 @@ This invocation will process `${BAM}` and summarize the alignment performance in
 
 
 ## Subset a BAM for detailed analysis
-([Example script](https://github.com/kghosesbg/mitty-demo-data/blob/master/poor-alignments/extract-poor-alignments.sh))
+([Example script](https://github.com/kghosesbg/mitty-demo-data/blob/master/subset-bam/subset-bam.sh))
 
 The `subset-bam` debug subtool allows us to select out reads from a BAM based on whether they contain
 variants and whether they fall within a certain d_err range
