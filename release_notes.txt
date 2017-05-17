@@ -1,6 +1,7 @@
 Release Notes
 =============
 2.19.3
+- bugfix: Fix to alignement scoring. Affects data with soft-clips and insertions
 - bugfix: subset-bam: fixed v range to be inclusive
 - enhancement: read count heatmap added to alignment analysis
 - enhancement: read fate bar chart now has read count numbers
