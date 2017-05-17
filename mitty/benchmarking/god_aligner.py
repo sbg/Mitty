@@ -1,16 +1,15 @@
+import logging
+import os
 import sys
 import time
-import logging
 from multiprocessing import Process, Queue
-import os
-import re
 
 import pysam
 
-from mitty.simulation.sequencing.writefastq import load_qname_sidecar, parse_qname
+from mitty.lib.cigars import cigarv2_v1
 from mitty.simulation.readgenerate import DNA_complement
+from mitty.simulation.sequencing.writefastq import load_qname_sidecar, parse_qname
 from mitty.version import __version__
-
 
 logger = logging.getLogger(__name__)
 
@@ -203,28 +202,6 @@ def write_perfect_reads(qname, rg_id, long_qname_table, ref_dict, read_data, cig
 
   for r in reads:
     fp.write(r)
-
-
-pattern = re.compile('([MIDNSHPX=])')
-
-
-def cigarv2_v1(cigar_v2):
-  """Convert a V2 cigar_v1 string to V1
-
-  :param cigarstring:
-  :return:
-  """
-  values = pattern.split(cigar_v2.replace('=', 'M').replace('X', 'M'))
-  cigar_v1 = []
-  last_op, op_cnt = values[1], 0
-  for op in zip(values[::2], values[1::2]):
-    if op[1] == last_op:
-      op_cnt += int(op[0])
-    else:
-      cigar_v1 += [str(op_cnt), last_op]
-      last_op, op_cnt = op[1], int(op[0])
-  cigar_v1 += [str(op_cnt), last_op]
-  return ''.join(cigar_v1)
 
 
 def merge_sorted_fragments(bam_fname, file_fragments, do_not_index=False):

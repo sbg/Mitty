@@ -1,4 +1,4 @@
-from mitty.benchmarking.god_aligner import cigarv2_v1
+from mitty.lib.cigars import cigarv2_v1
 
 
 def test_cigar_conversion():
