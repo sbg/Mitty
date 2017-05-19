@@ -2,7 +2,7 @@ from mitty.lib.cigars import cigarv2_v1
 
 
 def test_cigar_conversion():
-  """Converting cigar V2 to V1"""
+  """Cigars: Converting cigar V2 to V1"""
   test_cases = [
     ('33=1X79=1X26=1X109=', '250M'),
     ('1X26=1X123=1X82=1X15=', '250M'),

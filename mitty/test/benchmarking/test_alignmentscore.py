@@ -2,7 +2,7 @@ from mitty.benchmarking.alignmentscore import find_first_common_reference_matchi
 
 
 def test_ref_matching_base():
-  """Find first reference matching base positions"""
+  """d-err: Find first reference matching base positions"""
   test_cases = [
     ((100, '100M'), (130, '30S70M')),
     ((100, '10I90M'), (100, '10S90M')),
