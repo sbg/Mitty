@@ -13,7 +13,7 @@ cigar_parser = re.compile(r'(\d+)(\D)')
 def is_simple_case(cigar1, cigar2):
   _, _, op1, _ = cigar_parser.split(cigar1, maxsplit=1)
   _, _, op2, _ = cigar_parser.split(cigar2, maxsplit=1)
-  return (op1 == 'M' or op1 == 'X' or op1 == '=') and (op2 == 'M' or op2 == 'X' or op2 == '=')
+  return op1 in ['=', 'M', 'X'] and op2 in ['M', 'X', '=']
 
 
 def find_first_common_reference_matching_base_positions(r1, r2):
