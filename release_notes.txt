@@ -1,5 +1,8 @@
 Release Notes
 =============
+2.19.4
+- bugfix: alignment analysis plotting now properly handles simulations with no variants
+
 2.19.3
 - bugfix: Fix to alignement scoring. Affects data with soft-clips and insertions
 - bugfix: subset-bam: fixed v range to be inclusive

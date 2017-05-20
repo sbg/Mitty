@@ -341,8 +341,8 @@ def plot_alignment_accuracy_by_vsize(ax, xmv_mat, plot_bin_size=5):
 
 def plot_vcounts(ax, xmv_mat, plot_bin_size=5):
   v_cnt = xmv_mat.sum(axis=0).sum(axis=0)[1:]
-  n_max = 10 ** np.ceil(np.log10((v_cnt).max()))
-  n_min = 10 ** int(np.log10((v_cnt).min() + 1))
+  n_max = 10 ** np.ceil(np.log10(v_cnt.max() + 2))
+  n_min = 10 ** int(np.log10(v_cnt.min() + 1))
   tot_p = plot_panels(ax,
                       num=v_cnt,
                       bin_size=plot_bin_size,
@@ -370,7 +370,7 @@ def plot_mean_MQ_heatmap(xmv_mat, fig_prefix, variant_bin_size=5, derr_bin_size=
   plt.imshow(binned_rc, cmap=plt.cm.gray_r,
             origin='lower', extent=(v_bins[0], v_bins[-1], d_bins[0], d_bins[-1]),
             aspect='auto', interpolation='none',
-            norm=LogNorm(vmin=0.5, vmax=binned_rc.max()))
+            norm=LogNorm(vmin=0.5, vmax=binned_rc.max() + 1))
   plt.colorbar(label='Read count')
   plt.xlabel('Variant size')
 
