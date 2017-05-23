@@ -1,6 +1,7 @@
 Release Notes
 =============
 2.20.0
+- enhancement: subset-bam now saves paired reads
 - workaround: for qname bug in htslib
 - enhancement: qname-stats tool
 - bugfix: long qname file loading fix
