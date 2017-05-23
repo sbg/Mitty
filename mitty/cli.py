@@ -564,3 +564,17 @@ def filter_eval_vcf(vcfin, outprefix):
    making it suitable to use for read generation"""
   import mitty.benchmarking.filterevalvcf as fev
   fev.extract_fp_fn(vcfin, outprefix)
+
+
+@utils.command('qname-stats', short_help='Given a FASTQ + side-car show us qname distribution')
+@click.argument('fastq', type=click.Path(exists=True))
+@click.argument('sidecar', type=click.Path(exists=True))
+@click.option('--max-expected-qname', type=int, default=500, help='qname bin upper bound')
+def qname_stats(fastq, sidecar, max_expected_qname):
+  """A simple routine to load in a FASTQ file and give us the distribution of
+  qname lengths, because I was curious"""
+  import mitty.empirical.qnamestats as qs
+  qname_count = qs.main(fastq_fname=fastq, qname_overflow_fname=sidecar,
+                        max_expected_qname_length=max_expected_qname)
+  for n, ql in enumerate(qname_count):
+    print('{}, {}'.format(n, ql))

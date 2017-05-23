@@ -1,5 +1,10 @@
 Release Notes
 =============
+2.20.0
+- workaround: for qname bug in htslib
+- enhancement: qname-stats tool
+- bugfix: long qname file loading fix
+
 2.19.4
 - bugfix: alignment analysis plotting now properly handles simulations with no variants
 
