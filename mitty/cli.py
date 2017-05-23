@@ -29,28 +29,6 @@ def filter_vcf(vcfin, sample, bed, vcfout):
   mvio.prepare_variant_file(vcfin, sample, bed, vcfout)
 
 
-@cli.command('gc-cov')
-@click.argument('bam', type=click.Path(exists=True))
-@click.argument('fasta', type=click.Path(exists=True))
-@click.argument('pkl')
-@click.option('-b', '--block-len', type=int, default=10000, help='Block size for GC/cov computation')
-@click.option('-t', '--threads', type=int, default=1, help='Threads to use')
-def gc_cov(bam, fasta, pkl, block_len, threads):
-  """Calculate GC content vs coverage from a BAM. Save in pickle file"""
-  import mitty.empirical.gc as megc
-  megc.process_bam_parallel(bam, fasta, pkl, block_len=block_len, threads=threads)
-
-
-@cli.command('bq')
-@click.argument('bam', type=click.Path(exists=True))
-@click.argument('pkl')
-@click.option('-t', '--threads', type=int, default=1, help='Threads to use')
-def sample_bq(bam, pkl, threads):
-  """BQ distribution from BAM"""
-  import mitty.empirical.bq as bbq
-  bbq.process_bam_parallel(bam, pkl, threads=threads)
-
-
 @cli.group('create-read-model', short_help='Create read model from different sources')
 def create_read_model():
   pass
@@ -268,23 +246,6 @@ def god_aligner(fasta, bam, sample_name, platform_name, fastq1, sidecar_in, fast
     fasta, bam, fastq1, sidecar_in, fastq2, threads, max_templates, platform_name, sample_name,
     cigar_v2=cigar_v2,
     do_not_index=do_not_index)
-
-
-@cli.command('filter-bam', short_help='Refine alignment scoring')
-def filter_bam():
-  """Discard (simulated) reads from BAM whose alignment score passes a filter we set.
-
-  This is meant to be run after running a BAM diff between an aligned BAM and a perfect BAM.
-  The raw BAM diff will strictly flag any difference between the alignment and the perfect BAM
-  but for our analyses it may be sufficient to be less strict.
-
-  As an example, for some analysis we may not be concerned about alignments that have been soft-clipped
-  but are otherwise correct. In other analyses we may want to include such soft-clipped reads because
-  we suspect we are over-aggressive in soft-clipping.
-
-  **Currently under development**
-  """
-  click.echo('Currently under development')
 
 
 @cli.group('debug', short_help='Alignment and variant calling debugging tools')
@@ -542,16 +503,6 @@ def subset_bam(bamin, sidecar, bamout,
            strict_scoring=strict_scoring, do_not_index=do_not_index, processes=processes)
 
 
-@cli.command('filter-eval-vcf', short_help='Split out the FP and FN from an eval.vcf')
-@click.argument('vcfin', type=click.Path(exists=True))
-@click.argument('outprefix')
-def filter_eval_vcf(vcfin, outprefix):
-  """Subset VCF for given sample, apply BED file and filter out complex variants
-   making it suitable to use for read generation"""
-  import mitty.benchmarking.filterevalvcf as fev
-  fev.extract_fp_fn(vcfin, outprefix)
-
-
 def get_read_model(modelfile):
   """Return read module and model data given modelfile
 
@@ -576,3 +527,40 @@ def get_read_model(modelfile):
   }.get(model['model_class'])
 
   return read_module, model
+
+
+@cli.group('utils', short_help='Miscellaneous utilities')
+def utils():
+  pass
+
+
+@utils.command('gc-cov')
+@click.argument('bam', type=click.Path(exists=True))
+@click.argument('fasta', type=click.Path(exists=True))
+@click.argument('pkl')
+@click.option('-b', '--block-len', type=int, default=10000, help='Block size for GC/cov computation')
+@click.option('-t', '--threads', type=int, default=1, help='Threads to use')
+def gc_cov(bam, fasta, pkl, block_len, threads):
+  """Calculate GC content vs coverage from a BAM. Save in pickle file"""
+  import mitty.empirical.gc as megc
+  megc.process_bam_parallel(bam, fasta, pkl, block_len=block_len, threads=threads)
+
+
+@utils.command('bq')
+@click.argument('bam', type=click.Path(exists=True))
+@click.argument('pkl')
+@click.option('-t', '--threads', type=int, default=1, help='Threads to use')
+def sample_bq(bam, pkl, threads):
+  """BQ distribution from BAM"""
+  import mitty.empirical.bq as bbq
+  bbq.process_bam_parallel(bam, pkl, threads=threads)
+
+
+@utils.command('filter-eval-vcf', short_help='Split out the FP and FN from an eval.vcf')
+@click.argument('vcfin', type=click.Path(exists=True))
+@click.argument('outprefix')
+def filter_eval_vcf(vcfin, outprefix):
+  """Subset VCF for given sample, apply BED file and filter out complex variants
+   making it suitable to use for read generation"""
+  import mitty.benchmarking.filterevalvcf as fev
+  fev.extract_fp_fn(vcfin, outprefix)
