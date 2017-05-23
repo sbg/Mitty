@@ -160,7 +160,7 @@ def load_qname_sidecar(sidecar_fn):
   def parse_sidecar_file(_fn):
     with open(_fn, 'r') as fp:
       for ln in fp:
-        yield ln.split('|', 1)[0][1:], ln[1:]
+        yield ln.split('|', 1)[0][1:], ln[1:-1]
   return {
     k: v
     for k, v in parse_sidecar_file(sidecar_fn)
