@@ -10,6 +10,7 @@ from numpy import base_repr
 logger = logging.getLogger(__name__)
 __process_stop_code__ = 'SETECASTRONOMY'
 
+__max_qname_len__ = 240
 __qname_format_details__ = """
       @index|sn|chrom:copy|strand:pos:cigar:v1,v2,...:MD|strand:pos:cigar:v1,v2,...:MD|
 
@@ -41,20 +42,23 @@ Notes:
 - The alignment information is repeated for every read in the template.
   The example shows what a PE template would look like.
 - The pos value is are one based to make comparing qname info in genome browser easier
-- qnames longer than 254 characters (the maximum allowed by the SAM spec) are stored in
-  a side-car file alongside the simulated FASTQs.
-  The qname in the FASTQ file is truncated to 254 characters. A truncated qname is detected by the
-  absence of the final '|' character in the qname
-"""
+- qnames longer than N characters are stored in a side-car file alongside the simulated FASTQs.
+  The qname in the FASTQ file itself is truncated to N characters.
+
+  Nominally, N=254 according to the SAM spec, but due to bugs in some versions of htslib
+  this has been set shorter to {}.
+  A truncated qname is detected when there are less than 5 | characters in the qname
+""".format(__max_qname_len__)
 
 
-def writer(fastq1_out, side_car_out, fastq2_out=None, data_queue=None):
+def writer(fastq1_out, side_car_out, fastq2_out=None, data_queue=None, max_qname_len=__max_qname_len__):
   """Write templates to file
 
   :param fastq1_out: Name of FASTQ1
   :param side_car_out: Name of side car file for long qnames
   :param fastq2_out: If paired end, name of FASTQ2
   :param data_queue: multiprocessing queue
+  :param max_qname_len: Send qnames longer than this to the overflow file
 
     The data format is as follows:
       (
@@ -82,9 +86,9 @@ def writer(fastq1_out, side_car_out, fastq2_out=None, data_queue=None):
     for r in template[4]:
       qname += '{}:{}:{}:{}:{}|'.format(*r[:3], str(r[3])[1:-1].replace(' ', ''), r[4])
 
-    if len(qname) > 254:
+    if len(qname) > max_qname_len:
       side_car_fp.write(qname + '\n')
-      qname = qname[:255]
+      qname = qname[:max_qname_len]
 
     for fp, r in zip(fastq_l, template[4]):
       fp.write('{}\n{}\n+\n{}\n'.format(qname, r[5], r[6]))
@@ -131,7 +135,7 @@ def parse_qname(qname, long_qname_table=None):
     strand, pos, cigar, v_list, md = _r.split(':')
     return (int(strand), int(pos)) + _parse_(cigar, v_list) + (md,)
 
-  if qname[-1] != '|':  # Truncated qname
+  if qname.count('|') != 5:  # Truncated qname
     if long_qname_table is None:
       raise ValueError('Long qname with no table lookup')  # It's the caller's responsibility to handle this error
     _qname = long_qname_table.get(qname.split('|', 1)[0], None)
