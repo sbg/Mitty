@@ -463,6 +463,18 @@ This invocation will process `${BAM}` and summarize the alignment performance in
 `${BAM}.alignment`. The alignment error will be assessed upto a maximum of 200bp. The program will check variants from 50bp deletions to 50bp insertions, putting them into 10bp size bins. SNPs are always counted and placed in their own spearate bin. 
 
 ![MQ plots](docs/images/aligner-report-example-1.png?raw=true "MQ plots")
+## Bam to truth
+```
+mitty debug bam-to-truth ./input.bam 1  sample_name prefix
+```
+
+This invocation will process `input.bam` with mapping quality threshold=1, write the output as 2 fastq and 2 longqname files starting with  `prefix` by adding
+`sample_name` into qnames.
+
+`bam-to-truth` is a program that given bam file and mapping quality threshold with sample_name,
+the reads having mapping quality above the threshold with their paired mate having mapping quality higher than the threshold are together output . 
+If no paired mate is found,just outputs the read if mapping quality is above the threshold.
+For qname format, please check the section in the appendix
 
 ![Alignment accuracy plots](docs/images/aligner-report-example-2.png?raw=true "Alignment accuracy plots")
 
