@@ -534,6 +534,20 @@ def utils():
   pass
 
 
+@utils.command('vcf-complexity', short_help='Annotate variants with complexity measures')
+@click.argument('vcfin', type=click.Path(exists=True))
+@click.argument('vcfout', type=click.Path())
+@click.argument('ref', type=click.Path(exists=True))
+@click.argument('bg', type=click.Path(exists=True))
+@click.option('--window-size', type=int, default=100, help='Window size of SE and LC computation')
+def vcf_complexity(vcfin, vcfout, ref, bg, window_size):
+  """Annotate variants with complexity measures"""
+  import mitty.benchmarking.complexity as cplx
+  cplx.vcf_complexity(
+    vcf_in_fname=vcfin, vcf_out_fname=vcfout,
+    ref_fname=ref, bg_fname=bg, window_size=window_size)
+
+
 @utils.command('gc-cov')
 @click.argument('bam', type=click.Path(exists=True))
 @click.argument('fasta', type=click.Path(exists=True))
