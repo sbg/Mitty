@@ -534,6 +534,22 @@ def utils():
   pass
 
 
+@utils.command('retruncate-qname', short_help='Given a BAM of FASTQ')
+@click.argument('mainfile-in', type=click.Path(exists=True))
+@click.argument('sidecar-in', type=click.Path(exists=True))
+@click.argument('mainfile-out', type=click.Path())
+@click.argument('sidecar-out', type=click.Path())
+@click.option('--truncate-to', type=int, default=240)
+@click.option('--file-type', type=click.Choice(['BAM', 'FASTQ']), help='If supplied overrides autodetection')
+def retruncate_qname(mainfile_in, sidecar_in, mainfile_out, sidecar_out, truncate_to, file_type):
+  """Given a FASTQ (or BAM) and a long-qnames file trancate the qnames to
+whatever length we want and push the too-long qnames to the overflow
+file. Also convert any old style qnames (not ending in a *) to new style
+ones with a proper termination character"""
+  import mitty.empirical.qnametruncate as qt
+  qt.main(mainfile_in, sidecar_in, mainfile_out, sidecar_out, truncate_to=truncate_to, file_type=file_type)
+
+
 @utils.command('vcf-complexity', short_help='Annotate variants with complexity measures')
 @click.argument('vcfin', type=click.Path(exists=True))
 @click.argument('vcfout', type=click.Path())
