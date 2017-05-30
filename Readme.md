@@ -468,17 +468,25 @@ This invocation will process `${BAM}` and summarize the alignment performance in
 
 
 ## Bam to truth
+
+([Example script](https://github.com/kghosesbg/mitty-demo-data/blob/master/bam-to-truth/bam_to_truth.sh))
 ```
-mitty debug bam-to-truth ./input.bam 1  sample_name prefix
+mitty -v4 debug bam-to-truth ./input.bam 1  sample_name prefix
 ```
 
-This invocation will process `input.bam` with mapping quality threshold=1, write the output as 2 fastq and 2 longqname files starting with  `prefix` by adding
+This invocation will process `input.bam` with mapping quality threshold=1, write the outputs as two fastq and one longqname files starting with  `prefix` by appendig
 `sample_name` into qnames.
 
 `bam-to-truth` is a program that given bam file and mapping quality threshold with sample_name,
 the reads having mapping quality above the threshold with their paired mate having mapping quality higher than the threshold are together output . 
-If no paired mate is found,just outputs the read if mapping quality is above the threshold.
-For qname format, please check the section in the appendix
+If no paired mate is found,just outputs the read if mapping quality is above the threshold.The read and it's mate also has to be mapped and be on the same chromosome.
+For qname format, please check the section in the appendix.
+
+Sometimes we want to treat the alignment from one aligner (e.g. BWA) as the truth and then check how other aligners do, just for comparison sake.
+An ideal tool would do a read by read comparison, and we have some other tools that do this, however, such comparisons 
+ because they need to matchup read qnames, can become expensive. This is a compromise method.
+ 
+ 
 
 
 
