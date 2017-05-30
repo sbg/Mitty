@@ -486,10 +486,12 @@ Sometimes we want to treat the alignment from one aligner (e.g. BWA) as the trut
 An ideal tool would do a read by read comparison, and we have some other tools that do this, however, such comparisons 
  because they need to matchup read qnames, can become expensive. This is a compromise method.
  
+ ### MQ>=0 alignment analysis
  ![MQ>=0 MQ](docs/images/mq0.alignment_MQ.png?raw=true)
  ![MQ>=0 HM](docs/images/mq0.alignment_MQ_hm.png?raw=true)
  ![MQ>=0 V](docs/images/mq0.alignment_V.png?raw=true)
 
+ ### MQ>=20 alignment analysis
  ![MQ>=20](docs/images/mq20.alignment_MQ.png?raw=true)
  ![MQ>=20 HM](docs/images/mq20.alignment_MQ_hm.png?raw=true)
  ![MQ>=20 V](docs/images/mq20.alignment_V.png?raw=true)
