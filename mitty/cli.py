@@ -420,6 +420,20 @@ The criteria the `partition-bam` tool can be run on can be obtained by passing i
   import mitty.benchmarking.partition_bams as pbm
   pbm.main(bam_in_l=bam, out_prefix=outprefix, criterion=criterion, threshold=threshold, sidecar_fname=sidecar_in)
 
+@debug_tools.command('bam-to-truth', short_help="from input bam with mapping quality threshold to produce truth fastq and its long qname file")
+@click.argument('bam_fpath_in',type=click.Path(exists=True))
+@click.argument('mq_threshold',type=int)
+@click.argument('sample_name')
+@click.argument('output_prefix')
+def bam_to_truth(bam_fpath_in,mq_threshold,sample_name,output_prefix):
+  """
+  Given bam file and mapping quality threshold ,the tool outputs 2 fastqs with their longqnames 
+  if both paired mate and the read have mq above.Also adds sample_name to output.
+  For qname format specification, check mitty Readme.MD documentation.
+  """
+  import mitty.benchmarking.bam_to_truth as btt
+  btt.bam_to_truth(bam_fpath_in,mq_threshold,sample_name,output_prefix)
+
 
 @debug_tools.group('alignment-analysis', short_help='Plot various alignment metrics from BAM')
 def alignment_analysis():

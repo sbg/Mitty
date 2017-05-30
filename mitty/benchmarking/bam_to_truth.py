@@ -10,21 +10,6 @@ __process_stop_code__ = 'SETECASTRONOMY'
 in_queue, out_queue = Queue(10000), Queue(10000)
 processed_tuples={}
 
-def linkum(x):
-    return {
-        1: 1,
-        2: -1,
-        8: 0,
-    }[x]
-
-def read2vlist2(read):
-  vlist=""
-  for cigar in read.cigartuples:
-    if cigar[0] in {1,2,8}:
-      vlist=vlist+","+str(linkum(cigar[0])*cigar[1])
-  if len(vlist)>1:
-    vlist="("+vlist[1:]+")"
-  return vlist
 
 def read2vlist(read):
   vlist=""
@@ -54,9 +39,9 @@ def bam_to_truth(bam_fname_in,mq_threshold, sample_name,output_prefix):
         #mate 2
         if (read.mapping_quality >= mq_threshold) and (read.next_reference_id==read.reference_id) and (read.reference_name==processed_tuples[read.qname][2]): 
           if read.is_reverse:
-            out_queue.put((None,sample_name,read.reference_name,0,((0 ,read.pos,read.cigarstring,read2vlist(read),"",read.seq.translate(DNA_complement)[::-1],read.qual[::-1]),(0 ,processed_tuples[read.qname][4],processed_tuples[read.qname][5],processed_tuples[read.qname][6],"",processed_tuples[read.qname][1],processed_tuples[read.qname][0]))))
+            out_queue.put((None,sample_name,read.reference_name,0,((0 ,read.pos+1,read.cigarstring,read2vlist(read),"",read.seq.translate(DNA_complement)[::-1],read.qual[::-1]),(0 ,processed_tuples[read.qname][4]+1,processed_tuples[read.qname][5],processed_tuples[read.qname][6],"",processed_tuples[read.qname][1],processed_tuples[read.qname][0]))))
           else:
-            out_queue.put((None,sample_name,read.reference_name,0,((0 ,read.pos,read.cigarstring,read2vlist(read),"",read.seq,read.qual),(0 ,processed_tuples[read.qname][4],processed_tuples[read.qname][5],processed_tuples[read.qname][6],"",processed_tuples[read.qname][1],processed_tuples[read.qname][0]))))
+            out_queue.put((None,sample_name,read.reference_name,0,((0 ,read.pos+1,read.cigarstring,read2vlist(read),"",read.seq,read.qual),(0 ,processed_tuples[read.qname][4]+1,processed_tuples[read.qname][5],processed_tuples[read.qname][6],"",processed_tuples[read.qname][1],processed_tuples[read.qname][0]))))
         del processed_tuples[read.qname]
 
       else:
@@ -71,9 +56,9 @@ def bam_to_truth(bam_fname_in,mq_threshold, sample_name,output_prefix):
       #not pair-end
       if not read.is_unmapped and (read.mapping_quality >= mq_threshold) and (read.next_reference_id==read.reference_id):
         if read.is_reverse:
-          out_queue.put((None,sample_name,read.reference_name,0,(( 0 ,read.pos,read.cigarstring,read2vlist(read),"",read.seq.translate(DNA_complement)[::-1],read.qual[::-1]),)))
+          out_queue.put((None,sample_name,read.reference_name,0,(( 0 ,read.pos+1,read.cigarstring,read2vlist(read),"",read.seq.translate(DNA_complement)[::-1],read.qual[::-1]),)))
         else:
-          out_queue.put((None,sample_name,read.reference_name,0,(( 0 ,read.pos,read.cigarstring,read2vlist(read),"",read.seq,read.qual),)))
+          out_queue.put((None,sample_name,read.reference_name,0,(( 0 ,read.pos+1,read.cigarstring,read2vlist(read),"",read.seq,read.qual),)))
           
   out_queue.put(__process_stop_code__)
   wr.join()
