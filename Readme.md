@@ -463,6 +463,10 @@ This invocation will process `${BAM}` and summarize the alignment performance in
 `${BAM}.alignment`. The alignment error will be assessed upto a maximum of 200bp. The program will check variants from 50bp deletions to 50bp insertions, putting them into 10bp size bins. SNPs are always counted and placed in their own spearate bin. 
 
 ![MQ plots](docs/images/aligner-report-example-1.png?raw=true "MQ plots")
+
+![Alignment accuracy plots](docs/images/aligner-report-example-2.png?raw=true "Alignment accuracy plots")
+
+
 ## Bam to truth
 ```
 mitty debug bam-to-truth ./input.bam 1  sample_name prefix
@@ -476,7 +480,7 @@ the reads having mapping quality above the threshold with their paired mate havi
 If no paired mate is found,just outputs the read if mapping quality is above the threshold.
 For qname format, please check the section in the appendix
 
-![Alignment accuracy plots](docs/images/aligner-report-example-2.png?raw=true "Alignment accuracy plots")
+
 
 
 ## Subset a BAM for detailed analysis
