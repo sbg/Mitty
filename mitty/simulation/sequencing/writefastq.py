@@ -12,7 +12,7 @@ __process_stop_code__ = 'SETECASTRONOMY'
 
 __max_qname_len__ = 240
 __qname_format_details__ = """
-      @index|sn|chrom:copy|strand:pos:cigar:v1,v2,...:MD|strand:pos:cigar:v1,v2,...:MD|
+      @index|sn|chrom:copy|strand:pos:cigar:v1,v2,...:MD|strand:pos:cigar:v1,v2,...:MD*
 
 index:  unique code for each template. If you must know, the index is simply a monotonic counter
         in base-36 notation
@@ -29,7 +29,7 @@ cigar:  CIGAR string for correct alignment.
            '>' is the unique key that indicates a read inside a long insertion
            'p' is how many bases into the insertion branch the read starts
            'n' is simply the length of the read
-v1,v2,..: Comma separated list of variant sizes covered bly this read
+v1,v2,..: Comma separated list of variant sizes covered by this read
             0 = SNP
             + = INS
             - = DEL
@@ -47,7 +47,7 @@ Notes:
 
   Nominally, N=254 according to the SAM spec, but due to bugs in some versions of htslib
   this has been set shorter to {}.
-  A truncated qname is detected when there are less than 5 | characters in the qname
+  A truncated qname is detected when the last character is not *
 """.format(__max_qname_len__)
 
 
@@ -82,9 +82,8 @@ def writer(fastq1_out, side_car_out, fastq2_out=None, data_queue=None, max_qname
   for cnt, template in enumerate(iter(data_queue.get, __process_stop_code__)):
     # @index|sn|chrom:copy|
     qname = '@{}|{}|{}:{}|'.format(template[0] or base_repr(cnt, 36), *template[1:4])
-    # strand:pos:cigar:v1,v2,...:MD|strand:pos:cigar:v1,v2,...:MD|
-    for r in template[4]:
-      qname += '{}:{}:{}:{}:{}|'.format(*r[:3], str(r[3])[1:-1].replace(' ', ''), r[4])
+    # strand:pos:cigar:v1,v2,...:MD|strand:pos:cigar:v1,v2,...:MD*
+    qname += '|'.join('{}:{}:{}:{}:{}'.format(*r[:3], str(r[3])[1:-1].replace(' ', ''), r[4]) for r in template[4]) + '*'
 
     if len(qname) > max_qname_len:
       side_car_fp.write(qname + '\n')
@@ -135,7 +134,7 @@ def parse_qname(qname, long_qname_table=None):
     strand, pos, cigar, v_list, md = _r.split(':')
     return (int(strand), int(pos)) + _parse_(cigar, v_list) + (md,)
 
-  if qname.count('|') != 5:  # Truncated qname
+  if qname[-1] != '*':  # Truncated qname
     if long_qname_table is None:
       raise ValueError('Long qname with no table lookup')  # It's the caller's responsibility to handle this error
     _qname = long_qname_table.get(qname.split('|', 1)[0], None)
@@ -144,7 +143,7 @@ def parse_qname(qname, long_qname_table=None):
       # It's the caller's responsibility to handle this error
     qname = _qname
 
-  d = qname.split('|')[:-1]  # The last one is a dummy
+  d = qname[:-1].split('|')  # Strip out the terminal '*'
   serial, sample = d[:2]
   chrom, cpy = d[2].split(':')
   cpy = int(cpy)

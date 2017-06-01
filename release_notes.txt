@@ -4,8 +4,21 @@ Release Notes
 - enhancement: bam-to-truth tool implemented
 
 2.20.0
-- enhancement: subset-bam now saves paired reads
 - workaround: for qname bug in htslib
+- bugfix: for hidden bug in qname parsing
+  - The qname now ends in a "*" instead of a "|"
+  - This is a breaking change as it changes the qname format, but
+  - it fixes an edge case (bug) that surprisingly we never ran into: In the old style qname
+    we checked for truncation (and hence when we should look in the overflow file) by checking
+    if the last character was not a '|'. It is possible for a truncated qname to end in a '|'
+    so there was a potential bug there. This is fixed by having an explicit, distinct termination
+    character '*'
+  - Having an explicit termination character means we do not need to know the truncation length
+    We just have to check for the '*' character.
+  - A tool is provided that will convert FASTQs and BAMs from the old to the new format
+  - The qname is now restricted to 240 chars by default and this works around the HTSLIB bug
+
+- enhancement: subset-bam now saves paired reads
 - enhancement: qname-stats tool
 - bugfix: long qname file loading fix
 - enhancement: vcf-complexity tool added
