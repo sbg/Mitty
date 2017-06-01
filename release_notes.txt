@@ -1,5 +1,8 @@
 Release Notes
 =============
+2.21.0
+- enhancement: bam-to-truth tool implemented
+
 2.20.0
 - enhancement: subset-bam now saves paired reads
 - workaround: for qname bug in htslib
