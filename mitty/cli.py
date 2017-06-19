@@ -464,6 +464,16 @@ def alignment_analysis():
 def alignment_debug_plot(bam, long_qname_file, out, max_d, max_size, fig_prefix, plot_bin_size, strict_scoring, processes):
   """Computes 3D matrix of alignment metrics (d_err, MQ, v_size) saves it to a numpy array file and produces a set
   of summary figures"""
+
+  # For automated workflows we sometimes have real (not simulated) data. For such workflows we simply
+  # plot a placeholder figure to include in reports by passing a dummy long qname with the magic word
+  # 'deadbeef' in it
+  if open(long_qname_file, 'r').read().strip() == 'deadbeef':
+    if fig_prefix is not None:
+      import mitty.benchmarking.plot.placeholderfigure as phf
+      phf.placeholder_figure('NOT SIMULATED READS', fig_prefix=fig_prefix)
+    exit(0)
+
   import mitty.benchmarking.xmv as xmv
   xmv_mat = xmv.main(bam, sidecar_fname=long_qname_file,
                      max_xd=max_d, max_vlen=max_size, strict_scoring=strict_scoring,

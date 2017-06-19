@@ -1,5 +1,11 @@
 Release Notes
 =============
+2.22.0
+- enhancement: placeholder figure for automated workflows
+  For automated workflows we sometimes have real (not simulated) data. For such workflows we simply
+  plot a placeholder figure to include in reports by passing a dummy long qname with the magic word
+  'deadbeef' in it
+
 2.21.0
 - enhancement: bam-to-truth tool implemented
 

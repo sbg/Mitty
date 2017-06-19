@@ -151,7 +151,7 @@ class Mappability:
 # LC alone runs at 400 v/s
 # SE1 alone runs at 1382 v/s
 # SE2 alone runs at 1310 v/s
-# SE4 alone runs at 834.87 v/s
+# SE4 alone runs at 834.87 v/s (54226.4 v/s with C++ code. 65x Yeah baby!)
 # MAP alone runs at 120 v/s with np.searchsorted and at 1400 v/s with bisect
 # Everything together 170 v/s
 def vcf_complexity(vcf_in_fname, vcf_out_fname, ref_fname, bg_fname=None, window_size=100):
