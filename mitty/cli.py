@@ -4,6 +4,9 @@ import os
 import click
 
 
+logger = logging.getLogger(__name__)
+
+
 @click.group()
 @click.version_option()
 @click.option('-v', '--verbose', type=int, default=0)
@@ -15,6 +18,10 @@ def cli(verbose):
     logging.INFO,
     logging.DEBUG
   ][min(verbose, 3)])
+
+  import pkg_resources  # part of setuptools
+  version = pkg_resources.require("Mitty")[0].version
+  logger.debug('Mitty version {}'.format(version))
 
 
 @cli.command('filter-variants', short_help='Remove complex variants from VCF')

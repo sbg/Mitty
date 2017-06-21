@@ -1,5 +1,8 @@
 Release Notes
 =============
+2.23.0
+- enhancement: Program now prints out version during run
+
 2.22.0
 - enhancement: placeholder figure for automated workflows
   For automated workflows we sometimes have real (not simulated) data. For such workflows we simply
