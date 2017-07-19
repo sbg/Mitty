@@ -469,38 +469,6 @@ This invocation will process `${BAM}` and summarize the alignment performance in
 ![Alignment accuracy plots](docs/images/aligner-report-example-2.png?raw=true "Alignment accuracy plots")
 
 
-## Bam to truth
-
-([Example script](https://github.com/kghosesbg/mitty-demo-data/blob/master/bam-to-truth/bam_to_truth.sh))
-```
-mitty -v4 debug bam-to-truth ./input.bam 1  sample_name prefix
-```
-
-This invocation will process `input.bam` with mapping quality threshold=1, write the outputs as two fastq and one longqname files starting with  `prefix` by appendig
-`sample_name` into qnames.
-
-`bam-to-truth` is a program that given bam file and mapping quality threshold with sample_name,
-the reads having mapping quality above the threshold with their paired mate having mapping quality higher than the threshold are together output . 
-If no paired mate is found,just outputs the read if mapping quality is above the threshold.The read and it's mate also has to be mapped and be on the same chromosome.
-For qname format, please check the section in the appendix.
-
-Sometimes we want to treat the alignment from one aligner (e.g. BWA) as the truth and then check how other aligners do, just for comparison sake.
-An ideal tool would do a read by read comparison, and we have some other tools that do this, however, such comparisons 
- because they need to matchup read qnames, can become expensive. This is a compromise method.
- 
-### MQ>=0 alignment analysis
- 
- ![MQ>=0 MQ](docs/images/mq0.alignment_MQ.png?raw=true)
- ![MQ>=0 HM](docs/images/mq0.alignment_MQ_hm.png?raw=true)
- ![MQ>=0 V](docs/images/mq0.alignment_V.png?raw=true)
-
-### MQ>=20 alignment analysis
- 
- ![MQ>=20](docs/images/mq20.alignment_MQ.png?raw=true)
- ![MQ>=20 HM](docs/images/mq20.alignment_MQ_hm.png?raw=true)
- ![MQ>=20 V](docs/images/mq20.alignment_V.png?raw=true)
-
-
 ## Subset a BAM for detailed analysis
 ([Example script](https://github.com/kghosesbg/mitty-demo-data/blob/master/subset-bam/subset-bam.sh))
 
@@ -758,9 +726,31 @@ Invoking `mitty simulate-variants --list-models` will list available models
 Miscellaneous utilities
 -----------------------
 
+## Bam to truth
+
+([Example script](https://github.com/kghosesbg/mitty-demo-data/blob/master/bam-to-truth/bam_to_truth.sh))
+
+Sometimes we want to treat the alignment from one aligner (e.g. BWA) as the truth and then check how other 
+aligners do relative to that. An ideal tool would do a read by read comparison, and we have some other tools 
+that do this, however such comparisons, because they need to matchup read qnames, can become expensive. 
+This is a compromise method.
+
+`bam-to-truth` creates FASTQ file(s) from a BAM file, changing the qname to encode the alignment of the read.
+The FASTQ files can then be used like any other simulated FASTQ, to analyze alignment performance for other 
+aligners relative to the original aligner. The code only writes out reads for which both mates are mapped and
+for which both mates have MQ greater than the supplied threshold.
+
+
+## Variant size distribution
+
 Plot variant size distribution in VCF file:
 ```
-mitty -v4 debug variant-by-size hg001.vcf.gz hg001.variant.size.csv --max-size 100 --title "HG001" --fig-file hg001.variant.png --plot-bin-size 5
+mitty -v4 debug variant-by-size \
+  hg001.vcf.gz hg001.variant.size.csv \
+  --plot-bin-size 5 \
+  --max-size 100 \
+  --title "HG001" \
+  --fig-file hg001.variant.png 
 ```
 
 
