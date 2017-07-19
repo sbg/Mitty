@@ -2,6 +2,8 @@ Mitty is a data simulator meant to help debug aligners and variant callers.
 
 It requires Python 3.4 or later. It is released under the [Apache](LICENSE.txt) license.
 
+[![DOI](https://zenodo.org/badge/65392390.svg)](https://zenodo.org/badge/latestdoi/65392390)
+
 ![Genome simulation](docs/images/genome-simulation.png?raw=true)
 
 ![Read simulation](docs/images/read-simulation.png?raw=true)
