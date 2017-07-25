@@ -253,9 +253,15 @@ read models to see if the file name is a match (typically these are in the `mitt
 folder). It will then treat the model file name as a path and try and load that from your 
 file system - which is the case in this particular example.)_
 
-The produced FASTQs have qnames encoding the correct read alignments for each read in the template. qnames may exceed the SAM specification limit (254 characters). In such cases the qname in the FASTQ is truncated to 254 characters and the complete qname is printed in the side-car file `${FASTQ_PREFIX}-lq.txt`. 
+The produced FASTQs have qnames encoding the correct read alignments for each read in the template. 
+qnames may exceed the SAM specification limit (nominally 254 characters, but there [are][qname-bug1] 
+[caveats][qname-bug2]). In such cases the qname in the FASTQ is truncated and the complete qname is 
+printed in the side-car file `${FASTQ_PREFIX}-lq.txt`. 
 
 The qname format can be obtained by executing `mitty qname`
+
+[qname-bug1]: https://github.com/samtools/htslib/issues/520
+[qname-bug2]: https://github.com/pysam-developers/pysam/issues/447
 
 
 #### Reference reads
@@ -762,10 +768,9 @@ Qname format
 Read alignment and simulation metadata are stored in the qname in the following format. 
 
 ```
-      @index|sn|chrom:copy|strand:pos:cigar:v1,v2,...:MD|strand:pos:cigar:v1,v2,...:MD|
+$ mitty qname
 
-Each section is separated by a  bar (`|`), sub-sections are separated by a colon (`:`) and 
-their meanings  are as follows: 
+      @index|sn|chrom:copy|strand:pos:cigar:v1,v2,...:MD|strand:pos:cigar:v1,v2,...:MD*
 
 index:  unique code for each template. If you must know, the index is simply a monotonic counter
         in base-36 notation
@@ -782,34 +787,34 @@ cigar:  CIGAR string for correct alignment.
            '>' is the unique key that indicates a read inside a long insertion
            'p' is how many bases into the insertion branch the read starts
            'n' is simply the length of the read
-v1,v2,..: Comma separated list of variant sizes covered bly this read
+v1,v2,..: Comma separated list of variant sizes covered by this read
             0 = SNP
             + = INS
             - = DEL
 MD:     Read corruption MD tag. This is empty for perfect reads, but is filled with an MD formatted
         string for corrupted reads. The MD string is referenced to the original, perfect read, not
         a reference sequence.
-```
 
 Notes:
 
 - The alignment information is repeated for every read in the template.
   The example shows what a PE template would look like.
 - The pos value is are one based to make comparing qname info in genome browser easier
-- qnames longer than 254 characters (the maximum allowed by the SAM spec) are stored in
-  a side-car file alongside the simulated FASTQs.
-  The qname in the FASTQ file is truncated to 254 characters. A truncated qname is detected by the
-  absence of the final '|' character in the qname
+- qnames longer than N characters are stored in a side-car file alongside the simulated FASTQs.
+  The qname in the FASTQ file itself is truncated to N characters.
 
-This information is also available by executing `mitty qname`
+  Nominally, N=254 according to the SAM spec, but due to bugs in some versions of htslib
+  this has been set shorter to 240.
+  A truncated qname is detected when the last character is not *
+```
 
 Example from a perfect read:
 
-`@8|INTEGRATION|1:1|1:1930067:27=1X63=1I158=:0,1:|0:1929910:184=1X63=1I1=:0,1:|`
+`@8|INTEGRATION|1:1|1:1930067:27=1X63=1I158=:0,1:|0:1929910:184=1X63=1I1=:0,1:*`
 
 Corresponding read after passing through read corruption model:
 
-`@8|INTEGRATION|1:1|1:1930067:27=1X63=1I158=:0,1:126T29T16G15G28C0T2T8C9T0C6T|0:1929910:184=1X63=1I1=:0,1:9G25G3T1C36T87G10G0C0A4A1G4C0A0G0G0A1A0T0C3A1C0A0T0C0C0T0G2T0A0A1A0G1G0T0G0A0A0A0C1T1A0T0C0T0C0T0A1T1A0A1A0T0A0C0A0A|`
+`@8|INTEGRATION|1:1|1:1930067:27=1X63=1I158=:0,1:126T29T16G15G28C0T2T8C9T0C6T|0:1929910:184=1X63=1I1=:0,1:9G25G3T1C36T87G10G0C0A4A1G4C0A0G0G0A1A0T0C3A1C0A0T0C0C0T0G2T0A0A1A0G1G0T0G0A0A0A0C1T1A0T0C0T0C0T0A1T1A0A1A0T0A0C0A0A*`
 
 
 ```
