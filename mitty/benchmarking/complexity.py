@@ -1,3 +1,8 @@
+"""
+The function vcf_complexity goes through a VCF annotating variants with local complexity measures. It is
+slow - the C++ translation of the program is much faster.
+"""
+
 import pickle
 import time
 import logging
