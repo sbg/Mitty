@@ -46,8 +46,19 @@ def bam_iter(bam_fname, sidecar_fname, limit=None):
         del read_dict[key]
 
 
-def derr(r, d_max):
-  pass
+def derr(r_iter, d_max):
+  """Return reads with XD tag filled out with d_err metric
+
+  :param r_iter: An iterable of read tuples
+  :param d_max:
+  :return:
+  """
+  for r in r_iter:
+    for mate in r:
+      d_err = score_alignment_error(r=mate[0], ri=mate[1], max_d=d_max)
+      mate[0].set_tag('XD', d_err)
+    yield r
+
 
 """
 
