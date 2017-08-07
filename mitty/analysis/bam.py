@@ -27,7 +27,7 @@ def bam_iter(bam_fname, sidecar_fname, limit=None):
 
   read_dict = {}
   for n, rd in enumerate( pysam.AlignmentFile( bam_fname ).fetch( until_eof=True )):
-    if n >= limit:
+    if limit is not None and n >= limit:
       break
     if rd.flag & 0b100100000000: continue  # Skip supplementary or secondary alignments
     ri = parse_qname(rd.qname, long_qname_table=long_qname_table)[1 if rd.is_read2 else 0]
