@@ -60,6 +60,36 @@ def derr(r_iter, d_max):
     yield r
 
 
+def discard_ref(r_iter):
+  """Discard reference reads
+
+  :param r_iter:
+  :return:
+  """
+  for r in r_iter:
+    new_r = [
+      (mate[0], mate[1], len(mate[1].v_list) > 0 and mate[2])
+      for mate in r
+    ]
+    if any([mate[2] for mate in new_r]):
+      yield new_r
+
+
+def discard_non_ref(r_iter):
+  """Discard non-reference reads
+
+  :param r_iter:
+  :return:
+  """
+  for r in r_iter:
+    new_r = [
+      (mate[0], mate[1], len(mate[1].v_list) == 0 and mate[2])
+      for mate in r
+    ]
+    if any([mate[2] for mate in new_r]):
+      yield new_r
+
+
 """
 
 `derr ( r, d_max )` - return reads with XD tag filled out with d_err metric
