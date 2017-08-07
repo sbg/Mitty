@@ -60,19 +60,24 @@ def derr(r_iter, d_max):
     yield r
 
 
+def accept_reads(r_iter, f):
+  for r in r_iter:
+    new_r = [
+      (mate[0], mate[1], f(mate) and mate[2])
+      for mate in r
+    ]
+    if any([mate[2] for mate in new_r]):
+      yield new_r
+
+
 def discard_ref(r_iter):
   """Discard reference reads
 
   :param r_iter:
   :return:
   """
-  for r in r_iter:
-    new_r = [
-      (mate[0], mate[1], len(mate[1].v_list) > 0 and mate[2])
-      for mate in r
-    ]
-    if any([mate[2] for mate in new_r]):
-      yield new_r
+  for r in accept_reads(r_iter, lambda mate: len(mate[1].v_list) > 0):
+    yield r
 
 
 def discard_non_ref(r_iter):
@@ -81,13 +86,19 @@ def discard_non_ref(r_iter):
   :param r_iter:
   :return:
   """
-  for r in r_iter:
-    new_r = [
-      (mate[0], mate[1], len(mate[1].v_list) == 0 and mate[2])
-      for mate in r
-    ]
-    if any([mate[2] for mate in new_r]):
-      yield new_r
+  for r in accept_reads(r_iter, lambda mate: len(mate[1].v_list) == 0):
+    yield r
+
+
+def discard_derr(r_iter, d_range):
+  """Discard reads falling within given d_range
+
+  :param r_iter:
+  :param d_range:
+  :return:
+  """
+  for r in accept_reads(r_iter, lambda mate: not (d_range[0] <= mate[0].get_tag('XD') <= d_range[1])):
+    yield r
 
 
 """
