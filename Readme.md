@@ -439,6 +439,60 @@ mitty -v4 god-aligner \
 ```
 
 
+Analysis tools library
+======================
+
+BAM analysis
+------------
+Mitty provides tools (`mitty.analysis`) for analysing BAMs derived from runs on simulated FASTQs. The tools
+can be called from a Python interactive session, or from Python scripts. The tools are designed to be used 
+composably - as a series of filters - with lazy evaluation. The core data structure that passes through the
+filter is a dict of read iterators
+
+```
+{
+  'cat1': iter1,
+  'cat2': iter2
+}
+```
+
+Each filter operates on each iterator separately returning a dict of iterators the same as the input. Some filters
+may create sub categories in each category, resulting in a tree of dictionaries with leaves as iterators.
+
+Functions may produce additional outputs in the form of a result dictionary or figures. Inputs are always left 
+un-altered.
+
+The iterators always return a tuple of reads consisting of a single read for SE BAM files and a read pair for PE
+BAM files. Each read is accompanied by the ReadInfo structure which comes in useful for filtering and other analysis.
+*For files with a large number of unmapped reads pairing the reads may require a lot of memory*.
+
+```
+read_structure = [(r1, ri1, f1), (r2, ri2, f2)]
+
+r1, r2 - pysam.AlignedSegment
+ri1, ri2 - Mitty ReadInfo tuple indicating qname analysis for the two reads
+f1, f2 - boolean indicating if the read passed the filter or not. We keep read pairs if any one of their mates
+         passes the filter. We use this to keep track of which mate passed the filter and which didn't
+         If only one of f1, f2 is True (i.e. only one of the mates passed the previous filter), when passed 
+         through a second filter the previously passing read must also pass this time, otherwise both mates
+         will be filtered out.
+```
+
+`bam_iter ( fname_dict, limit, limit )` - given a dict of BAM file path return us tuples of paired reads.
+`derr ( r, d_max )` - return reads with XD tag filled out with d_err metric
+`discard_ref ( r )` - discard reference reads
+`discard_non_ref ( r )` - discard non-reference reads
+`filter_derr ( r, d_range, d_max )` - given a read iterator filter out reads falling in given d_range
+`filter_v ( r, v_range )` - filter out reads with no variants outside this range
+`categorize ( r, cat_dict )` - given a dictionary of filter functions create categories (or sub-categories)
+`count ( r, result)` - count up all the reads for each category, return in the result dictionary
+`save_to_bam( r, header )` - save reads in separate BAM files with names matching the category names
+`read_fate_plot( result, ax )` - plot a histogram with different category labels based on a result dictionary
+                                 passing multiple results will result in multiple histograms on the same axes
+`xmv ( r, d_max, MQ_max, vlen_max, result )` - Three dimensional alignment analysis histogram bin counts 
+`xmv_plot ( result, ax )` - alignment analysis plot. Multiple plots on same axes if 
+
+
 Analysis
 --------
 Mitty supplies some tools to help with benchmarking and debugging of aligner/caller pipelines.
