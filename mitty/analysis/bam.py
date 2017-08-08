@@ -69,7 +69,7 @@ def tag_derr(r_iter):
     yield r
 
 
-def accept_reads(r_iter, f):
+def filter_reads(r_iter, f):
   """Filter out reads based on f
 
   :param r_iter:
@@ -104,8 +104,8 @@ def categorize_reads(r_iter, f_dict):
 # Library of useful filter functions
 
 
-def discard_ref():
-  """Discard reference reads
+def non_ref():
+  """Keep reads with variants
 
   :param mate: Read object
   :return: T/F
@@ -113,8 +113,8 @@ def discard_ref():
   return lambda mate: len(mate.read_info.v_list) > 0
 
 
-def discard_non_ref():
-  """Discard non-reference reads
+def pure_ref():
+  """Keep reads with no variants
 
   :param mate: Read object
   :return: T/F
