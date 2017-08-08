@@ -14,25 +14,27 @@ def is_single_end_bam(bam_fname):
   return not r.is_paired if r is not None else True  # Empty BAM? Don't care
 
 
-def bam_iter(bam_fname, sidecar_fname, limit=None):
+def bam_iter(bam_fname, sidecar_fname, every=None):
   """Given a BAM file path return us tuples of paired reads.
 
   :param bam_fname: BAM file name
   :param sidecar_fname: long qname overflow file
-  :param limit: If not None limit the number of reads scanned to this count
+  :param every: If not None, returns every Nth read/read-pair
   :return: a generator that returns pairs of reads from the file
   """
   se_bam = is_single_end_bam(bam_fname)
   long_qname_table = load_qname_sidecar(sidecar_fname)
 
   read_dict = {}
-  for n, rd in enumerate( pysam.AlignmentFile( bam_fname ).fetch( until_eof=True )):
-    if limit is not None and n >= limit:
-      break
+  ctr = 0
+  for rd in pysam.AlignmentFile(bam_fname).fetch(until_eof=True):
     if rd.flag & 0b100100000000: continue  # Skip supplementary or secondary alignments
     ri = parse_qname(rd.qname, long_qname_table=long_qname_table)[1 if rd.is_read2 else 0]
     if se_bam:
-      yield (rd, ri, True)
+      if every is None or ctr == 0:
+        yield [(rd, ri, True)]
+        ctr = every
+      ctr -= 1
     else:
       key = rd.qname[:20]
       if key not in read_dict:
@@ -42,8 +44,11 @@ def bam_iter(bam_fname, sidecar_fname, limit=None):
       rl[0 if rd.is_read1 else 1] = (rd, ri, True)
 
       if all(rl):
-        yield rl
+        if every is None or ctr == 0:
+          yield rl
+          ctr = every
         del read_dict[key]
+        ctr -= 1
 
 
 def derr(r_iter, d_max):
