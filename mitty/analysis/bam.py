@@ -2,6 +2,7 @@ import time
 import logging
 from collections import namedtuple, Counter
 
+import numpy as np
 import pysam
 
 from mitty.benchmarking.alignmentscore import score_alignment_error, load_qname_sidecar, parse_qname
@@ -157,6 +158,47 @@ def count_reads_sink(r_iter):
     for cat in (mate.cat_list or ['nocat'])
     if mate.filter_pass
   )
+
+
+def zero_dmv(max_d=200, max_MQ=70, max_vlen=200):
+  return np.zeros(shape=(2 * max_d + 3, max_MQ + 1, 2 * max_vlen + 1 + 2 + 1), dtype=int)
+
+
+def alignment_hist(r_iter, dmv_mat):
+  """Compute the dmv matrix which is as defined as follows:
+
+  A 3D matrix with dimensions:
+    Xd - alignment error  [0]  -max_d, ... 0, ... +max_d, wrong_chrom, unmapped (2 * max_d + 3)
+    MQ - mapping quality  [1]  0, ... max_MQ (max_MQ + 1)
+    vlen - length of variant carried by read [2]  -max_vlen, ... 0, ... +max_vlen, Ref, Margin
+                                                  (2 * max_vlen + 1 + 2)
+
+  * The ends of the ranges (-max_d, max_d) (-max_vlen, +max_vlen) include that value and all values exceeding
+  * Ref collects all the reference reads
+  * Margin collects the marginal sums for d x MQ. This is necessary because one read can appear in multiple
+    bins on the vlen axis and cause a slight excess of counts when marginals are computed
+
+  :param r_iter:
+  :param dmv_mat:
+  :return: iterator
+  """
+  max_d = int((dmv_mat.shape[0] - 3) / 2)
+  max_MQ = int(dmv_mat.shape[1] - 1)
+  max_vlen = int((dmv_mat.shape[2] - 4) / 2)
+
+  for r in r_iter:
+    for mate in r:
+      i = max_d + mate.d_err
+      j = min(mate.read.mapping_quality, max_MQ)
+      if mate.read_info.v_list:
+        for v_size in mate.read_info.v_list:
+          k = min(max_vlen, max(0, max_vlen + v_size))
+          dmv_mat[i, j, k] += 1
+      else:
+        k = 2 * max_vlen + 1
+        dmv_mat[i, j, k] += 1
+
+    yield r
 
 
 # Library of useful filter functions ------------------------------------------
