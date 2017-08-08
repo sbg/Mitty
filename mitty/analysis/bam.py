@@ -94,12 +94,24 @@ def discard_derr(r_iter, d_range):
   """Discard reads falling within given d_range
 
   :param r_iter:
-  :param d_range:
+  :param d_range: (low_d_err, high_d_err) e.g. (-1000, -10) or (10, 1000)
   :return:
   """
   for r in accept_reads(r_iter, lambda mate: not (d_range[0] <= mate[0].get_tag('XD') <= d_range[1])):
     yield r
 
+
+def discard_v(r_iter, v_range):
+  """Discard reads with variants falling within given v_range
+
+  :param r_iter:
+  :param v_range: (low_v_size, high_v_size) e.g. (-1000, -50) or (50, 1000) or (-50, 50)
+  :return:
+  """
+  for r in accept_reads(r_iter,
+                        lambda mate: not all(v_range[0] <= v <= v_range[1]
+                                         for v in mate[1].v_list)):
+    yield r
 
 """
 
