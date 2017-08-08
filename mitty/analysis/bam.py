@@ -51,7 +51,7 @@ def bam_iter(bam_fname, sidecar_fname, max_d=200, every=None):
     if all(rl):
       if every is None or ctr == 0:
         yield rl
-        ctr = every
+        ctr = every or 0
       if key is not None:
         del read_dict[key]
       ctr -= 1
