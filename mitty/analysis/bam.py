@@ -57,27 +57,31 @@ def bam_iter(bam_fname, sidecar_fname, max_d=200, every=None):
       ctr -= 1
 
 
-def derr(r_iter, d_max):
+def tag_derr(r_iter):
   """Return reads with XD tag filled out with d_err metric
 
   :param r_iter: An iterable of read tuples
-  :param d_max:
   :return:
   """
   for r in r_iter:
     for mate in r:
-      d_err = score_alignment_error(r=mate[0], ri=mate[1], max_d=d_max)
-      mate[0].set_tag('XD', d_err)
+      mate.read.set_tag('XD', mate.d_err)
     yield r
 
 
 def accept_reads(r_iter, f):
+  """Filter out reads based on f
+
+  :param r_iter:
+  :param f: filter function
+  :return:
+  """
   for r in r_iter:
     new_r = [
-      (mate[0], mate[1], f(mate) and mate[2])
+      mate._replace(filter_pass=f(mate) and mate.filter_pass)
       for mate in r
     ]
-    if any([mate[2] for mate in new_r]):
+    if any([mate.filter_pass for mate in new_r]):
       yield new_r
 
 
@@ -87,7 +91,7 @@ def discard_ref(r_iter):
   :param r_iter:
   :return:
   """
-  for r in accept_reads(r_iter, lambda mate: len(mate[1].v_list) > 0):
+  for r in accept_reads(r_iter, lambda mate: len(mate.read_info.v_list) > 0):
     yield r
 
 
@@ -97,7 +101,7 @@ def discard_non_ref(r_iter):
   :param r_iter:
   :return:
   """
-  for r in accept_reads(r_iter, lambda mate: len(mate[1].v_list) == 0):
+  for r in accept_reads(r_iter, lambda mate: len(mate.read_info.v_list) == 0):
     yield r
 
 
@@ -108,7 +112,7 @@ def discard_derr(r_iter, d_range):
   :param d_range: (low_d_err, high_d_err) e.g. (-1000, -10) or (10, 1000)
   :return:
   """
-  for r in accept_reads(r_iter, lambda mate: not (d_range[0] <= mate[0].get_tag('XD') <= d_range[1])):
+  for r in accept_reads(r_iter, lambda mate: not (d_range[0] <= mate.d_err <= d_range[1])):
     yield r
 
 
@@ -121,8 +125,12 @@ def discard_v(r_iter, v_range):
   """
   for r in accept_reads(r_iter,
                         lambda mate: not all(v_range[0] <= v <= v_range[1]
-                                         for v in mate[1].v_list)):
+                                         for v in mate.read_info.v_list)):
     yield r
+
+
+def write_to_bam(r_iter):
+  pass
 
 
 """
