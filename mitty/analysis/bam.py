@@ -57,6 +57,17 @@ def bam_iter(bam_fname, sidecar_fname, max_d=200, every=None):
       ctr -= 1
 
 
+def simple_sink(r_iter):
+  """This just consumes the reads so that our filter chain is processed. Comes in useful in
+  some cases when we just drop the reads off at the end of the pipeline
+
+  :param r_iter:
+  :return:
+  """
+  for r in r_iter:
+    pass
+
+
 def tag_derr(r_iter):
   """Return reads with XD tag filled out with d_err metric
 
