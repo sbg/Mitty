@@ -1,11 +1,15 @@
 import time
 import logging
+from collections import namedtuple
 
 import pysam
 
 from mitty.benchmarking.alignmentscore import score_alignment_error, load_qname_sidecar, parse_qname
 
 logger = logging.getLogger(__name__)
+
+Read = namedtuple('Read',
+                  ['read', 'read_info', 'd_err', 'filter_pass'])
 
 
 def is_single_end_bam(bam_fname):
@@ -14,11 +18,12 @@ def is_single_end_bam(bam_fname):
   return not r.is_paired if r is not None else True  # Empty BAM? Don't care
 
 
-def bam_iter(bam_fname, sidecar_fname, every=None):
+def bam_iter(bam_fname, sidecar_fname, max_d=200, every=None):
   """Given a BAM file path return us tuples of paired reads.
 
   :param bam_fname: BAM file name
   :param sidecar_fname: long qname overflow file
+  :param max_d: maximum d_err we consider
   :param every: If not None, returns every Nth read/read-pair
   :return: a generator that returns pairs of reads from the file
   """
@@ -30,25 +35,26 @@ def bam_iter(bam_fname, sidecar_fname, every=None):
   for rd in pysam.AlignmentFile(bam_fname).fetch(until_eof=True):
     if rd.flag & 0b100100000000: continue  # Skip supplementary or secondary alignments
     ri = parse_qname(rd.qname, long_qname_table=long_qname_table)[1 if rd.is_read2 else 0]
+    d_err = score_alignment_error(r=rd, ri=ri, max_d=max_d)
+
     if se_bam:
-      if every is None or ctr == 0:
-        yield [(rd, ri, True)]
-        ctr = every
-      ctr -= 1
+      key = None
+      rl = [None]
     else:
       key = rd.qname[:20]
       if key not in read_dict:
         read_dict[key] = [None, None]
-
       rl = read_dict[key]
-      rl[0 if rd.is_read1 else 1] = (rd, ri, True)
 
-      if all(rl):
-        if every is None or ctr == 0:
-          yield rl
-          ctr = every
+    rl[0 if (rd.is_read1 or se_bam) else 1] = Read(rd, ri, d_err, True)
+
+    if all(rl):
+      if every is None or ctr == 0:
+        yield rl
+        ctr = every
+      if key is not None:
         del read_dict[key]
-        ctr -= 1
+      ctr -= 1
 
 
 def derr(r_iter, d_max):
@@ -117,6 +123,7 @@ def discard_v(r_iter, v_range):
                         lambda mate: not all(v_range[0] <= v <= v_range[1]
                                          for v in mate[1].v_list)):
     yield r
+
 
 """
 
