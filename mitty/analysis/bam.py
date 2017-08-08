@@ -1,6 +1,6 @@
 import time
 import logging
-from collections import namedtuple
+from collections import namedtuple, Counter
 
 import pysam
 
@@ -99,6 +99,37 @@ def categorize_reads(r_iter, f_dict):
       mate._replace(cat_list=[k for k, f in f_dict.items() if f(mate)])
       for mate in r
     ]
+
+
+def count_reads(r_iter, counter=None):
+  """
+
+  :param r_iter:
+  :param counter: a dictionary of counts, can be empty
+  :return:
+  """
+  for r in r_iter:
+    for mate in r:
+      for cat in (mate.cat_list or ['nocat']):
+        if cat not in counter:
+          counter[cat] = 0
+        counter[cat] += 1
+    yield r
+
+
+def count_reads_sink(r_iter):
+  """This is a sink. It does not act as a filter
+
+  :param r_iter:
+  :return:
+  """
+  return Counter(
+    cat
+    for r in r_iter
+    for mate in r
+    for cat in (mate.cat_list or ['nocat'])
+    if mate.filter_pass
+  )
 
 
 # Library of useful filter functions
