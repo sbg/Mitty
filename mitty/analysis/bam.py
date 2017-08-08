@@ -18,6 +18,9 @@ def is_single_end_bam(bam_fname):
   return not r.is_paired if r is not None else True  # Empty BAM? Don't care
 
 
+# Data Sources ----------------------------------------------------------------
+
+
 def bam_iter(bam_fname, sidecar_fname, max_d=200, every=None):
   """Given a BAM file path return us tuples of paired reads.
 
@@ -57,6 +60,9 @@ def bam_iter(bam_fname, sidecar_fname, max_d=200, every=None):
       ctr -= 1
 
 
+# Data sinks ------------------------------------------------------------------
+
+
 def simple_sink(r_iter):
   """This just consumes the reads so that our filter chain is processed. Comes in useful in
   some cases when we just drop the reads off at the end of the pipeline
@@ -66,6 +72,16 @@ def simple_sink(r_iter):
   """
   for r in r_iter:
     pass
+
+
+def write_to_bam(r_iter, fname, header):
+  out_fp = pysam.AlignmentFile(fname, 'wb', header=header)
+  for r in r_iter:
+    for mate in r:
+      out_fp.write(mate.read)
+
+
+# Filtering operations --------------------------------------------------------
 
 
 def tag_derr(r_iter):
@@ -143,7 +159,7 @@ def count_reads_sink(r_iter):
   )
 
 
-# Library of useful filter functions
+# Library of useful filter functions ------------------------------------------
 
 
 def non_ref():
@@ -183,8 +199,6 @@ def discard_v(v_range):
                               for v in mate.read_info.v_list)
 
 
-def write_to_bam(r_iter):
-  pass
 
 
 """
