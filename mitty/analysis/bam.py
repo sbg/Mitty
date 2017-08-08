@@ -9,7 +9,7 @@ from mitty.benchmarking.alignmentscore import score_alignment_error, load_qname_
 logger = logging.getLogger(__name__)
 
 Read = namedtuple('Read',
-                  ['read', 'read_info', 'd_err', 'filter_pass'])
+                  ['read', 'read_info', 'd_err', 'filter_pass', 'cat_list'])
 
 
 def is_single_end_bam(bam_fname):
@@ -46,7 +46,7 @@ def bam_iter(bam_fname, sidecar_fname, max_d=200, every=None):
         read_dict[key] = [None, None]
       rl = read_dict[key]
 
-    rl[0 if (rd.is_read1 or se_bam) else 1] = Read(rd, ri, d_err, True)
+    rl[0 if (rd.is_read1 or se_bam) else 1] = Read(rd, ri, d_err, True, [])
 
     if all(rl):
       if every is None or ctr == 0:
@@ -85,48 +85,60 @@ def accept_reads(r_iter, f):
       yield new_r
 
 
-def discard_ref(r_iter):
+def categorize_reads(r_iter, f_dict):
+  """Fill in cat_list of Reads. Note that there is no loss of reads in this function.
+  If a read does not match any filter cat_list is empty, which corresonds to 'uncategorized'
+
+  :param r_iter:
+  :param f_dict: Dictionary of key: filter_function pairs
+                 key will go into cat_list field of read if filter passes
+  :return:
+  """
+  for r in r_iter:
+    yield [
+      mate._replace(cat_list=[k for k, f in f_dict.items() if f(mate)])
+      for mate in r
+    ]
+
+
+# Library of useful filter functions
+
+
+def discard_ref():
   """Discard reference reads
 
-  :param r_iter:
-  :return:
+  :param mate: Read object
+  :return: T/F
   """
-  for r in accept_reads(r_iter, lambda mate: len(mate.read_info.v_list) > 0):
-    yield r
+  return lambda mate: len(mate.read_info.v_list) > 0
 
 
-def discard_non_ref(r_iter):
+def discard_non_ref():
   """Discard non-reference reads
 
-  :param r_iter:
-  :return:
+  :param mate: Read object
+  :return: T/F
   """
-  for r in accept_reads(r_iter, lambda mate: len(mate.read_info.v_list) == 0):
-    yield r
+  return lambda mate: len(mate.read_info.v_list) == 0
 
 
-def discard_derr(r_iter, d_range):
+def discard_derr(d_range):
   """Discard reads falling within given d_range
 
-  :param r_iter:
   :param d_range: (low_d_err, high_d_err) e.g. (-1000, -10) or (10, 1000)
   :return:
   """
-  for r in accept_reads(r_iter, lambda mate: not (d_range[0] <= mate.d_err <= d_range[1])):
-    yield r
+  return lambda mate: not (d_range[0] <= mate.d_err <= d_range[1])
 
 
-def discard_v(r_iter, v_range):
+def discard_v(v_range):
   """Discard reads with variants falling within given v_range
 
-  :param r_iter:
   :param v_range: (low_v_size, high_v_size) e.g. (-1000, -50) or (50, 1000) or (-50, 50)
   :return:
   """
-  for r in accept_reads(r_iter,
-                        lambda mate: not all(v_range[0] <= v <= v_range[1]
-                                         for v in mate.read_info.v_list)):
-    yield r
+  return lambda mate: not all(v_range[0] <= v <= v_range[1]
+                              for v in mate.read_info.v_list)
 
 
 def write_to_bam(r_iter):
