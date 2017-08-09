@@ -113,6 +113,16 @@ def filter_reads(r_iter, f):
       yield new_r
 
 
+def drop_failed_mates(r_iter):
+  """Leave out mates that didn't pass the filters
+
+  :param r_iter:
+  :return:
+  """
+  for r in r_iter:
+    yield [mate for mate in r if mate.filter_pass]
+
+
 def categorize_reads(r_iter, f_dict):
   """Fill in cat_list of Reads. Note that there is no loss of reads in this function.
   If a read does not match any filter cat_list is empty, which corresonds to 'uncategorized'
@@ -161,7 +171,7 @@ def count_reads_sink(r_iter):
 
 
 def zero_dmv(max_d=200, max_MQ=70, max_vlen=200):
-  return np.zeros(shape=(2 * max_d + 3, max_MQ + 1, 2 * max_vlen + 1 + 2 + 1), dtype=int)
+  return np.zeros(shape=(2 * max_d + 3, max_MQ + 1, 2 * max_vlen + 1 + 2), dtype=int)
 
 
 def alignment_hist(r_iter, dmv_mat):
@@ -184,7 +194,7 @@ def alignment_hist(r_iter, dmv_mat):
   """
   max_d = int((dmv_mat.shape[0] - 3) / 2)
   max_MQ = int(dmv_mat.shape[1] - 1)
-  max_vlen = int((dmv_mat.shape[2] - 4) / 2)
+  max_vlen = int((dmv_mat.shape[2] - 3) / 2)
 
   for r in r_iter:
     for mate in r:
@@ -197,6 +207,7 @@ def alignment_hist(r_iter, dmv_mat):
       else:
         k = 2 * max_vlen + 1
         dmv_mat[i, j, k] += 1
+      dmv_mat[i, j, -1] += 1  # The exact marginal
 
     yield r
 
