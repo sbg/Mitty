@@ -64,15 +64,17 @@ def bam_iter(bam_fname, sidecar_fname, max_d=200, every=None):
 # Data sinks ------------------------------------------------------------------
 
 
-def simple_sink(r_iter):
+def simple_sink(r_iter, limit=2**32):
   """This just consumes the reads so that our filter chain is processed. Comes in useful in
   some cases when we just drop the reads off at the end of the pipeline
 
   :param r_iter:
+  :param limit:  Only read these many templates
   :return:
   """
-  for r in r_iter:
-    pass
+  for n, r in enumerate(r_iter):
+    if not (n < limit):
+      break
 
 
 def write_to_bam(r_iter, fname, header):
@@ -171,14 +173,14 @@ def count_reads_sink(r_iter):
 
 
 def zero_dmv(max_d=200, max_MQ=70, max_vlen=200):
-  return np.zeros(shape=(2 * max_d + 3, max_MQ + 1, 2 * max_vlen + 1 + 2), dtype=int)
+  return np.zeros(shape=(2 * max_d + 1 + 2, max_MQ + 1, 2 * max_vlen + 1 + 2), dtype=int)
 
 
 def alignment_hist(r_iter, dmv_mat):
   """Compute the dmv matrix which is as defined as follows:
 
   A 3D matrix with dimensions:
-    Xd - alignment error  [0]  -max_d, ... 0, ... +max_d, wrong_chrom, unmapped (2 * max_d + 3)
+    Xd - alignment error  [0]  -max_d, ... 0, ... +max_d, wrong_chrom, unmapped (2 * max_d + 1 + 2)
     MQ - mapping quality  [1]  0, ... max_MQ (max_MQ + 1)
     vlen - length of variant carried by read [2]  -max_vlen, ... 0, ... +max_vlen, Ref, Margin
                                                   (2 * max_vlen + 1 + 2)
