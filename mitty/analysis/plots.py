@@ -64,6 +64,7 @@ def plot_mean_MQ_vs_derr(ax, dmv_mat, fmt='y', ms=3):
   plt.ylabel('Mean MQ')
 
 
+#TODO: remove joint plotting of two d_err thresholds - pass this as a paramter so we can compose the plots
 def plot_perr_vs_MQ(ax, dmv_mat, yscale='linear'):
   mq = np.arange(dmv_mat.shape[1])
   mq_mat = dmv_mat.sum(axis=2)
@@ -89,3 +90,68 @@ def plot_read_count_vs_MQ(ax, dmv_mat):
   cnt = mq_mat.sum(axis=0)
   ax.step(mq, cnt, 'k', where='mid')
   plt.setp(ax, xlabel='MQ', ylabel=r'Read count', xlim=(-1, 65), yscale='log')
+
+
+def hengli_plot(ax, dmv_mat, v_bin_label, d_err=20, fmt='r.-', label='aligner',
+                xlim=(1e-7, 1e-1), ylim=(0.95, 1.002)):
+  """
+    x-axis # wrong / # mapped
+    y-axis # mapped / total reads
+
+    Parametrized by MQ >= q where q ranges from 0 to 70
+
+  :param ax:
+  :param dmv_mat:
+  :param v_bin_label:
+  :param d_err:
+  :return:
+  """
+  max_vlen = int((dmv_mat.shape[2] - 3) / 2)
+  assert max_vlen >= 50
+
+  v_bins = {
+    'Ref': [-2, -1],
+    'SNP': [max_vlen, max_vlen + 1],
+    'INS <= 10': [max_vlen + 1, max_vlen + 1 + 10],
+    '10 < INS <= 50': [max_vlen + 11, max_vlen + 11 + 50],
+    'DEL <= 10': [max_vlen - 10, max_vlen],
+    '10 < DEL <= 50': [max_vlen - 50, max_vlen - 10]
+  }
+
+  # max_mq = dmv_mat.shape[1] - 1
+  max_mq = 60
+
+  x = np.empty(shape=(max_mq,))
+  y = np.empty(shape=(max_mq,))
+
+  max_xd = int((dmv_mat.shape[0] - 3) / 2)
+
+  vb = v_bins[v_bin_label]
+
+  total = dmv_mat[:, :, vb[0]:vb[1]].sum()
+  # print(v_bin_label, total)
+
+  for m in range(max_mq):
+    wrong = dmv_mat[0: max_xd - d_err, m:, vb[0]:vb[1]].sum() + \
+            dmv_mat[max_xd + d_err:-1, m:, vb[0]:vb[1]].sum()
+    mapped = dmv_mat[0:-1, m:, vb[0]:vb[1]].sum()
+
+    x[m] = wrong / (mapped + 1e-6)
+    y[m] = mapped / (total + 1e-6)
+
+  ax.semilogx(x, y, fmt, label=label, lw=3, ms=3)
+  ax.text(xlim[0] * 2, ylim[1] * 0.998, v_bin_label, ha='left', va='top',
+          size=8)
+  plt.grid(False)
+  for p in ['top', 'right']:
+    ax.spines[p].set(visible=False)
+
+  ax.get_xaxis().tick_bottom()
+  ax.get_yaxis().tick_left()
+  ax.tick_params(which='both', direction='out')
+
+  for item in ([ax.title, ax.xaxis.label, ax.yaxis.label] +
+                ax.get_xticklabels() + ax.get_yticklabels()):
+    item.set_fontsize(9)
+
+  plt.setp(ax, xlim=xlim, ylim=ylim)
