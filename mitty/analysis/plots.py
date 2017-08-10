@@ -18,8 +18,9 @@ def plot_read_counts(ax, counts_l, keys=None, colors=None):
   all_keys = keys or set(k for count in counts_l for k in count.keys())
   for i, counts in enumerate(counts_l):
     for n, k in enumerate(all_keys):
-      ax.barh(n + i * dh, counts[k], color=colors[i], align='center', height= 0.8 * dh)
-      ax.text(counts[k], n + i * dh, counts[k], color='w', va='center', ha='right')
+      cnt = counts.get(k, 0)
+      ax.barh(n + i * dh, cnt, color=colors[i], align='center', height=0.8 * dh)
+      if cnt > 0: ax.text(cnt, n + i * dh, cnt, color='w', va='center', ha='right')
 
   y_ticks = list(range(len(all_keys)))
   ax.set_yticks(y_ticks)
