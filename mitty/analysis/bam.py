@@ -17,14 +17,8 @@ logger = logging.getLogger(__name__)
 #   'read_info': ...
 #   'd_err': ...
 #   'cat_list': ...
-#   'filter_pass': ...
+#   'fpass': ...
 # }
-
-
-def is_single_end_bam(bam_fname):
-  bam_fp = pysam.AlignmentFile(bam_fname)
-  r = next(bam_fp, None)
-  return not r.is_paired if r is not None else True  # Empty BAM? Don't care
 
 
 def get_header(bam_fname):
@@ -54,7 +48,7 @@ def read_bam(bam_fname, sidecar_fname=None):
             rd.qname,
             long_qname_table=long_qname_table
           )[1 if rd.is_read2 else 0] if long_qname_table is not None else None,
-        'pass': True
+        'fpass': True
       },
     )
 
@@ -82,6 +76,66 @@ def write_bam(fname, header, riter):
     yield r
 
 
+# Filtering operations --------------------------------------------------------
+
+
+@cytoolz.curry
+def filter_reads(f, condition, riter):
+  """Filter out reads based on f
+
+  :param f: filter function
+  :param condition: is either one of the python functions all or any
+                    to indicate if we should accept paired reads only if both the mates pass
+                    or if any of the mates pass
+  :param riter:
+  :return:
+  """
+  for r in riter:
+    new_r = tuple(dict(mate, fpass=f(mate) and mate['fpass']) for mate in r)
+    if condition(tuple(mate['fpass'] for mate in new_r)):
+      yield new_r
+
+
+# Library of useful filter functions ------------------------------------------
+
+
+def non_ref():
+  """Keep reads with variants
+
+  :return: function that takes mate as input and returns T/F
+  """
+  return lambda mate: len(mate['read_info'].v_list) > 0
+
+
+def pure_ref():
+  """Keep reads with no variants
+
+  :return: function that takes mate as input and returns T/F
+  """
+  return lambda mate: len(mate['read_info'].v_list) == 0
+
+
+def derr(min, max):
+  """Keep reads within this limit
+
+  :param min:
+  :param max:
+  :return:
+  """
+  return lambda mate: min <= mate['d_err'] <= max
+
+
+def vsize(min, max):
+  """Keep reads with at least one variant falling within given v_range
+  Returns False for pure reference reads
+
+  :param min:
+  :param max:
+  :return:
+  """
+  return lambda mate: any(min <= v <= max for v in mate['read_info'].v_list)
+
+
 # Processing tools ------------------------------------------------------------
 
 
@@ -103,75 +157,25 @@ def make_pairs(riter):
       del read_dict[key]
 
 
-# Data sinks ------------------------------------------------------------------
+@cytoolz.curry
+def compute_derr(riter, max_d=200):
+  """Mutates dictionary: adds d_err field to it.
 
-
-def simple_sink(r_iter, limit=2**32):
-  """This just consumes the reads so that our filter chain is processed. Comes in useful in
-  some cases when we just drop the reads off at the end of the pipeline
-
-  :param r_iter:
-  :param limit:  Only read these many templates
+  :param max_d:
+  :param riter:
   :return:
   """
-  for n, r in enumerate(r_iter):
-    if not (n < limit):
-      break
-
-
-def write_to_bam(fname, header, r_iter):
-  out_fp = pysam.AlignmentFile(fname, 'wb', header=header)
-  for r in r_iter:
+  for r in riter:
     for mate in r:
-      out_fp.write(mate.read)
-
-
-# Filtering operations --------------------------------------------------------
-
-
-def tag_derr(r_iter):
-  """Return reads with XD tag filled out with d_err metric
-
-  :param r_iter: An iterable of read tuples
-  :return:
-  """
-  for r in r_iter:
-    for mate in r:
-      mate.read.set_tag('XD', mate.d_err)
+      mate['d_err'] = score_alignment_error(r=mate['read'], ri=mate['read_info'], max_d=max_d)
     yield r
 
 
-def filter_reads(f, r_iter=None):
-  """Filter out reads based on f
-
-  :param r_iter:
-  :param f: filter function
-  :return:
-  """
-  for r in r_iter:
-    at_least_one_mate_passes = False
-    for mate in r:
-      mate.filter_pass = f(mate) and mate.filter_pass
-      if mate.filter_pass:
-        at_least_one_mate_passes = True
-
-    if at_least_one_mate_passes:
-      yield r
-
-
-def drop_failed_mates(r_iter):
-  """Leave out mates that didn't pass the filters
-
-  :param r_iter:
-  :return:
-  """
-  for r in r_iter:
-    yield [mate for mate in r if mate.filter_pass]
-
-
+@cytoolz.curry
 def categorize_reads(f_dict, r_iter):
   """Fill in cat_list of Reads. Note that there is no loss of reads in this function.
   If a read does not match any filter cat_list is empty, which corresonds to 'uncategorized'
+  Mutates dictionary: adds 'cat_list' field to it.
 
   :param r_iter:
   :param f_dict: Dictionary of key: filter_function pairs
@@ -180,46 +184,33 @@ def categorize_reads(f_dict, r_iter):
   """
   for r in r_iter:
     for mate in r:
-      mate.cat_list = [k for k, f in f_dict.items() if f(mate)]
+      mate['cat_list'] = [k for k, f in f_dict.items() if f(mate)]
     yield r
 
 
+@cytoolz.curry
 def count_reads(counter, r_iter):
   """
 
-  :param r_iter:
   :param counter: a dictionary of counts
+  :param r_iter:
   :return:
   """
   for r in r_iter:
     for mate in r:
-      for cat in (mate.cat_list or ['nocat']):
+      for cat in (mate['cat_list'] or ['nocat']):
         if cat not in counter:
           counter[cat] = 0
         counter[cat] += 1
     yield r
 
 
-def count_reads_sink(r_iter):
-  """This is a sink. It does not act as a filter
-
-  :param r_iter:
-  :return:
-  """
-  return Counter(
-    cat
-    for r in r_iter
-    for mate in r
-    for cat in (mate.cat_list or ['nocat'])
-    if mate.filter_pass
-  )
-
-
 def zero_dmv(max_d=200, max_MQ=70, max_vlen=200):
   return np.zeros(shape=(2 * max_d + 1 + 2, max_MQ + 1, 2 * max_vlen + 1 + 2), dtype=int)
 
 
-def alignment_hist(r_iter, dmv_mat):
+@cytoolz.curry
+def alignment_hist(dmv_mat, riter):
   """Compute the dmv matrix which is as defined as follows:
 
   A 3D matrix with dimensions:
@@ -233,20 +224,20 @@ def alignment_hist(r_iter, dmv_mat):
   * Margin collects the marginal sums for d x MQ. This is necessary because one read can appear in multiple
     bins on the vlen axis and cause a slight excess of counts when marginals are computed
 
-  :param r_iter:
   :param dmv_mat:
+  :param riter:
   :return: iterator
   """
   max_d = int((dmv_mat.shape[0] - 3) / 2)
   max_MQ = int(dmv_mat.shape[1] - 1)
   max_vlen = int((dmv_mat.shape[2] - 3) / 2)
 
-  for r in r_iter:
+  for r in riter:
     for mate in r:
-      i = max_d + mate.d_err
-      j = min(mate.read.mapping_quality, max_MQ)
-      if mate.read_info.v_list:
-        for v_size in mate.read_info.v_list:
+      i = max_d + mate['d_err']
+      j = min(mate['read'].mapping_quality, max_MQ)
+      if mate['read_info'].v_list:
+        for v_size in mate['read_info'].v_list:
           k = min(max_vlen, max(0, max_vlen + v_size))
           dmv_mat[i, j, k] += 1
       else:
@@ -255,63 +246,3 @@ def alignment_hist(r_iter, dmv_mat):
       dmv_mat[i, j, -1] += 1  # The exact marginal
 
     yield r
-
-
-# Library of useful filter functions ------------------------------------------
-
-
-def non_ref():
-  """Keep reads with variants
-
-  :param mate: Read object
-  :return: T/F
-  """
-  return lambda mate: len(mate.read_info.v_list) > 0
-
-
-def pure_ref():
-  """Keep reads with no variants
-
-  :param mate: Read object
-  :return: T/F
-  """
-  return lambda mate: len(mate.read_info.v_list) == 0
-
-
-def discard_derr(d_range):
-  """Discard reads falling within given d_range
-
-  :param d_range: (low_d_err, high_d_err) e.g. (-1000, -10) or (10, 1000)
-  :return:
-  """
-  return lambda mate: not (d_range[0] <= mate.d_err <= d_range[1])
-
-
-def discard_v(v_range):
-  """Discard reads with variants falling within given v_range
-
-  :param v_range: (low_v_size, high_v_size) e.g. (-1000, -50) or (50, 1000) or (-50, 50)
-  :return:
-  """
-  return lambda mate: not all(v_range[0] <= v <= v_range[1]
-                              for v in mate.read_info.v_list)
-
-
-
-
-"""
-
-`derr ( r, d_max )` - return reads with XD tag filled out with d_err metric
-`discard_ref ( r )` - discard reference reads
-`discard_non_ref ( r )` - discard non-reference reads
-`filter_derr ( r, d_range, d_max )` - given a read iterator filter out reads falling in given d_range
-`filter_v ( r, v_range )` - filter out reads with no variants outside this range
-`categorize ( r, cat_dict )` - given a dictionary of filter functions create categories (or sub-categories)
-`count ( r, result)` - count up all the reads for each category, return in the result dictionary
-`save_to_bam( r, header )` - save reads in separate BAM files with names matching the category names
-`read_fate_plot( result, ax )` - plot a histogram with different category labels based on a result dictionary
-                                 passing multiple results will result in multiple histograms on the same axes
-`xmv ( r, d_max, MQ_max, vlen_max, result )` - Three dimensional alignment analysis histogram bin counts
-`xmv_plot ( result, ax )` - alignment analysis plot. Multiple plots on same axes if
-
-"""
