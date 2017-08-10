@@ -2,6 +2,7 @@ import time
 import logging
 from collections import namedtuple, Counter
 
+import cytoolz
 import numpy as np
 import pysam
 
@@ -9,8 +10,15 @@ from mitty.benchmarking.alignmentscore import score_alignment_error, load_qname_
 
 logger = logging.getLogger(__name__)
 
-Read = namedtuple('Read',
-                  ['read', 'read_info', 'd_err', 'filter_pass', 'cat_list'])
+# Using a dict which is a builtin and pretty fast
+# https://gist.github.com/cordella/2861038
+# read_dict = {
+#   'read': ...
+#   'read_info': ...
+#   'd_err': ...
+#   'cat_list': ...
+#   'filter_pass': ...
+# }
 
 
 def is_single_end_bam(bam_fname):
@@ -19,7 +27,59 @@ def is_single_end_bam(bam_fname):
   return not r.is_paired if r is not None else True  # Empty BAM? Don't care
 
 
+def get_header(bam_fname):
+  return pysam.AlignmentFile(bam_fname).header
+
+
 # Data Sources ----------------------------------------------------------------
+
+
+def read_bam(bam_fname, sidecar_fname=None):
+  """Fetch reads (including unmapped) from a BAM.
+
+  :param bam_fname: path to BAM file
+  :param sidecar_fname: If provided, will fill out read_info
+  :param every: Only take every nth read
+  :return:
+  """
+  long_qname_table = load_qname_sidecar(sidecar_fname) if sidecar_fname is not None else None
+
+  for rd in pysam.AlignmentFile(bam_fname).fetch(until_eof=True):
+    if rd.flag & 0b100100000000: continue  # Skip supplementary or secondary alignments
+    yield (
+      {
+        'read': rd,
+        'read_info':
+          parse_qname(
+            rd.qname,
+            long_qname_table=long_qname_table
+          )[1 if rd.is_read2 else 0] if long_qname_table is not None else None,
+        'pass': True
+      },
+    )
+
+
+# Data sinks ------------------------------------------------------------------
+
+
+def simple_sink(riter):
+  """This just consumes the reads so that our filter chain is processed. Comes in useful in
+  some cases when we just drop the reads off at the end of the pipeline
+
+  :param riter:
+  :return:
+  """
+  for r in riter:
+    pass
+
+
+@cytoolz.curry
+def write_bam(fname, header, riter):
+  out_fp = pysam.AlignmentFile(fname, 'wb', header=header)
+  for r in riter:
+    for mate in r:
+      out_fp.write(mate['read'])
+    yield r
 
 
 def bam_iter(bam_fname, sidecar_fname, max_d=200, every=None):
@@ -77,7 +137,7 @@ def simple_sink(r_iter, limit=2**32):
       break
 
 
-def write_to_bam(r_iter, fname, header):
+def write_to_bam(fname, header, r_iter):
   out_fp = pysam.AlignmentFile(fname, 'wb', header=header)
   for r in r_iter:
     for mate in r:
@@ -99,7 +159,7 @@ def tag_derr(r_iter):
     yield r
 
 
-def filter_reads(r_iter, f):
+def filter_reads(f, r_iter=None):
   """Filter out reads based on f
 
   :param r_iter:
@@ -107,12 +167,14 @@ def filter_reads(r_iter, f):
   :return:
   """
   for r in r_iter:
-    new_r = [
-      mate._replace(filter_pass=f(mate) and mate.filter_pass)
-      for mate in r
-    ]
-    if any([mate.filter_pass for mate in new_r]):
-      yield new_r
+    at_least_one_mate_passes = False
+    for mate in r:
+      mate.filter_pass = f(mate) and mate.filter_pass
+      if mate.filter_pass:
+        at_least_one_mate_passes = True
+
+    if at_least_one_mate_passes:
+      yield r
 
 
 def drop_failed_mates(r_iter):
@@ -125,7 +187,7 @@ def drop_failed_mates(r_iter):
     yield [mate for mate in r if mate.filter_pass]
 
 
-def categorize_reads(r_iter, f_dict):
+def categorize_reads(f_dict, r_iter):
   """Fill in cat_list of Reads. Note that there is no loss of reads in this function.
   If a read does not match any filter cat_list is empty, which corresonds to 'uncategorized'
 
@@ -135,17 +197,16 @@ def categorize_reads(r_iter, f_dict):
   :return:
   """
   for r in r_iter:
-    yield [
-      mate._replace(cat_list=[k for k, f in f_dict.items() if f(mate)])
-      for mate in r
-    ]
+    for mate in r:
+      mate.cat_list = [k for k, f in f_dict.items() if f(mate)]
+    yield r
 
 
-def count_reads(r_iter, counter=None):
+def count_reads(counter, r_iter):
   """
 
   :param r_iter:
-  :param counter: a dictionary of counts, can be empty
+  :param counter: a dictionary of counts
   :return:
   """
   for r in r_iter:
