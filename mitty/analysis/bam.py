@@ -82,43 +82,25 @@ def write_bam(fname, header, riter):
     yield r
 
 
-def bam_iter(bam_fname, sidecar_fname, max_d=200, every=None):
-  """Given a BAM file path return us tuples of paired reads.
+# Processing tools ------------------------------------------------------------
 
-  :param bam_fname: BAM file name
-  :param sidecar_fname: long qname overflow file
-  :param max_d: maximum d_err we consider
-  :param every: If not None, returns every Nth read/read-pair
-  :return: a generator that returns pairs of reads from the file
+
+def make_pairs(riter):
+  """Given a stream of reads pair them up by qname. Assumes riter is spewing tuples of
+  size 1
+
+  :param riter:
+  :return:
   """
-  se_bam = is_single_end_bam(bam_fname)
-  long_qname_table = load_qname_sidecar(sidecar_fname)
-
   read_dict = {}
-  ctr = 0
-  for rd in pysam.AlignmentFile(bam_fname).fetch(until_eof=True):
-    if rd.flag & 0b100100000000: continue  # Skip supplementary or secondary alignments
-    ri = parse_qname(rd.qname, long_qname_table=long_qname_table)[1 if rd.is_read2 else 0]
-    d_err = score_alignment_error(r=rd, ri=ri, max_d=max_d)
-
-    if se_bam:
-      key = None
-      rl = [None]
-    else:
-      key = rd.qname[:20]
-      if key not in read_dict:
-        read_dict[key] = [None, None]
-      rl = read_dict[key]
-
-    rl[0 if (rd.is_read1 or se_bam) else 1] = Read(rd, ri, d_err, True, [])
-
-    if all(rl):
-      if every is None or ctr == 0:
-        yield rl
-        ctr = every or 0
-      if key is not None:
-        del read_dict[key]
-      ctr -= 1
+  for r in riter:
+    rd = r[0]['read']
+    key = rd.qname[:20]
+    if key not in read_dict:
+      read_dict[key] = r[0]
+    else:  # You complete me
+      yield (r[0], read_dict[key]) if rd.is_read1 else (read_dict[key], r[0])
+      del read_dict[key]
 
 
 # Data sinks ------------------------------------------------------------------
