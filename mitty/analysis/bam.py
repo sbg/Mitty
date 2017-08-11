@@ -1,10 +1,10 @@
-import time
+from collections import OrderedDict
 import logging
-from collections import namedtuple, Counter
 
 import cytoolz
 import numpy as np
 import pysam
+import pandas as pd
 
 from mitty.benchmarking.alignmentscore import score_alignment_error, load_qname_sidecar, parse_qname
 
@@ -246,3 +246,65 @@ def alignment_hist(dmv_mat, riter):
       dmv_mat[i, j, -1] += 1  # The exact marginal
 
     yield r
+
+
+@cytoolz.curry
+def to_df(riter, tags=None):
+  """This is a terminal, it produces a data frame
+
+  :param riter:
+  :param tags:
+  :return:
+  """
+  qname = []
+  read_data = [
+    OrderedDict(
+      [
+        ('mate', []),
+        ('chrom', []),
+        ('pos', []),
+        ('cigar', []),
+        ('MQ', []),
+        ('d_err', []),
+        ('correct_chrom', []),
+        ('correct_pos', []),
+        ('correct_cigar', []),
+      ] + [
+        (tag, [])
+        for tag in tags
+      ])
+    for _ in [0, 1]
+  ]
+
+  for r in riter:
+    qname.append(r[0]['read'].qname.split('|')[0])
+    for n, mate in enumerate(r):
+      rdta = read_data[n]
+      rd = mate['read']
+      rdta['mate'].append(1 if rd.is_read1 else 2)
+      rdta['chrom'].append(rd.reference_name)
+      rdta['pos'].append(rd.pos)
+      rdta['cigar'].append(rd.cigarstring)
+      rdta['MQ'].append(rd.mapping_quality)
+      rdta['d_err'].append(mate['d_err'])
+      rdta['correct_chrom'].append(mate['read_info'].chrom)
+      rdta['correct_pos'].append(mate['read_info'].pos)
+      rdta['correct_cigar'].append(mate['read_info'].cigar)
+      for tag in tags:
+        rdta[tag] = rd.get_tag(tag)
+
+  mates_were_paired = True if len(read_data[1]['mate']) else False
+  data = OrderedDict(
+    [
+      (('qname',) if mates_were_paired else 'qname', qname),
+    ] + [
+      (('mate1', k) if mates_were_paired else k, v)
+      for k, v in read_data[0].items()
+    ] + ([
+      (('mate2', k), v)
+      for k, v in read_data[1].items()
+    ] if mates_were_paired else [])
+  )
+
+  return pd.DataFrame(data)
+
