@@ -1,5 +1,8 @@
 Release Notes
 =============
+2.24.0
+- enhancement: Composable BAM analysis using cytoolz and pandas
+
 2.23.0
 - enhancement: Program now prints out version during run
 

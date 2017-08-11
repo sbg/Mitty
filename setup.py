@@ -1,10 +1,13 @@
 from setuptools import setup, find_packages
 
+ld = open('readme.tmp.rst').read()
+
 __version__ = eval(open('mitty/version.py').read().split('=')[1])
 setup(
   name='mitty',
   version=__version__,
   description='Simulator for genomic data',
+  long_description=ld,
   author='Seven Bridges Genomics',
   author_email='kaushik.ghose@sbgdinc.com',
   url='https://github.com/sbg/Mitty',
@@ -29,6 +32,8 @@ setup(
     'pysam==0.10.0',
     'matplotlib>=1.3.0',
     'scipy',
+    'pandas',
+    'cytoolz',
     'nose'
   ],
   test_suite='nose.collector',
