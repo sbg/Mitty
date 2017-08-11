@@ -1,8 +1,9 @@
 import numpy as np
 import matplotlib.pyplot as plt
+import matplotlib.patches as mpatches
 
 
-def plot_read_counts(ax, counts_l, keys=None, colors=None):
+def plot_read_counts(ax, counts_l, keys=None, colors=None, labels=None):
   """Plot a horizontal histogram of read counts.
 
   :param ax:
@@ -30,6 +31,13 @@ def plot_read_counts(ax, counts_l, keys=None, colors=None):
 
   ax.set_xscale('log')
   ax.set_xlabel('Read count')
+
+  if labels is not None:
+    l_p = [
+      mpatches.Patch(color=colors[k], label=labels[k])
+      for k in range(len(labels))
+    ]
+    plt.legend(handles=l_p, loc='best')
 
 
 def plot_mean_MQ_vs_derr(ax, dmv_mat, fmt='y', ms=3):
