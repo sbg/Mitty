@@ -1,5 +1,9 @@
 Release Notes
 =============
+2.25.0
+- enhancement: flat coverage option added to read generation model
+  Flat coverage implemented for Illumina model. Example of usage included
+
 2.24.0
 - enhancement: Composable BAM analysis using cytoolz and pandas
 

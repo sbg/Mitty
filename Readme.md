@@ -376,6 +376,19 @@ mitty -v4 generate-reads \
 ```
  
 
+#### Flat-coverage
+([Example script](https://github.com/kghosesbg/mitty-demo-data/blob/master/flat-coverage/flat-coverage-reads.sh))
+
+Adding the `--flat-coverage` flag will generate reads such that, excepting anomalies around the start and 
+stop of the region, we obtain absolutely uniform coverage across the whole region. Template lengths still follow
+the distribution found in the model.
+
+![IGV screenshot comparing correct alignments with BWA alignments](docs/images/flat-coverage-igv.png?raw=true "IGV screenshot comparing correct alignments with BWA alignments")
+
+![Coverage histogram comparing correct alignments with BWA alignments](docs/images/flat-coverage-hist.png?raw=true "Coverage histogram comparing correct alignments with BWA alignments")
+
+This is useful for a variety of experiments where variability in coverage if a metric.
+
 
 ### Corrupting reads
 

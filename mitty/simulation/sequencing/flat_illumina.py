@@ -1,6 +1,29 @@
-"""Example read model
+"""This is largely the same as the "illumina" model with the important difference that the templates are placed
+so that a fixed coverage value over every base is guaranteed.
 
-TODO: Figure out the logistics of having diffrent models and loading GC-bias, sequencing error etc.
+Considerations
+
+- Excepting tiny anomalies around the start and stop of the region we want absolutely uniform coverage
+- We would like the template length not to be a fixed value
+
+
+Algorithm
+- We lay down the reads in passes
+- Each pass tiles the region with a fixed coverage
+- We have a random offset (upto half a read length) for each pass
+- The reads in each pass have a deterministic position given by
+     | 1/p * n | + o
+
+     where
+      p is the per base read probability computed from coverage, read length and number of passes
+      n is the read index [0, 1, 2, ....]
+      o is the (random) offset
+- Reads are paired into templates as follows
+  - Pick the index for the next available read. When we start this is 0
+  - Generate a template size as the regular Illumina model does.
+  - Find the read closest to fitting this template size that is still available
+  - Mark off these two reads as consumed
+  - Repeat until all reads are done
 
 """
 import numpy as np
@@ -19,7 +42,7 @@ def read_model_params(model, diploid_coverage=30.0):
   rlen = model['mean_rlen']
   # coverage = read count * read len / genome len
   # coverage = P * read len P = expected number of reads per base
-  # P = p * passes    p = probability of template per pass
+  # P = p * passes    p = probability of read per pass
   # One template for two reads
   # p = P / (2 * passes)
   # p = coverage / (2 * rlen * passes)
@@ -27,7 +50,7 @@ def read_model_params(model, diploid_coverage=30.0):
   passes = 1
   while p > 0.1:
     passes *= 2
-    p = 0.5 * diploid_coverage / (2 * rlen * passes)
+    p = 0.5 * diploid_coverage / (rlen * passes)
 
   return {
     'diploid_coverage': diploid_coverage,
@@ -46,7 +69,6 @@ def generate_reads(model, p_min, p_max, seed=7):
   :param model: dict as returned by read_model_params
   :param p_min: Start of reads
   :param p_max: End of reads
-  :param region: ('1', 10001, 103863906) Like the BED file
   :param seed:
   :return:
   """
@@ -54,26 +76,61 @@ def generate_reads(model, p_min, p_max, seed=7):
     raise ValueError('Seed value {} is out of range 0 - {}'.format(seed, SEED_MAX))
 
   seed_rng = np.random.RandomState(seed)
-  tloc_rng, tlen_rng, shuffle_rng, file_order_rng = \
-    [np.random.RandomState(s) for s in seed_rng.randint(SEED_MAX, size=4)]
+  tlen_rng, file_order_rng = \
+    [np.random.RandomState(s) for s in seed_rng.randint(SEED_MAX, size=2)]
+
+  offset = seed_rng.randint(model['rlen'] / 2)
 
   return _reads_for_template_in_region(
         model, file_order_rng,
         *_templates_for_region(
-          p_min, p_max, model, tloc_rng, tlen_rng, shuffle_rng))
+          p_min, p_max, model, offset, tlen_rng))
 
 
-def _templates_for_region(p_min, p_max, model, tloc_rng, tlen_rng, shuffle_rng):
-  # TODO: GC-bias goes here
+def _templates_for_region(p_min, p_max, model, offset, tlen_rng):
   p, rlen = model['p'], model['rlen']
-  est_block_size = int((p_max - p_min) * p * 1.2)
-  ts = tloc_rng.geometric(p=p, size=est_block_size).cumsum() + p_min + 1
-  shuffle_rng.shuffle(ts)
+
+  n_templates = int(int((p_max - p_min - offset - rlen) * p) / 2)
+  n_reads = n_templates * 2
+
+  read_used = np.zeros(n_reads, dtype=np.int8)
+  ts = np.empty(n_templates, dtype=np.uint32)
+  te = np.empty(n_templates, dtype=np.uint32)
   tl = np.searchsorted(model['cum_tlen'], tlen_rng.rand(ts.shape[0]))
   tl.clip(rlen, out=tl)
-  te = ts + tl
-  idx = (te < p_max)
-  return ts[idx], te[idx]
+
+  p_1 = 1 / p
+  offset_ = offset + p_min + 1
+
+  t_index = 0
+  for n in range(n_reads):
+    if read_used[n]:
+      continue
+    ts[t_index] = round(p_1 * n) + offset_
+    read_used[n] = 1
+
+    n_mate = _nearest_available_read(read_used,
+                                     min(int((ts[t_index] + tl[t_index] - offset_) * p), n_reads - 1))
+
+    te[t_index] = p_1 * n_mate + rlen + offset_
+    read_used[n_mate] = 1
+
+    t_index += 1
+
+  return ts, te
+
+
+def _nearest_available_read(read_used, i0):
+  i_minus, i_plus = i0, i0
+  while i_minus > 0 or i_plus < read_used.size:
+    if i_minus > 0:
+      if not read_used[i_minus]: return i_minus
+      i_minus -= 1
+    if i_plus < read_used.size:
+      if not read_used[i_plus]: return i_plus
+      i_plus += 1
+
+  raise RuntimeError('Algorithm error! Mail program author')
 
 
 def _reads_for_template_in_region(model, file_order_rng, ts, te):

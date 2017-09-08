@@ -140,6 +140,7 @@ def print_qname(ctx, param, value):
 @click.argument('fastq1', type=click.Path())
 @click.argument('longqname', type=click.Path())
 @click.option('--fastq2', type=click.Path())
+@click.option('--flat-coverage', is_flag=True, help='If set ensure perfectly uniform coverage')
 @click.option('--truncate-to', type=int, help='Truncate all reads to these many bp (If set)')
 @click.option('--unpair', is_flag=True, help='unpair reads for models that normally produce paired reads')
 @click.option('--threads', default=2)
@@ -147,12 +148,12 @@ def print_qname(ctx, param, value):
 def generate_reads(fasta, vcf, sample_name, bed, modelfile,
                    coverage, seed,
                    fastq1, longqname, fastq2,
-                   truncate_to, unpair,
+                   flat_coverage, truncate_to, unpair,
                    threads):
   """Generate simulated reads"""
   import mitty.simulation.readgenerate as reads
 
-  read_module, model = get_read_model(modelfile)
+  read_module, model = get_read_model(modelfile, sub_type='-flat-coverage' if flat_coverage else '')
   reads.process_multi_threaded(
     fasta, vcf, sample_name, bed, read_module, model, coverage,
     fastq1, longqname, fastq2,
@@ -534,16 +535,19 @@ def subset_bam(bamin, sidecar, bamout,
            strict_scoring=strict_scoring, do_not_index=do_not_index, processes=processes)
 
 
-def get_read_model(modelfile):
+def get_read_model(modelfile, sub_type=''):
   """Return read module and model data given modelfile
 
   :param modelfile:
+  :param sub_type: Some modification of the model. Currently restricted to '-flat-coverage' for 'illumina'
   :return:
   """
   import pickle
   import pkg_resources
 
-  import mitty.simulation.illumina  # Hard coded for now, might use entry points like before to pip install models
+  # These are hard coded for now, might use entry points like before to pip install models
+  import mitty.simulation.illumina
+  import mitty.simulation.sequencing.flat_illumina
 
   if pkg_resources.resource_exists(__name__, 'data/readmodels/' + modelfile):
     logging.debug('Found model {} in builtins'.format(modelfile))
@@ -555,7 +559,8 @@ def get_read_model(modelfile):
   model = pickle.load(open(mod_fname, 'rb'))
   read_module = {
     'illumina': mitty.simulation.illumina,
-  }.get(model['model_class'])
+    'illumina-flat-coverage': mitty.simulation.sequencing.flat_illumina,
+  }.get(model['model_class'] + sub_type)
 
   return read_module, model
 
