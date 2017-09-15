@@ -1,6 +1,7 @@
 from setuptools import setup, find_packages
 
-ld = open('readme.tmp.rst').read()
+with open('long_description.rst') as f:
+  ld = f.read()
 
 __version__ = eval(open('mitty/version.py').read().split('=')[1])
 setup(
