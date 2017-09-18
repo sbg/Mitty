@@ -43,7 +43,8 @@ def process_bam_section(bam_fname, reference, every=1, min_mq=0, max_bq=94, max_
     if min_rlen > r.rlen: min_rlen = r.rlen
     if max_rlen < r.rlen: max_rlen = r.rlen
 
-    if r.mapq >= min_mq and r.mapq != 255 and r.is_read2 and abs(r.tlen) < max_tlen:
+    # 0.95 * r.rlen gives us some reads where tlen = read len (which tests some aligner edge cases), but not too many
+    if r.mapq >= min_mq and r.mapq != 255 and r.is_read2 and (0.95 * r.rlen) <= abs(r.tlen) < max_tlen:
       tlen_mat[abs(r.tlen)] += 1
 
     if n % 100000 == 0: logger.debug('Processed {} reads'.format(n))
