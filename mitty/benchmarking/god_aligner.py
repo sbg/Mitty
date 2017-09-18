@@ -192,6 +192,14 @@ def write_perfect_reads(qname, rg_id, long_qname_table, ref_dict, read_data, cig
 
   # Some special stuff we have to do for paired reads
   if len(reads) == 2:
+    # Do the correct computation for tlen
+    ap1 = reads[0].get_aligned_pairs(True)
+    ap2 = reads[1].get_aligned_pairs(True)
+    p10, p11, p20, p21 = ap1[0][1], ap1[-1][1], ap2[0][1], ap2[-1][1]
+    tl = p21 - p10 + 1 if p10 < p20 else p20 - p11 - 1
+    reads[0].template_length = tl
+    reads[1].template_length = -tl
+
     for n, r in enumerate(reads):
       r.is_paired = True
       r.is_proper_pair = True
