@@ -180,7 +180,16 @@ def categorize_reads(f_dict, r_iter):
   :param r_iter:
   :param f_dict: Dictionary of key: filter_function pairs
                  key will go into cat_list field of read if filter passes
-  :return:
+
+  e.g. f_dict = {
+    'd = 0': lambda mate: mate['d_err'] == 0,
+    '0 < d <= 50': lambda mate: 0 < mate['d_err'] <= 50,
+    '50 < d': lambda mate: 50 < mate['d_err'] < 200,
+    'WC': lambda mate: 200 < mate['d_err'],
+    'UM': lambda mate: mate['read'].is_unmapped
+    }
+
+  :return: iterator
   """
   for r in r_iter:
     for mate in r:
@@ -190,7 +199,8 @@ def categorize_reads(f_dict, r_iter):
 
 @cytoolz.curry
 def count_reads(counter, r_iter):
-  """
+  """The reads need to have gone through `categorize_reads` so that they have the
+    'cat_list'] field filled out
 
   :param counter: a dictionary of counts
   :param r_iter:
