@@ -7,8 +7,14 @@ def plot_read_counts(ax, counts_l, keys=None, colors=None, labels=None):
   """Plot a horizontal histogram of read counts.
 
   :param ax:
-  :param counts_l: list of count dictionaries. All counts will be plotted on same axes
+  :param counts_l: dictionary of counts.
+                   If a list of dictionaries is passed multiple bars are plotted.
+                   Dictionary is in the same format as returned e.g. by read_counts
+
+
   :param keys: List of keys. If supplied only these keys and in this order will be shown
+  :param colors: if passed will control the color of the bars
+  :param labels: if passed will supply a legend with these labels
   :return:
   """
   colors = colors or ['g', 'c', 'r', 'y', 'b']

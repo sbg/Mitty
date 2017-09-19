@@ -174,8 +174,8 @@ def compute_derr(riter, max_d=200):
 @cytoolz.curry
 def categorize_reads(f_dict, r_iter):
   """Fill in cat_list of Reads. Note that there is no loss of reads in this function.
-  If a read does not match any filter cat_list is empty, which corresonds to 'uncategorized'
-  Mutates dictionary: adds 'cat_list' field to it.
+  If a read does not match any filter cat_list is empty, which corresponds to 'uncategorized'
+  Mutates read dictionary: adds 'cat_list' field to it.
 
   :param r_iter:
   :param f_dict: Dictionary of key: filter_function pairs
