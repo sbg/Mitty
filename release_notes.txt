@@ -1,5 +1,15 @@
 Release Notes
 =============
+2.25.1
+- bugfix: bam2illumina discards read with tlen = 0
+  Also discards reads with tlen < 0.95 read len, which allows us to have some reads with tlen = rlen
+  in the simulation (which tests some edge cases in the aligner) but not too many,
+  which screws up our stats.
+- bugfix: god-aligner now writes out tlen
+  Does so matching the SAM spec.
+- enhancement: new model illuminaHiSeq-FCA.pkl added
+- bugfix: god-aligner now sets .mate_is_reverse too
+
 2.25.0
 - enhancement: flat coverage option added to read generation model
   Flat coverage implemented for Illumina model. Example of usage included
