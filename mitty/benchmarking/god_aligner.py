@@ -183,10 +183,12 @@ def write_perfect_reads(qname, rg_id, long_qname_table, ref_dict, read_data, cig
     # TODO: Set this as unmapped?
     if ri.strand:
       read.is_reverse = 1
+      read.mate_is_reverse = 0
       read.seq = rd[0].translate(DNA_complement)[::-1]
       read.qual = rd[1][::-1]
     else:
       read.is_reverse = 0
+      read.mate_is_reverse = 1
       read.seq = rd[0]
       read.qual = rd[1]
 
