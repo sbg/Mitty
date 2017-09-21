@@ -107,7 +107,7 @@ def parse_qname(qname, long_qname_table=None):
   """Given a Mitty qname return us the POS and CIGAR as we would put in a BAM. There is also a special_cigar
   which is set for reads completely inside long insertions
 
-  @index|sn|chrom:copy|strand:pos:cigar:v1,v2,...:MD|strand:pos:cigar:v1,v2,...:MD|
+  @index|sn|chrom:copy|strand:pos:cigar:v1,v2,...:MD|strand:pos:cigar:v1,v2,...:MD*
 
   :param qname:
   :param long_qname_table: If present, is a map of qname index and qname for just the long qnames
