@@ -175,7 +175,8 @@ def compute_derr(riter, max_d=200):
 def categorize_reads(f_dict, r_iter):
   """Fill in cat_list of Reads. Note that there is no loss of reads in this function.
   If a read does not match any filter cat_list is empty, which corresponds to 'uncategorized'
-  Mutates read dictionary: adds 'cat_list' field to it.
+  Mutates read dictionary: adds 'cat_list' field to it. If a 'cat_list' field already exists
+  it appends to it.
 
   :param r_iter:
   :param f_dict: Dictionary of key: filter_function pairs
@@ -193,7 +194,7 @@ def categorize_reads(f_dict, r_iter):
   """
   for r in r_iter:
     for mate in r:
-      mate['cat_list'] = [k for k, f in f_dict.items() if f(mate)]
+      mate['cat_list'] = mate.get('cat_list', []) + [k for k, f in f_dict.items() if f(mate)]
     yield r
 
 
@@ -215,6 +216,94 @@ def count_reads(counter, r_iter):
     yield r
 
 
+class PairedAlignmentHistogram:
+  """
+  A 5D histogram of Xd1 x Xd2 x Xt x MQ x v_len where
+
+    Xd1 (alignment error mate 1)
+      size: (n_bins + 2)
+      bins + wrong_chrom, unmapped
+
+    Xd2 (alignment error mate 2)  (For unpaired reads, this dimension is collapsed TODO)
+      size: (n_bins + 2)
+      bins +  wrong_chrom, unmapped
+
+    Xt (template length error)
+      size: (n_bins)
+      bins
+
+    MQ (mapping quality)
+      size: (max_MQ + 1)
+      0, ... max_MQ
+
+    vlen (length of variant carried by read)
+      size: (n_bins + 3)
+      n_bins + Ref, Multiple, Margin
+      Ref = ref reads
+      Multiple = reads with more than one variant
+      Margin = accurate marginal count (without multiple counting)
+
+  The class supplies convenient accessors to the data via a smart __get_item__() function and
+  """
+  def __init__(
+    self,
+    # np.histogram uses x0 <= x < x1 for binning
+    d_bins=(-np.inf, -100, -50, -20, 0, 1, 21, 51, 101, np.inf),
+    max_d=200,
+    t_range=(-np.inf, -100, -50, -20, 0, 1, 21, 51, 101, np.inf),
+    max_MQ=70,
+    v_bins=(-np.inf, -50, -20, 0, 1, 21, 51, np.inf)):
+    """
+
+    :param d_bins:
+    :param t_range:
+    :param max_MQ:
+    :param v_bins:
+    :param buf_size:  internal buffer used during histograming (yes, that's a verb)
+
+    np.histogramd uses x0 <= x < x1 for binning
+
+    np.histogram([-100, -50, -20, 0, 20, 50, 100], d_bins) -> [0, 1, 1, 1, 1, 1, 1, 1, 0]
+    """
+    self.hist = np.zeros(
+      shape=(len(d_bins) - 1 + 2,
+             len(d_bins) - 1 + 2,
+             len(t_range)- 1 + 1,
+             max_MQ + 1,
+             len(v_bins) - 1 + 3), dtype=int)
+
+    self.d_bins = d_bins
+    self.max_d = max_d
+    self.t_range = t_range
+    self.v_bins = v_bins
+
+
+  def process(self, titer):
+    """Iterate over reads and fill out the histogram
+
+    :return:
+    """
+    d_bins, max_d, t_range, v_bins = self.d_bins, self.max_d, self.t_range, self.v_bins
+
+    for tpl in titer:
+
+
+      for mate in tpl:
+        i = max_d + mate['d_err']
+        j = mate['read'].mapping_quality  # Will crash if wierd MQ
+        k =
+        if mate['read_info'].v_list:
+          for v_size in mate['read_info'].v_list:
+            k = min(max_vlen, max(0, max_vlen + v_size))
+            dmv_mat[i, j, k] += 1
+        else:
+          k = 2 * max_vlen + 1
+          dmv_mat[i, j, k] += 1
+        dmv_mat[i, j, -1] += 1  # The exact marginal
+
+      yield tpl
+
+
 def zero_dmv(max_d=200, max_MQ=70, max_vlen=200):
   return np.zeros(shape=(2 * max_d + 1 + 2, max_MQ + 1, 2 * max_vlen + 1 + 2), dtype=int)
 
@@ -226,8 +315,10 @@ def alignment_hist(dmv_mat, riter):
   A 3D matrix with dimensions:
     Xd - alignment error  [0]  -max_d, ... 0, ... +max_d, wrong_chrom, unmapped (2 * max_d + 1 + 2)
     MQ - mapping quality  [1]  0, ... max_MQ (max_MQ + 1)
-    vlen - length of variant carried by read [2]  -max_vlen, ... 0, ... +max_vlen, Ref, Margin
+    vlen - length of variant carried by read [2]  -max_vlen, ... 0, ... +max_vlen, Ref, Margin, Multiple
                                                   (2 * max_vlen + 1 + 2)
+
+
 
   * The ends of the ranges (-max_d, max_d) (-max_vlen, +max_vlen) include that value and all values exceeding
   * Ref collects all the reference reads
@@ -256,6 +347,46 @@ def alignment_hist(dmv_mat, riter):
       dmv_mat[i, j, -1] += 1  # The exact marginal
 
     yield r
+
+
+@cytoolz.curry
+def error_matrix(riter, derr_mq_mat=None, vrange=None, additional_filter=None):
+  """The 3D dmv matrix can be intimidating, inflexible and annoying. This function is more flexible and
+  allows you to take variant range slices and generate a 2D d_err vs MQ matrix.
+
+  :param derr_mq_mat: This needs to be initialized and passed to the function
+      A 2D matrix with dimensions:
+          Xd - alignment error  [0]  -max_d, ... 0, ... +max_d, wrong_chrom, unmapped (2 * max_d + 1 + 2)
+          MQ - mapping quality  [1]  0, ... max_MQ (max_MQ + 1)
+
+  :param vrange:  None - take all reads
+                  'ref'  - only take reference reads
+                  (a, b)  (a tuple) only take reads with at least one variant in this range
+                  'multi' - only take reads with more than one variant
+  :param additional_filter: a function in the same format as used by filter_reads to
+                            further winnow the reads we allow
+                            can be None
+  :param riter:
+  :return: riter
+  """
+  assert derr_mq_mat is not None, 'derr_mq_mat must be initialized'
+
+  max_d = int((derr_mq_mat.shape[0] - 3) / 2)
+  max_MQ = int(derr_mq_mat.shape[1] - 1)
+
+  for r in riter:
+    for mate in r:
+      if additional_filter is not None:
+        if not additional_filter(mate)
+
+      i = max_d + mate['d_err']
+      j = min(mate['read'].mapping_quality, max_MQ)
+
+    yield r
+
+
+def tlen_matrix():
+  pass
 
 
 @cytoolz.curry
