@@ -32,3 +32,17 @@ And then run individual test scripts to check if everything works on the Linux c
 ```
 docker push images.sbgenomics.com/kghosesbg/mitty3:latest
 ```
+
+
+Pushing to PyPi
+===============
+
+(via https://packaging.python.org/tutorials/distributing-packages)
+
+```
+python setup.py sdist
+python setup.py bdist_wheel
+python setup.py bdist_wheel
+# Fill out ~/.pypirc if you haven't already
+twine upload dist/*
+```
