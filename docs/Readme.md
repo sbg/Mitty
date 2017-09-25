@@ -42,7 +42,6 @@ Pushing to PyPi
 ```
 python setup.py sdist
 python setup.py bdist_wheel
-python setup.py bdist_wheel
 # Fill out ~/.pypirc if you haven't already
 twine upload dist/*
 ```
