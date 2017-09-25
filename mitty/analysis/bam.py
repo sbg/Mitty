@@ -6,7 +6,7 @@ import numpy as np
 import pysam
 import pandas as pd
 
-from mitty.benchmarking.alignmentscore import score_alignment_error, load_qname_sidecar, parse_qname
+from mitty.benchmarking.alignmentscore import score_alignment_error, correct_tlen, load_qname_sidecar, parse_qname
 
 logger = logging.getLogger(__name__)
 
@@ -218,90 +218,151 @@ def count_reads(counter, r_iter):
 
 class PairedAlignmentHistogram:
   """
-  A 5D histogram of Xd1 x Xd2 x Xt x MQ x v_len where
+  We have conflicting requirements for a high-resolution assessment of MQ and d-err and the desire to
+  do multi-dimensional analysis of variant sizes and read-pairs (including t-len). We keep the size of
+  the result matrix low by judiciously binning each of the dimensions based on past experience of how
+  quickly data changes. The idea is also to be able to change bin granularity of any of the dimensions
+  for specific tests as needed.
 
-    Xd1 (alignment error mate 1)
+  7D histogram of Xd1 x Xd2 x MQ1 x MQ2 x vl1 x vl2 x Xt where
+
+    Xd1, 2 (alignment error mate 1, 2)
       size: (n_bins + 2)
       bins + wrong_chrom, unmapped
 
-    Xd2 (alignment error mate 2)  (For unpaired reads, this dimension is collapsed TODO)
+    MQ1, 2 (mapping quality mate 1, 2)
+      size: (n_bins)
+
+    vl1,2 (length of variant carried by mate 1, 2)
       size: (n_bins + 2)
-      bins +  wrong_chrom, unmapped
+      n_bins + Ref, V+
+      Ref = ref reads                          |-- summing these give us correct marginals
+      V+ = reads with more than one variant    |
+
+    (One of the new things here is that reads with multiple variants no longer get classified by their
+     constituent variant sizes but instead get put into their own class)
 
     Xt (template length error)
       size: (n_bins)
       bins
 
-    MQ (mapping quality)
-      size: (max_MQ + 1)
-      0, ... max_MQ
-
-    vlen (length of variant carried by read)
-      size: (n_bins + 3)
-      n_bins + Ref, Multiple, Margin
-      Ref = ref reads
-      Multiple = reads with more than one variant
-      Margin = accurate marginal count (without multiple counting)
 
   The class supplies convenient accessors to the data via a smart __get_item__() function and
   """
   def __init__(
     self,
-    # np.histogram uses x0 <= x < x1 for binning
-    d_bins=(-np.inf, -100, -50, -20, 0, 1, 21, 51, 101, np.inf),
+    d_bins=(-np.inf, -100, -40, -20, -10, -5, 0, 1, 6, 11, 21, 41, 101, np.inf),
     max_d=200,
-    t_range=(-np.inf, -100, -50, -20, 0, 1, 21, 51, 101, np.inf),
-    max_MQ=70,
-    v_bins=(-np.inf, -50, -20, 0, 1, 21, 51, np.inf)):
+    mq_bins=(0, 1, 11, 21, 31, 41, 51, 61, np.inf),
+    v_bins=(-np.inf, -50, -20, 0, 1, 21, 51, np.inf),
+    t_bins=(-np.inf, -100, -40, -20, -10, -5, 0, 1, 6, 11, 21, 41, 101, np.inf),
+    buf_size=100000):
     """
+    A note on handling binning for
 
-    :param d_bins:
-    :param t_range:
-    :param max_MQ:
+    :param d_bins:  Binning rule is x0 <= x < x1
+    :param max_d:
+    :param mq_bins:
     :param v_bins:
-    :param buf_size:  internal buffer used during histograming (yes, that's a verb)
-
-    np.histogramd uses x0 <= x < x1 for binning
-
-    np.histogram([-100, -50, -20, 0, 20, 50, 100], d_bins) -> [0, 1, 1, 1, 1, 1, 1, 1, 0]
+    :param t_bins:
+    :param buf_size: compute the histogram in chunks of N
     """
     self.hist = np.zeros(
       shape=(len(d_bins) - 1 + 2,
              len(d_bins) - 1 + 2,
-             len(t_range)- 1 + 1,
-             max_MQ + 1,
-             len(v_bins) - 1 + 3), dtype=int)
+             len(mq_bins) - 1,
+             len(mq_bins) - 1,
+             len(v_bins) - 1 + 3,
+             len(v_bins)- 1 + 3,
+             len(t_bins) - 1), dtype=int)
 
-    self.d_bins = d_bins
     self.max_d = max_d
-    self.t_range = t_range
+    # d_bins has to be adjusted to accommodate WC and UM reads
+    d_bins = list(d_bins)
+    d_bins[-1] = max_d + 1
+    d_bins += [ max_d + 2, max_d + 3 ]
+    # ...., max_d + 1, max_d + 2, max_d + 3
+    #     |          |          \----- UM
+    #     |          \----- WC
+    #     \---- max_d+
+    #
+    # Also note that alignment analysis takes care of clipping d_err at max_d
+    self.d_bins = d_bins
+
+    self.mq_bins = mq_bins
+
+    self.max_v = v_bins[-2] + 1 # This is what we clip v size to be
+    # d_bins has to be adjusted to accommodate Ref and V+
+    v_bins = list(v_bins)
+    v_bins[-1] = self.max_v + 1
+    v_bins += [ self.max_v + 2, self.max_v + 3 ]
+    # ...., max_v + 1, max_v + 2, max_v + 3
+    #     |          |          \-- V+
+    #     |          \-- Ref
+    #     \-- varlen+
     self.v_bins = v_bins
 
+    self.t_bins = t_bins
+
+    self.buf_size = buf_size
 
   def process(self, titer):
-    """Iterate over reads and fill out the histogram
+    """Iterate over reads and fill out the histogram.
+
+    We first fill the read data into a numpy buffer and then apply histogram on it.
+    While filling out the buffer we adjust
 
     :return:
     """
-    d_bins, max_d, t_range, v_bins = self.d_bins, self.max_d, self.t_range, self.v_bins
+    def _parse_vlist(_vl):
+      if _vl:
+        if len(_vl) == 1:
+          return max(-max_v, min(_vl[0], max_v))  # Single variant read
+        else:
+          return max_v + 2  # Multi variant read
+      else:
+        return max_v + 1  # Reference read
+
+    max_d, max_v = self.max_d, self.max_v
+    temp_read = pysam.AlignedSegment()
+
+    bs = self.buf_size
+    buf = np.empty(shape=(bs, 7))
+    idx = 0
 
     for tpl in titer:
+      # For efficiency this assumes we have PE reads and have paired them up using make_pairs
+      # Xd1 x Xd2 x MQ1 x MQ2 x vl1 x vl2 x Xt
+      buf[idx, :] = [
+        tpl[0]['d_err'],
+        tpl[1]['d_err'],
+        tpl[0]['read'].mapping_quality,
+        tpl[1]['read'].mapping_quality,
+        _parse_vlist(tpl[0]['read_info'].v_list),
+        _parse_vlist(tpl[1]['read_info'].v_list),
+        abs(tpl[0]['read'].template_length) - correct_tlen(tpl[0]['read_info'], tpl[1]['read_info'], temp_read)
+      ]
+      idx += 1
 
-
-      for mate in tpl:
-        i = max_d + mate['d_err']
-        j = mate['read'].mapping_quality  # Will crash if wierd MQ
-        k =
-        if mate['read_info'].v_list:
-          for v_size in mate['read_info'].v_list:
-            k = min(max_vlen, max(0, max_vlen + v_size))
-            dmv_mat[i, j, k] += 1
-        else:
-          k = 2 * max_vlen + 1
-          dmv_mat[i, j, k] += 1
-        dmv_mat[i, j, -1] += 1  # The exact marginal
+      if idx >= bs:
+        self.finalize(buf, idx)
+        idx = 0  # We don't bother to clear buf - we just over write it
 
       yield tpl
+
+    self.finalize(buf, idx)
+
+  def finalize(self, buf, idx):
+    """given a buffer of data bin it into the histgram
+
+    :param buf:
+    :param idx:
+    :return:
+    """
+    self.hist +
+
+
+
 
 
 def zero_dmv(max_d=200, max_MQ=70, max_vlen=200):
