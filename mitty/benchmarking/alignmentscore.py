@@ -67,6 +67,28 @@ def score_alignment_error(r, ri, max_d=200, strict=False):
   return d_err
 
 
+def correct_tlen(ri1, ri2, r):
+  """If you give it two read_info objects it will compute the correct tlen for you. You should also pass it
+  a pysam.AlignedSegment object - it uses this for the tlen computations. It saves time compared to having to
+  create a new object every time
+
+  :param r:
+  :param ri1:
+  :param ri2:
+  :return:
+  """
+  r.pos = ri1.pos
+  r.cigarstring = ri1.cigar
+  ap1 = r.get_aligned_pairs(True)
+
+  r.pos = ri2.pos
+  r.cigarstring = ri2.cigar
+  ap2 = r.get_aligned_pairs(True)
+
+  p10, p11, p20, p21 = ap1[0][1], ap1[-1][1], ap2[0][1], ap2[-1][1]
+  return p21 - p10 + 1 if p10 < p20 else p20 - p11 - 1
+
+
 def tag_alignment(r, ri, max_d=200, strict=False):
   """Given correct alignment set tags on the read indicating correct alignment and other metadata
 
