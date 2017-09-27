@@ -1,3 +1,4 @@
+import time
 from collections import OrderedDict
 import logging
 
@@ -216,6 +217,32 @@ def count_reads(counter, r_iter):
     yield r
 
 
+def fastmultihist(sample, bins):
+  """
+
+  :param sample:
+  :param bins:
+  :return:
+
+  Because np.histogramdd is broken in terms of performance.
+  Because we don't need no nanny state
+  """
+  N, D = sample.shape
+
+  # Compute the bin number each sample falls into.
+  Ncount = [np.digitize(sample[:, i], bins[i]) - 1 for i in np.arange(D)]
+
+  # Unravel the D-dimensional coordinates onto a 1-D index
+  nbin = np.array([len(b) - 1 for b in bins], int)
+  xy = np.zeros(N, int)
+  for i in np.arange(0, D - 1):
+    xy += Ncount[i] * nbin[i + 1:].prod()
+  xy += Ncount[-1]
+
+  # Histogram the indecies and then ravel the index counts back into D-dimensions
+  return np.bincount(xy, minlength=nbin.prod()).reshape(nbin)
+
+
 class PairedAlignmentHistogram:
   """
   We have conflicting requirements for a high-resolution assessment of MQ and d-err and the desire to
@@ -224,7 +251,7 @@ class PairedAlignmentHistogram:
   quickly data changes. The idea is also to be able to change bin granularity of any of the dimensions
   for specific tests as needed.
 
-  7D histogram of Xd1 x Xd2 x MQ1 x MQ2 x vl1 x vl2 x Xt where
+  8D histogram of Xd1 x Xd2 x MQ1 x MQ2 x vl1 x vl2 x Xt x T where
 
     Xd1, 2 (alignment error mate 1, 2)
       size: (n_bins + 2)
@@ -246,53 +273,79 @@ class PairedAlignmentHistogram:
       size: (n_bins)
       bins
 
+    T (Correct template length)
+      size: (n_bins)
+      bins
 
   The class supplies convenient accessors to the data via a smart __get_item__() function and
   """
   def __init__(
     self,
-    d_bins=(-np.inf, -100, -40, -20, -10, -5, 0, 1, 6, 11, 21, 41, 101, np.inf),
+    xd_bins=(-np.inf, -100, -40, -20, -10, -5, 0, 1, 6, 11, 21, 41, 101, np.inf),
     max_d=200,
-    mq_bins=(0, 1, 11, 21, 31, 41, 51, 61, np.inf),
-    v_bins=(-np.inf, -50, -20, 0, 1, 21, 51, np.inf),
-    t_bins=(-np.inf, -100, -40, -20, -10, -5, 0, 1, 6, 11, 21, 41, 101, np.inf),
-    buf_size=100000):
+    mq_bins=(0, 1, 11, 41, 51, np.inf),
+    v_bins=(-np.inf, -20, 0, 1, 21, np.inf),
+    xt_bins=(-np.inf, -100, -40, -20, -10, -5, 0, 1, 6, 11, 21, 41, 101, np.inf),
+    t_bins=(-np.inf, 200, 301, 401, 601, np.inf),
+    buf_size=100):
     """
-    A note on handling binning for
 
-    :param d_bins:  Binning rule is x0 <= x < x1
+    :param xd_bins:
     :param max_d:
     :param mq_bins:
     :param v_bins:
-    :param t_bins:
+    :param xt_bins: template length error bins
+    :param t_bins: correct template length bins
     :param buf_size: compute the histogram in chunks of N
+
+    Binning rule is x0 <= x < x1
+
+    The size of the matrix using the defaults is
+
+    15 * 15 * 8 * 8 * 10 * 10 * 13 * 8 =  150 million elements
+
     """
+    self.dimensions = [
+      # code    description
+      ('xd1', 'alignment error mate 1'),
+      ('xd2', 'alignment error mate 2'),
+      ('mq1', 'mapping quality mate 1'),
+      ('mq2', 'mapping quality mate 1'),
+      ('v1', 'length of variant carried by mate 1'),
+      ('v2', 'length of variant carried by mate 2'),
+      ('xt', 'template length error'),
+      ('t', 'Correct template length')
+    ]
+
+    self.dim_dict = {k[0]: n for n, k in enumerate(self.dimensions)}
+
     self.hist = np.zeros(
-      shape=(len(d_bins) - 1 + 2,
-             len(d_bins) - 1 + 2,
+      shape=(len(xd_bins) - 1 + 2,
+             len(xd_bins) - 1 + 2,
              len(mq_bins) - 1,
              len(mq_bins) - 1,
-             len(v_bins) - 1 + 3,
-             len(v_bins)- 1 + 3,
-             len(t_bins) - 1), dtype=int)
+             len(v_bins) - 1 + 2,
+             len(v_bins) - 1 + 2,
+             len(xt_bins) - 1,
+             len(t_bins) - 1), dtype=int)  # histogram uses floats. Why??, dtype=int)
 
     self.max_d = max_d
-    # d_bins has to be adjusted to accommodate WC and UM reads
-    d_bins = list(d_bins)
-    d_bins[-1] = max_d + 1
-    d_bins += [ max_d + 2, max_d + 3 ]
+    # xd_bins has to be adjusted to accommodate WC and UM reads
+    xd_bins = list(xd_bins)
+    xd_bins[-1] = max_d + 1
+    xd_bins += [max_d + 2, max_d + 3]
     # ...., max_d + 1, max_d + 2, max_d + 3
     #     |          |          \----- UM
     #     |          \----- WC
     #     \---- max_d+
     #
     # Also note that alignment analysis takes care of clipping d_err at max_d
-    self.d_bins = d_bins
+    self.xd_bins = np.array(xd_bins)
 
-    self.mq_bins = mq_bins
+    self.mq_bins = np.array(mq_bins)
 
     self.max_v = v_bins[-2] + 1 # This is what we clip v size to be
-    # d_bins has to be adjusted to accommodate Ref and V+
+    # xd_bins has to be adjusted to accommodate Ref and V+
     v_bins = list(v_bins)
     v_bins[-1] = self.max_v + 1
     v_bins += [ self.max_v + 2, self.max_v + 3 ]
@@ -300,17 +353,41 @@ class PairedAlignmentHistogram:
     #     |          |          \-- V+
     #     |          \-- Ref
     #     \-- varlen+
-    self.v_bins = v_bins
+    self.v_bins = np.array(v_bins)
+    self.xt_bins = np.array(xt_bins)
+    self.t_bins = np.array(t_bins)
 
-    self.t_bins = t_bins
+    self.bins = [
+      self.xd_bins,
+      self.xd_bins,
+      self.mq_bins,
+      self.mq_bins,
+      self.v_bins,
+      self.v_bins,
+      self.xt_bins,
+      self.t_bins
+    ]
 
     self.buf_size = buf_size
+
+  def bins(self, dim):
+    """
+
+    :param dim: name of the dimension
+    :return:
+    """
+    return self.dimensions
+
+  def __repr__(self):
+    r_str = ['Dimensions:']
+    for d in self.dimensions:
+      pass
 
   def process(self, titer):
     """Iterate over reads and fill out the histogram.
 
-    We first fill the read data into a numpy buffer and then apply histogram on it.
-    While filling out the buffer we adjust
+    This works as a sink. For some reason, if I write this as a filter
+    nothing after the yield is executed and so we can't do the final finalize :/
 
     :return:
     """
@@ -327,11 +404,13 @@ class PairedAlignmentHistogram:
     temp_read = pysam.AlignedSegment()
 
     bs = self.buf_size
-    buf = np.empty(shape=(bs, 7))
+    buf = np.empty(shape=(bs, 8))
     idx = 0
 
     for tpl in titer:
       # For efficiency this assumes we have PE reads and have paired them up using make_pairs
+      ctl = correct_tlen(tpl[0]['read_info'], tpl[1]['read_info'], temp_read)
+
       # Xd1 x Xd2 x MQ1 x MQ2 x vl1 x vl2 x Xt
       buf[idx, :] = [
         tpl[0]['d_err'],
@@ -340,7 +419,8 @@ class PairedAlignmentHistogram:
         tpl[1]['read'].mapping_quality,
         _parse_vlist(tpl[0]['read_info'].v_list),
         _parse_vlist(tpl[1]['read_info'].v_list),
-        abs(tpl[0]['read'].template_length) - correct_tlen(tpl[0]['read_info'], tpl[1]['read_info'], temp_read)
+        abs(tpl[0]['read'].template_length) - ctl,
+        ctl
       ]
       idx += 1
 
@@ -348,9 +428,7 @@ class PairedAlignmentHistogram:
         self.finalize(buf, idx)
         idx = 0  # We don't bother to clear buf - we just over write it
 
-      yield tpl
-
-    self.finalize(buf, idx)
+    self.finalize(buf, idx)  # TODO: Why does cytoolz not call this after stopiteration??
 
   def finalize(self, buf, idx):
     """given a buffer of data bin it into the histgram
@@ -359,10 +437,29 @@ class PairedAlignmentHistogram:
     :param idx:
     :return:
     """
-    self.hist +
+    t0 = time.time()
+    self.hist += fastmultihist(buf[:idx, :], self.bins)
+    t1 = time.time()
+    print(t1 - t0)
 
+  def collapse(self, dim_names):
+    """Returns the marginal for the dimensions supplied.
 
+    :param dim_names:
+    :return:
+    """
+    assert all(self.dim_dict.get(n, None) for n in dim_names), 'Mistake in dimension names'
+    d_tuple = tuple(d for d in range(8)
+                    if d not in [self.dim_dict[k] for k in dim_names])
+    h = self.hist.sum(axis=d_tuple)
+    return h, self.bin_centers(d_tuple[0]), self.bin_centers(d_tuple[1])
 
+  def bin_centers(self, dim):
+    return (self.bins[dim][:-1] + self.bins[dim][1:]) / 2
+
+  def __getitem__(self, item):
+    """Limits us to sending in two dimensions and returns us a data frame"""
+    print(item)
 
 
 def zero_dmv(max_d=200, max_MQ=70, max_vlen=200):
@@ -406,42 +503,6 @@ def alignment_hist(dmv_mat, riter):
         k = 2 * max_vlen + 1
         dmv_mat[i, j, k] += 1
       dmv_mat[i, j, -1] += 1  # The exact marginal
-
-    yield r
-
-
-@cytoolz.curry
-def error_matrix(riter, derr_mq_mat=None, vrange=None, additional_filter=None):
-  """The 3D dmv matrix can be intimidating, inflexible and annoying. This function is more flexible and
-  allows you to take variant range slices and generate a 2D d_err vs MQ matrix.
-
-  :param derr_mq_mat: This needs to be initialized and passed to the function
-      A 2D matrix with dimensions:
-          Xd - alignment error  [0]  -max_d, ... 0, ... +max_d, wrong_chrom, unmapped (2 * max_d + 1 + 2)
-          MQ - mapping quality  [1]  0, ... max_MQ (max_MQ + 1)
-
-  :param vrange:  None - take all reads
-                  'ref'  - only take reference reads
-                  (a, b)  (a tuple) only take reads with at least one variant in this range
-                  'multi' - only take reads with more than one variant
-  :param additional_filter: a function in the same format as used by filter_reads to
-                            further winnow the reads we allow
-                            can be None
-  :param riter:
-  :return: riter
-  """
-  assert derr_mq_mat is not None, 'derr_mq_mat must be initialized'
-
-  max_d = int((derr_mq_mat.shape[0] - 3) / 2)
-  max_MQ = int(derr_mq_mat.shape[1] - 1)
-
-  for r in riter:
-    for mate in r:
-      if additional_filter is not None:
-        if not additional_filter(mate)
-
-      i = max_d + mate['d_err']
-      j = min(mate['read'].mapping_quality, max_MQ)
 
     yield r
 
