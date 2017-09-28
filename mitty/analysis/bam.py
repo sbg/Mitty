@@ -239,8 +239,30 @@ def fastmultihist(sample, bins):
     xy += Ncount[i] * nbin[i + 1:].prod()
   xy += Ncount[-1]
 
-  # Histogram the indecies and then ravel the index counts back into D-dimensions
+  # Histogram the indices and then ravel the index counts back into D-dimensions
   return np.bincount(xy, minlength=nbin.prod()).reshape(nbin)
+
+
+class Dimension:
+  """
+  A convenient abstraction for the axes of the histogram
+  """
+  def __init__(self, name, description, dim, bin_edges):
+    """
+
+    :param name:          short convenient name
+    :param description:   human readable description
+    :param dim:           index into N-D array
+    :param bin_edges:
+    """
+    self.name = name
+    self.description = description
+    self.i = dim
+    be = self.bin_edges = np.array(bin_edges)
+    self.bin_centers = (be[1:] + be[:-1]) / 2
+
+  def __repr__(self):
+    return '{}| {}\t|{:<35}|  {:>3} bins'.format(self.i, self.name, self.description, len(self.bin_centers), )
 
 
 class PairedAlignmentHistogram:
@@ -281,21 +303,21 @@ class PairedAlignmentHistogram:
   """
   def __init__(
     self,
-    xd_bins=(-np.inf, -100, -40, -20, -10, -5, 0, 1, 6, 11, 21, 41, 101, np.inf),
+    xd_bin_edges=(-np.inf, -100, -40, -20, -10, -5, 0, 1, 6, 11, 21, 41, 101, np.inf),
     max_d=200,
-    mq_bins=(0, 1, 11, 41, 51, np.inf),
-    v_bins=(-np.inf, -20, 0, 1, 21, np.inf),
-    xt_bins=(-np.inf, -100, -40, -20, -10, -5, 0, 1, 6, 11, 21, 41, 101, np.inf),
-    t_bins=(-np.inf, 200, 301, 401, 601, np.inf),
+    mq_bin_edges=(0, 1, 11, 41, 51, np.inf),
+    v_bin_edges=(-np.inf, -20, 0, 1, 21, np.inf),
+    xt_bin_edges=(-np.inf, -100, -40, -20, -10, -5, 0, 1, 6, 11, 21, 41, 101, np.inf),
+    t_bin_edges=(-np.inf, 200, 301, 401, 601, np.inf),
     buf_size=100):
     """
 
-    :param xd_bins:
+    :param xd_bin_edges:
     :param max_d:
-    :param mq_bins:
-    :param v_bins:
-    :param xt_bins: template length error bins
-    :param t_bins: correct template length bins
+    :param mq_bin_edges:
+    :param v_bin_edges:
+    :param xt_bin_edges: template length error bins
+    :param t_bin_edges: correct template length bins
     :param buf_size: compute the histogram in chunks of N
 
     Binning rule is x0 <= x < x1
@@ -305,83 +327,53 @@ class PairedAlignmentHistogram:
     15 * 15 * 8 * 8 * 10 * 10 * 13 * 8 =  150 million elements
 
     """
-    self.dimensions = [
-      # code    description
-      ('xd1', 'alignment error mate 1'),
-      ('xd2', 'alignment error mate 2'),
-      ('mq1', 'mapping quality mate 1'),
-      ('mq2', 'mapping quality mate 1'),
-      ('v1', 'length of variant carried by mate 1'),
-      ('v2', 'length of variant carried by mate 2'),
-      ('xt', 'template length error'),
-      ('t', 'Correct template length')
-    ]
-
-    self.dim_dict = {k[0]: n for n, k in enumerate(self.dimensions)}
-
-    self.hist = np.zeros(
-      shape=(len(xd_bins) - 1 + 2,
-             len(xd_bins) - 1 + 2,
-             len(mq_bins) - 1,
-             len(mq_bins) - 1,
-             len(v_bins) - 1 + 2,
-             len(v_bins) - 1 + 2,
-             len(xt_bins) - 1,
-             len(t_bins) - 1), dtype=int)  # histogram uses floats. Why??, dtype=int)
-
+    # Some of the dimensions need extra bins for particular exceptions to the data
     self.max_d = max_d
-    # xd_bins has to be adjusted to accommodate WC and UM reads
-    xd_bins = list(xd_bins)
-    xd_bins[-1] = max_d + 1
-    xd_bins += [max_d + 2, max_d + 3]
+    # xd_bin_edges has to be adjusted to accommodate WC and UM reads
+    xd_bin_edges = list(xd_bin_edges)
+    xd_bin_edges[-1] = max_d + 1
+    xd_bin_edges += [max_d + 2, max_d + 3]
     # ...., max_d + 1, max_d + 2, max_d + 3
     #     |          |          \----- UM
     #     |          \----- WC
     #     \---- max_d+
     #
     # Also note that alignment analysis takes care of clipping d_err at max_d
-    self.xd_bins = np.array(xd_bins)
 
-    self.mq_bins = np.array(mq_bins)
-
-    self.max_v = v_bins[-2] + 1 # This is what we clip v size to be
-    # xd_bins has to be adjusted to accommodate Ref and V+
-    v_bins = list(v_bins)
-    v_bins[-1] = self.max_v + 1
-    v_bins += [ self.max_v + 2, self.max_v + 3 ]
+    self.max_v = v_bin_edges[-2] + 1 # This is what we clip v size to be
+    # xd_bin_edges has to be adjusted to accommodate Ref and V+
+    v_bin_edges = list(v_bin_edges)
+    v_bin_edges[-1] = self.max_v + 1
+    v_bin_edges += [self.max_v + 2, self.max_v + 3]
     # ...., max_v + 1, max_v + 2, max_v + 3
     #     |          |          \-- V+
     #     |          \-- Ref
     #     \-- varlen+
-    self.v_bins = np.array(v_bins)
-    self.xt_bins = np.array(xt_bins)
-    self.t_bins = np.array(t_bins)
 
-    self.bins = [
-      self.xd_bins,
-      self.xd_bins,
-      self.mq_bins,
-      self.mq_bins,
-      self.v_bins,
-      self.v_bins,
-      self.xt_bins,
-      self.t_bins
-    ]
+    self.dimensions = OrderedDict(
+      [
+        ('xd1', Dimension('xd1', 'alignment error mate 1', 0, np.array(xd_bin_edges))),
+        ('xd2', Dimension('xd2', 'alignment error mate 2', 1, np.array(xd_bin_edges))),
+        ('mq1', Dimension('mq1', 'mapping quality mate 1', 2, np.array(mq_bin_edges))),
+        ('mq2', Dimension('mq2', 'mapping quality mate 2', 3, np.array(mq_bin_edges))),
+        ('v1', Dimension('v1', 'length of variant carried by mate 1', 4, np.array(v_bin_edges))),
+        ('v2', Dimension('v2', 'length of variant carried by mate 2', 5, np.array(v_bin_edges))),
+        ('xt', Dimension('xt', 'template length error', 6, np.array(xt_bin_edges))),
+        ('t', Dimension('t', 'Correct template length', 7, np.array(t_bin_edges)))
+      ]
+    )
+
+    self.bin_edges = [d.bin_edges for d in self.dimensions.values()]
+
+    self.hist = np.zeros(
+      shape=tuple(len(d.bin_centers) for d in self.dimensions.values()),
+      dtype=int
+    )
 
     self.buf_size = buf_size
 
-  def bins(self, dim):
-    """
-
-    :param dim: name of the dimension
-    :return:
-    """
-    return self.dimensions
-
   def __repr__(self):
-    r_str = ['Dimensions:']
-    for d in self.dimensions:
-      pass
+    return str('\n'.join(str(d) for d in self.dimensions.values()))
 
   def process(self, titer):
     """Iterate over reads and fill out the histogram.
@@ -404,7 +396,7 @@ class PairedAlignmentHistogram:
     temp_read = pysam.AlignedSegment()
 
     bs = self.buf_size
-    buf = np.empty(shape=(bs, 8))
+    buf = np.empty(shape=(bs, len(self.dimensions)))
     idx = 0
 
     for tpl in titer:
@@ -438,7 +430,7 @@ class PairedAlignmentHistogram:
     :return:
     """
     t0 = time.time()
-    self.hist += fastmultihist(buf[:idx, :], self.bins)
+    self.hist += fastmultihist(buf[:idx, :], self.bin_edges)
     t1 = time.time()
     print(t1 - t0)
 
@@ -448,14 +440,14 @@ class PairedAlignmentHistogram:
     :param dim_names:
     :return:
     """
-    assert all(self.dim_dict.get(n, None) for n in dim_names), 'Mistake in dimension names'
-    d_tuple = tuple(d for d in range(8)
+    assert all(self.dimensions.get(n, None) for n in dim_names), 'Mistake in dimension names'
+    d_to_collapse = tuple(d for d in range(8)
                     if d not in [self.dim_dict[k] for k in dim_names])
-    h = self.hist.sum(axis=d_tuple)
-    return h, self.bin_centers(d_tuple[0]), self.bin_centers(d_tuple[1])
+    h = self.hist.sum(axis=d_to_collapse)
+    return h, self.bin_centers(d_to_collapse[0]), self.bin_centers(d_to_collapse[1])
 
   def bin_centers(self, dim):
-    return (self.bins[dim][:-1] + self.bins[dim][1:]) / 2
+    return (self.bin_edges[dim][:-1] + self.bin_edges[dim][1:]) / 2
 
   def __getitem__(self, item):
     """Limits us to sending in two dimensions and returns us a data frame"""
