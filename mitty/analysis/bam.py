@@ -434,17 +434,16 @@ class PairedAlignmentHistogram:
     t1 = time.time()
     print(t1 - t0)
 
-  def collapse(self, dim_names):
+  def collapse(self, *dim_names):
     """Returns the marginal for the dimensions supplied.
 
     :param dim_names:
     :return:
     """
-    assert all(self.dimensions.get(n, None) for n in dim_names), 'Mistake in dimension names'
-    d_to_collapse = tuple(d for d in range(8)
-                    if d not in [self.dim_dict[k] for k in dim_names])
-    h = self.hist.sum(axis=d_to_collapse)
-    return h, self.bin_centers(d_to_collapse[0]), self.bin_centers(d_to_collapse[1])
+    assert all(n in self.dimensions for n in dim_names), 'Mistake in dimension names'
+    collapse_idx_l = tuple(d.i for d in self.dimensions.values() if d.name not in dim_names)
+    h = self.hist.sum(axis=collapse_idx_l)
+    return h, [d for d in self.dimensions.values() if d.name in dim_names]  # Need to maintain order
 
   def bin_centers(self, dim):
     return (self.bin_edges[dim][:-1] + self.bin_edges[dim][1:]) / 2
