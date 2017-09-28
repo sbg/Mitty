@@ -5,7 +5,8 @@ import logging
 import cytoolz
 import numpy as np
 import pysam
-import pandas as pd
+# import pandas as pd
+import xarray as xr
 
 from mitty.benchmarking.alignmentscore import score_alignment_error, correct_tlen, load_qname_sidecar, parse_qname
 
@@ -243,6 +244,185 @@ def fastmultihist(sample, bins):
   return np.bincount(xy, minlength=nbin.prod()).reshape(nbin)
 
 
+def make_tick_labels(bin_edges, var_label='x'):
+  b = bin_edges
+  return [
+    '{} <= {} < {}'.format(round(b[i], 2), var_label, round(b[i+1], 2))
+    for i in range(len(b) - 1)
+  ]
+
+
+def initialize_pah(
+  xd_bin_edges=(-np.inf, -100, -40, -20, -10, -5, 0, 1, 6, 11, 21, 41, 101, np.inf),
+  max_d=200,
+  mq_bin_edges=(0, 1, 11, 41, 51, np.inf),
+  v_bin_edges=(-np.inf, -20, 0, 1, 21, np.inf),
+  xt_bin_edges=(-np.inf, -100, -40, -20, -10, -5, 0, 1, 6, 11, 21, 41, 101, np.inf),
+  t_bin_edges=(-np.inf, 200, 301, 401, 601, np.inf),
+  name='PairedAlignmentHistogram'):
+  """Hijacks xarray.DataArray to store the histogram + some metadata
+
+  The 'coords' field stores the actual spatial values (bin centers) you may want to use for plotting
+  while the attrs dictionary stores the bin labels (which reminds you of any special bins there may exist)
+  and descritpions of the
+
+  :param xd_bin_edges:
+  :param max_d:
+  :param mq_bin_edges:
+  :param v_bin_edges:
+  :param xt_bin_edges: template length error bins
+  :param t_bin_edges: correct template length bins
+  :param buf_size: compute the histogram in chunks of N
+
+  Binning rule is x0 <= x < x1
+
+  The size of the matrix using the defaults is
+
+  15 * 15 * 8 * 8 * 10 * 10 * 13 * 8 =  150 million elements
+
+  """
+  # Some of the dimensions need extra bins for particular exceptions to the data
+  # xd_bin_edges has to be adjusted to accommodate WC and UM reads
+  xd_bin_edges = list(xd_bin_edges)
+  xd_bin_edges[-1] = max_d + 1
+  xd_bin_edges += [max_d + 2, max_d + 3]
+  # ...., max_d + 1, max_d + 2, max_d + 3
+  #     |          |          \----- UM
+  #     |          \----- WC
+  #     \---- max_d+
+  #
+  # Also note that alignment analysis (not us) takes care of clipping d_err at max_d
+  xd_labels = make_tick_labels(xd_bin_edges, 'xd')
+  xd_labels[-2] = 'WC'
+  xd_labels[-1] = 'UM'
+
+  max_v = v_bin_edges[-2] + 1  # This is what we clip v size to be
+  # xd_bin_edges has to be adjusted to accommodate Ref and V+
+  v_bin_edges = list(v_bin_edges)
+  v_bin_edges[-1] = max_v + 1
+  v_bin_edges += [max_v + 2, max_v + 3]
+  # ...., max_v + 1, max_v + 2, max_v + 3
+  #     |          |          \-- V+
+  #     |          \-- Ref
+  #     \-- varlen+
+  v_labels = make_tick_labels(v_bin_edges, 'V')
+  v_labels[-2] = 'Ref'
+  v_labels[-1] = 'V+'
+
+  dimensions = [
+      ('xd1', 'alignment error mate 1', np.array(xd_bin_edges), xd_labels),
+      ('xd2', 'alignment error mate 2', np.array(xd_bin_edges), xd_labels),
+      ('mq1', 'mapping quality mate 1', np.array(mq_bin_edges), make_tick_labels(mq_bin_edges, 'MQ')),
+      ('mq2', 'mapping quality mate 2', np.array(mq_bin_edges), make_tick_labels(mq_bin_edges, 'MQ')),
+      ('v1', 'length of variant carried by mate 1', np.array(v_bin_edges), v_labels),
+      ('v2', 'length of variant carried by mate 2', np.array(v_bin_edges), v_labels),
+      ('xt', 'template length error', np.array(xt_bin_edges), make_tick_labels(xt_bin_edges, 'Xt')),
+      ('t', 'Correct template length', np.array(t_bin_edges), make_tick_labels(t_bin_edges, 'T'))
+  ]
+
+  dimension_metadata = OrderedDict(
+    [
+      (k[0],
+       {
+         'description': k[1],
+         'bin_edges': k[2],
+         'bin_centers': (k[2][:-1] + k[2][1:]) / 2
+       })
+      for k in dimensions
+    ]
+  )
+
+  metadata = {
+    'max_d': max_d,
+    'max_v': max_v,
+    'dimensions': dimension_metadata,
+    'bin_edges': [k[2] for k in dimensions]  # This is bin edges in the form of a list so that histogram can use it
+  }
+
+  return xr.DataArray(
+    data=np.zeros(
+      shape=tuple(len(d[3]) for d in dimensions),
+      dtype=int),
+    coords=OrderedDict([(d[0], d[3]) for d in dimensions]),
+    dims=[d[0] for d in dimensions],
+    name=name,
+    attrs=metadata
+  )
+
+
+@cytoolz.curry
+def histogramize(titer, pah=None, buf_size=1000000):
+  """Iterate over reads and fill out the histogram.
+
+  This works as a sink. For some reason, if I write this as a filter
+  nothing after the yield is executed and so we can't do the final finalize :/
+
+  :return:
+  """
+  def _parse_vlist(_vl):
+    if _vl:
+      if len(_vl) == 1:
+        return max(-max_v, min(_vl[0], max_v))  # Single variant read
+      else:
+        return max_v + 2  # Multi variant read
+    else:
+      return max_v + 1  # Reference read
+
+  def _finalize():
+    """given a buffer of data bin it into the histgram
+    """
+    t0 = time.time()
+    pah.data += fastmultihist(buf[:idx, :], pah.attrs['bin_edges'])
+    t1 = time.time()
+    print(t1 - t0)
+
+  if pah is None:
+    pah = initialize_pah()
+
+  max_d, max_v = pah.attrs['max_d'], pah.attrs['max_v']
+  temp_read = pysam.AlignedSegment()
+
+  bs = buf_size
+  buf = np.empty(shape=(bs, len(pah.coords)))
+  idx = 0
+
+  for tpl in titer:
+    # For efficiency this assumes we have PE reads and have paired them up using make_pairs
+    ctl = correct_tlen(tpl[0]['read_info'], tpl[1]['read_info'], temp_read)
+
+    # Xd1 x Xd2 x MQ1 x MQ2 x vl1 x vl2 x Xt
+    buf[idx, :] = [
+      tpl[0]['d_err'],
+      tpl[1]['d_err'],
+      tpl[0]['read'].mapping_quality,
+      tpl[1]['read'].mapping_quality,
+      _parse_vlist(tpl[0]['read_info'].v_list),
+      _parse_vlist(tpl[1]['read_info'].v_list),
+      abs(tpl[0]['read'].template_length) - ctl,
+      ctl
+    ]
+    idx += 1
+
+    if idx >= bs:
+      _finalize()
+      idx = 0  # We don't bother to clear buf - we just over write it
+
+  _finalize()  # TODO: Why does cytoolz not call this after stopiteration??
+
+
+# TODO: copy over the attrs as well
+def collapse(pah, *dim_names):
+  """Returns the marginal for the dimensions supplied.
+
+  :param pah: the histogram
+  :param dim_names:
+  :return:
+  """
+  assert all(n in pah.dims for n in dim_names), 'Mistake in dimension names'
+  collapse_idx_l = tuple(i for i in range(len(pah.dims)) if pah.dims[i] not in dim_names)
+  return pah.sum(axis=collapse_idx_l)
+
+
 class Dimension:
   """
   A convenient abstraction for the axes of the histogram
@@ -272,6 +452,8 @@ class PairedAlignmentHistogram:
   the result matrix low by judiciously binning each of the dimensions based on past experience of how
   quickly data changes. The idea is also to be able to change bin granularity of any of the dimensions
   for specific tests as needed.
+
+  For each dimension we wish to keep track of
 
   8D histogram of Xd1 x Xd2 x MQ1 x MQ2 x vl1 x vl2 x Xt x T where
 
@@ -365,10 +547,10 @@ class PairedAlignmentHistogram:
 
     self.bin_edges = [d.bin_edges for d in self.dimensions.values()]
 
-    self.hist = np.zeros(
-      shape=tuple(len(d.bin_centers) for d in self.dimensions.values()),
-      dtype=int
-    )
+    # self.hist = np.zeros(
+    #   shape=tuple(len(d.bin_centers) for d in self.dimensions.values()),
+    #   dtype=int
+    # )
 
     self.buf_size = buf_size
 
