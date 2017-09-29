@@ -32,7 +32,7 @@ def get_header(bam_fname):
 # Data Sources ----------------------------------------------------------------
 
 
-def read_bam(bam_fname, sidecar_fname=None):
+def read_bam(bam_fname):
   """Fetch reads (including unmapped) from a BAM.
 
   :param bam_fname: path to BAM file
@@ -40,18 +40,11 @@ def read_bam(bam_fname, sidecar_fname=None):
   :param every: Only take every nth read
   :return:
   """
-  long_qname_table = load_qname_sidecar(sidecar_fname) if sidecar_fname is not None else None
-
   for rd in pysam.AlignmentFile(bam_fname).fetch(until_eof=True):
     if rd.flag & 0b100100000000: continue  # Skip supplementary or secondary alignments
     yield (
       {
         'read': rd,
-        'read_info':
-          parse_qname(
-            rd.qname,
-            long_qname_table=long_qname_table
-          )[1 if rd.is_read2 else 0] if long_qname_table is not None else None,
         'fpass': True
       },
     )
@@ -95,6 +88,7 @@ def filter_reads(f, condition, riter):
   :return:
   """
   for r in riter:
+    # TODO: looks like we don't need 'fpass'
     new_r = tuple(dict(mate, fpass=f(mate) and mate['fpass']) for mate in r)
     if condition(tuple(mate['fpass'] for mate in new_r)):
       yield new_r
@@ -159,6 +153,26 @@ def make_pairs(riter):
     else:  # You complete me
       yield (r[0], read_dict[key]) if rd.is_read1 else (read_dict[key], r[0])
       del read_dict[key]
+
+
+@cytoolz.curry
+def parse_read_qnames(sidecar_fname, titer):
+  """Mutates dictionary: adds 'read_info' field to it.
+
+  :param titer:
+  :return:
+  """
+  long_qname_table = load_qname_sidecar(sidecar_fname) if sidecar_fname is not None else None
+
+  for tplt in titer:
+    ri = parse_qname(
+        tplt[0]['read'].qname,
+        long_qname_table=long_qname_table
+    ) if long_qname_table is not None else [None, None]
+    for mate in tplt:
+      rd = mate['read']
+      mate['read_info'] = ri[1 if rd.is_read2 else 0]
+    yield tplt
 
 
 @cytoolz.curry
