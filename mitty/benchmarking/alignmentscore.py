@@ -85,8 +85,13 @@ def correct_tlen(ri1, ri2, r):
   r.cigarstring = ri2.cigar
   ap2 = r.get_aligned_pairs(True)
 
-  p10, p11, p20, p21 = ap1[0][1], ap1[-1][1], ap2[0][1], ap2[-1][1]
-  return p21 - p10 + 1 if p10 < p20 else p20 - p11 - 1
+  if len(ap1) > 0 and len(ap2) > 0:  # No 148I like things
+    p10, p11, p20, p21 = ap1[0][1], ap1[-1][1], ap2[0][1], ap2[-1][1]
+    return p21 - p10 + 1 if p10 < p20 else p20 - p11 - 1
+  else:
+    return 0  # tlen basically undefined - one of the reads can not be aligned to a reference
+
+  #TODO: when we have graph reads we will always have a template
 
 
 def tag_alignment(r, ri, max_d=200, strict=False):
