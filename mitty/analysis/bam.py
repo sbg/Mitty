@@ -409,7 +409,7 @@ def histogramize(titer, pah=None, buf_size=1000000):
       _finalize()
       idx = 0  # We don't bother to clear buf - we just over write it
 
-  _finalize()  # TODO: Why does cytoolz not call this after stopiteration??
+  _finalize()
 
 
 def save_pah(pah, fname):
@@ -431,24 +431,27 @@ def load_pah(fname):
 
 
 # TODO: copy over the attrs as well
-# TODO: working on slices
-def collapse(pah, **marginalize):
+def collapse(pah, **m):
   """Returns the marginal for the dimensions supplied.
 
+  First we slice the matrix where we want
+  Then we marginalize over the dimensions we want
+
   :param pah: the histogram
-  :param marginalize: each keyword argument must match a dimension
-                      if the value of the argument is None, then we keep that dimension
-                      if the value is a tuple (i, j), we slice out that dimension as i:j
+  :param m: each keyword argument must match a dimension
+            if the value of the argument is None, then we keep that dimension
+            if the value is a tuple (i, j), we slice out i:j from that dimension and then marginalize
+            dimensions not mentioned are fully marginalized
   :return:
   """
-  assert all(n in pah.dims for n in marginalize.keys()), 'Mistake in dimension names'
-  slices = [slice(marginalize.get(k, None)) for k in pah.dims]
-
-  collapse_idx_l = tuple(i for i in range(len(pah.dims)) if pah.dims[i] not in dim_names)
-
-
-
-  return pah.sum(axis=collapse_idx_l)
+  assert all(n in pah.dims for n in m.keys()), 'Mistake in dimension names'
+  slices = tuple(slice(*(m.get(k, None) or [None])) for k in pah.dims)
+  # slices = [..., slice(None), slice(i, j), .... ]
+  # here slice(None) is for both the margin dimensions as well as the fully marginalized dimensions
+  # slice(i, j) is for the partially marginalized dimensions
+  collapse_idx_l = tuple(i for i in range(len(pah.dims))
+                         if pah.dims[i] not in [d for d, v in m.items() if v is None])
+  return pah[slices].sum(axis=collapse_idx_l)
 
 
 def plot_hist(pah, ax=None):
