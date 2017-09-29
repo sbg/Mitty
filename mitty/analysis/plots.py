@@ -188,10 +188,10 @@ def plot_hist(pah, ax=None):
   x = range(len(x_labels))
   y = range(len(y_labels))
 
-  ax.imshow(pah.data, interpolation='none', cmap=plt.cm.gray_r,
-            norm=LogNorm(vmin=0.01, vmax=pah.data.max()),
-            origin='lower')
-  plt.setp(ax, xticks=x, yticks=y, xticklabels=x_labels, yticklabels=y_labels,
+  ax.imshow(pah.T, interpolation='none', cmap=plt.cm.gray_r,
+            norm=LogNorm(vmin=0.01, vmax=pah.data.max()), origin='lower')
+  plt.setp(ax, xticks=x, yticks=y, xticklabels=x_labels,
+           yticklabels=y_labels,
            xlabel=pah.dims[0], ylabel=pah.dims[1],
            xlim=(-0.5, len(x)), ylim=(-0.5, len(y)))
-  plt.xticks(x, x_labels, rotation='vertical')
+  ax.set_xticklabels(labels=x_labels, rotation='vertical')
