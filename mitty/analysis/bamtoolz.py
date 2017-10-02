@@ -7,23 +7,41 @@ import queue
 import pysam
 import cytoolz.curried as cyt
 
+import logging
+logger = logging.getLogger(__name__)
+
 
 def read_iter(fp, contig_q):
-  """This read iterator is sufficient for unpaired reads
+  """Returns read objects from contigs until someone passes None as a contig
+
+  :param fp: BAM file pointer (pysam.AlignmentFile)
+  :param contig_q: a queue into which we put contig information
+                   (contig, eof_true) - eof_true is set if this is
+                   the last non-empty contig and we want to pull out
+                   all the trailing unmapped reads right after the contig
+  :return: a generator
+  """
+  for contig in iter(contig_q.get, None):
+    logger.debug(contig[0])
+    for read in fp.fetch(contig[0]):
+      yield read
+    if contig[1]:  # Now want the trailing reads - fp is positioned just before them
+      for read in fp.fetch(until_eof=contig[1]):
+        yield read
+
+
+def unpaired_read_iter(fp, contig_q):
+  """Almost identical to read_iter, except it returns tuples (read,)
+  This enables us to write processing code that operates both on single
+  reads as well as pairs since they both come as tuples
 
   :param fp: BAM file pointer (pysam.AlignmentFile)
   :param contig_q: a queue into which we put contig information
                    (contig, eof_true) - eof_true is set if this is
                    the last non-empty contig and we want to pull out
                    all the trailing unmapped reads
-  :return: a generator
+  :return: a generator that yields (read,) tuples
   """
-  for contig in iter(contig_q.get, None):
-    for read in fp.fetch(contig[0], until_eof=contig[1]):
-      yield read
-
-
-def unpaired_read_iter(fp, contig_q):
   for read in read_iter(fp, contig_q):
     yield (read,)
 
@@ -51,7 +69,7 @@ def paired_read_iter(fp, contig_q, singles_q, is_singles_mixer=False, max_single
   :param is_singles_mixer:  Set True if this is also the "singles mixer" that
                             receives unpaired reads from other workers
 
-  :return: a generator for paired reads
+  :return: a generator that yields paired read tuples (read1, read2)
   """
   ref_dict = {r: n for n, r in enumerate(fp.references)}
 
@@ -82,7 +100,7 @@ def paired_read_iter(fp, contig_q, singles_q, is_singles_mixer=False, max_single
 
     if not is_singles_mixer:
       if len(singles) > max_singles:  # Flush earliest singles
-        singles_q.put(singles.popitem(last=False).tostring())
+        singles_q.put(singles.popitem(last=False).tostring(fp))
 
   # We need to send the remaining singles to the mixer
   if not is_singles_mixer:
