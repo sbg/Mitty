@@ -46,7 +46,8 @@ def unpaired_read_iter(fp, contig_q):
     yield (read,)
 
 
-def paired_read_iter(fp, contig_q, singles_q, is_singles_mixer=False, max_singles=1000):
+def paired_read_iter(fp, contig_q, singles_q, max_singles=1000,
+                     is_singles_mixer=False, single_src_cnt=None):
   """
 
   :param fp:                pysam.AlignmentFile()
@@ -69,6 +70,9 @@ def paired_read_iter(fp, contig_q, singles_q, is_singles_mixer=False, max_single
   :param is_singles_mixer:  Set True if this is also the "singles mixer" that
                             receives unpaired reads from other workers
 
+  :param single_src_cnt:    How many processes are out there sending singles?
+                            Used if this is a singles mixer
+
   :return: a generator that yields paired read tuples (read1, read2)
   """
   ref_dict = {r: n for n, r in enumerate(fp.references)}
@@ -79,7 +83,14 @@ def paired_read_iter(fp, contig_q, singles_q, is_singles_mixer=False, max_single
     if is_singles_mixer:
       try:
         read_str = singles_q.get_nowait()  # Any singles hanging about?
-        read = fromstring(read_str, ref_dict)
+        if read_str is None: # One process says they are done with singles
+          single_src_cnt -= 1
+          if single_src_cnt == 0:  # Everyone says they've sent all their singles
+            read = None
+          else:
+            continue  # At least one more source of singles about
+        else:
+          read = fromstring(read_str, ref_dict)
       except queue.Empty:
         read = next(ri, None)
         if read is None:
@@ -106,10 +117,12 @@ def paired_read_iter(fp, contig_q, singles_q, is_singles_mixer=False, max_single
   if not is_singles_mixer:
     for read in singles.values():
       singles_q.put(read.tostring(fp))
+    singles_q.put(None)  # No more singles from us
 
 
 def worker(pipeline, bam_fname, result_q, contig_q,
-           singles_q=None, paired=False, is_singles_mixer=False, max_singles=1000):
+           paired=False, singles_q=None, max_singles=1000,
+           is_singles_mixer=False, single_src_cnt=None):
   """Given a pipeline, run it with reads from the given bam taken from contigs supplied
   over the contig_q.
 
@@ -127,20 +140,19 @@ def worker(pipeline, bam_fname, result_q, contig_q,
                     unmapped reads. The caller figures out if this is that last
                     contig that sits just before that tail of unmapped reads at the end
                     of the BAM file
+  :param paired:    Do we pair the reads before passing them to the pipeline?
   :param singles_q: messages are SAM strings of reads converted using tostring().
                     This is only used/relevant if paired=True because we use that to
                     collect the singles from all contigs and pair them up
                     Depending on whether this is the last
 
-  :param paired:    Do we pair the reads before passing them to the pipeline?
-
-  :param is_singles_mixer:  Set True if this is also the "singles mixer" that
-                            receives unpaired reads from other workers
-
   :param max_singles:       When we have these many singles, start passing then to the
                             singles mixer
 
-
+  :param is_singles_mixer:  Set True if this is also the "singles mixer" that
+                            receives unpaired reads from other workers
+  :param single_src_cnt:    How many sources of singles we have
+                            This is
   :return:
   """
   if paired and singles_q is None:
@@ -148,9 +160,9 @@ def worker(pipeline, bam_fname, result_q, contig_q,
 
   fp = pysam.AlignmentFile(bam_fname)
   if paired:
-    t1 = paired_read_iter(fp, contig_q, singles_q,
-                          is_singles_mixer=is_singles_mixer,
-                          max_singles=max_singles)
+    t1 = paired_read_iter(fp, contig_q,
+                          singles_q=singles_q, max_singles=max_singles,
+                          is_singles_mixer=is_singles_mixer, single_src_cnt=single_src_cnt)
   else:
     t1 = unpaired_read_iter(fp, contig_q)
 
@@ -189,7 +201,8 @@ def scatter(pipeline, bam_fname, paired=False, ncpus=2, max_singles=1000):
     p_list += [
       Process(target=worker,
               args=(pipeline, bam_fname, result_q, contig_q,
-                    singles_q, paired, is_mixer[i], max_singles))
+                    paired, singles_q, max_singles,
+                    is_mixer[i], ncpus - 1))
     ]
 
   for p in p_list:
@@ -223,11 +236,6 @@ def find_non_empty_contigs(bam_fname):
       contigs += [ref]
       break
   return contigs
-
-
-
-
-
 
 
 def fromstring(s, ref_dict):
@@ -270,15 +278,3 @@ def fromstring(s, ref_dict):
   r.rnext, r.pnext, r.template_length, r.seq, r.qual, tags = _split(s)
   r.set_tags([_tags(t) for t in tags])
   return r
-
-
-
-
-
-
-
-
-
-
-
-
