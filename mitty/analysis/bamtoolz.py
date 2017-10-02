@@ -1,4 +1,7 @@
-"""See docs/bamtoolz.md"""
+"""
+Takes care of reading from BAM files and scattering (parallelizing) pipelines
+
+See docs/bamtoolz.md for algorithm details"""
 from collections import OrderedDict
 import time
 from multiprocessing import Process, Queue
@@ -126,8 +129,12 @@ def worker(pipeline, bam_fname, result_q, contig_q,
   """Given a pipeline, run it with reads from the given bam taken from contigs supplied
   over the contig_q.
 
-  This expects the pipeline to yield one final result which it returns. It expects the
-  last element of pipeline to be a function that consumes a read iterator and returns
+  This expects the pipeline to yield one final result which it can then return.
+
+  It expects the last element of pipeline to be a function that consumes a read iterator and returns a result.
+
+  This is more flexible than you think, since the result can be an iterator, so this can be
+  used to filter reads in parallel. See examples in the filter analysis tutorial
 
 
   :param pipeline:  A list of pipelines
@@ -176,6 +183,13 @@ def scatter(pipeline, bam_fname, paired=False, ncpus=2, max_singles=1000):
 
   python multiprocessing will be used for running the pipelines in parallel and care
   must be taken to ensure the individual pipeline nodes are parallelizable
+
+  This expects the pipeline to yield one final result which it can then return.
+
+  It expects the last element of pipeline to be a function that consumes a read iterator and returns a result.
+
+  This is more flexible than you think, since the result can be an iterator, so this can be
+  used to filter reads in parallel. See examples in the filter analysis tutorial
 
   :param bam_fname:
   :param pipeline:
