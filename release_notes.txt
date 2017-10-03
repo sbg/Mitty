@@ -1,5 +1,10 @@
 Release Notes
 =============
+2.26.0
+- enhancement: bamtoolz (parallelization of composable analysis) implemented
+- enhancement: Paired-Alignment-Histogram implemented
+- bugfix: tlen computation now handles reads fully inside insertions
+
 2.25.1
 - bugfix: bam2illumina discards read with tlen = 0
   Also discards reads with tlen < 0.95 read len, which allows us to have some reads with tlen = rlen
