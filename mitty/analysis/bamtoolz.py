@@ -14,6 +14,24 @@ import logging
 logger = logging.getLogger(__name__)
 
 
+def read_bam_st(bam_fname):
+  for read in pysam.AlignmentFile(bam_fname).fetch(until_eof=True):
+    yield (read,)
+
+
+def read_bam_paired_st(bam_fname):
+  singles = {}
+  for read in pysam.AlignmentFile(bam_fname).fetch(until_eof=True):
+    key = read.qname[:20]  # Is this enough?
+    if key not in singles:
+      singles[key] = read
+    else:  # You complete me
+      yield (read, singles[key]) if read.is_read1 else (singles[key], read)
+      del singles[key]
+  if len(singles):
+    logger.error('Unpaired reads left over!')
+
+
 def read_iter(fp, contig_q):
   """Returns read objects from contigs until someone passes None as a contig
 
