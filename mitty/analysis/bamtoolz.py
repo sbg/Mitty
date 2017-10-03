@@ -106,8 +106,8 @@ def paired_read_iter(fp, contig_q, singles_q, max_singles=1000,
 
   :return: a generator that yields paired read tuples (read1, read2)
   """
-  ref_dict = {r: n for n, r in enumerate(fp.references)}
-
+  ref_dict = dict([(r, n) for n, r in enumerate(fp.references)] + [('*', -1)])
+  #                                                          unmapped with no contig
   ri = read_iter(fp, contig_q)
   singles = OrderedDict()
   while 1:
@@ -284,7 +284,7 @@ def fromstring(s, ref_dict):
   """Inverse of pysam.AlignedSegment.tostring(): given a string, create an aligned segment
 
   :param s:
-  :param ref_dict: ref_dict = {r: n for n, r in enumerate(fp.references)}
+  :param ref_dict: ref_dict = dict([(r, n) for n, r in enumerate(fp.references)] + [('*', -1)])
   :return:
   """
   def _split(_s):
@@ -293,10 +293,10 @@ def fromstring(s, ref_dict):
     rnext, pnext, template_length, seq, qual, *_tg = _s.split('\t')
 
     flag = int(flag)
-    rname = ref_dict[rname]
+    rname = ref_dict[rname]  # dict must have '*': -1 entry too
     pos = int(pos)
     mapping_quality = int(mapping_quality)
-    rnext = ref_dict[rnext]
+    rnext = rname if rnext == '=' else ref_dict[rnext]
     pnext = int(pnext)
     template_length = int(template_length)
 
