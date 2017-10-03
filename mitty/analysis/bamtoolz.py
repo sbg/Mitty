@@ -15,11 +15,21 @@ logger = logging.getLogger(__name__)
 
 
 def read_bam_st(bam_fname):
+  """Vanilla single thread single read iterator
+
+  :param bam_fname:
+  :return: iterator over single read tuples (read,)
+  """
   for read in pysam.AlignmentFile(bam_fname).fetch(until_eof=True):
     yield (read,)
 
 
 def read_bam_paired_st(bam_fname):
+  """Vanilla single thread paired read iterator
+
+  :param bam_fname:
+  :return: iterator over paired read tuples (read1, read2)
+  """
   singles = {}
   for read in pysam.AlignmentFile(bam_fname).fetch(until_eof=True):
     key = read.qname[:20]  # Is this enough?
