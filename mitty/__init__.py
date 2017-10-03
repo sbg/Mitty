@@ -1,0 +1,1 @@
+from mitty.version import __version__
