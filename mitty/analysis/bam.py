@@ -1,7 +1,10 @@
+"""
+Supplies primitives for analysis of BAMs produced from simulated data.
+"""
 import pickle
 import gzip
 import time
-from collections import OrderedDict
+from collections import OrderedDict, Counter
 import logging
 
 import cytoolz
@@ -14,15 +17,92 @@ from mitty.benchmarking.alignmentscore import score_alignment_error, correct_tle
 
 logger = logging.getLogger(__name__)
 
-# Using a dict which is a builtin and pretty fast
-# https://gist.github.com/cordella/2861038
-# read_dict = {
-#   'read': ...
-#   'read_info': ...
-#   'd_err': ...
-#   'cat_list': ...
-#   'fpass': ...
-# }
+
+@cytoolz.curry
+def parse_read_qnames(sidecar_fname, titer):
+  """Mutates dictionary: adds 'read_info' field to it.
+
+  :param titer:
+  :return:
+  """
+  long_qname_table = load_qname_sidecar(sidecar_fname) if sidecar_fname is not None else None
+
+  for template in titer:
+    ri = parse_qname(
+        template[0].qname,
+        long_qname_table=long_qname_table
+    ) if long_qname_table is not None else [None, None]
+    yield tuple(
+      {
+        'read': mate,
+        'read_info': ri[1 if mate.is_read2 else 0]
+      }
+      for mate in template
+    )
+
+
+@cytoolz.curry
+def compute_derr(titer, max_d=200):
+  """Mutates dictionary: adds d_err field to it. Requires qname parsing step
+
+  :param max_d:
+  :param riter:
+  :return:
+  """
+  for template in titer:
+    for mate in template:
+      mate['d_err'] = score_alignment_error(r=mate['read'], ri=mate['read_info'], max_d=max_d)
+    yield template
+
+
+@cytoolz.curry
+def categorize_reads(f_dict, titer):
+  """Fill in cat_list of Reads. Note that there is no loss of reads in this function.
+  If a read does not match any filter cat_list is empty, which corresponds to 'uncategorized'
+  Mutates read dictionary: adds 'cat_list' field to it. If a 'cat_list' field already exists
+  it appends to it.
+
+  :param titer:
+  :param f_dict: Dictionary of key: filter_function pairs
+                 key will go into cat_list field of read if filter passes
+
+  e.g. f_dict = {
+    'd = 0': lambda mate: mate['d_err'] == 0,
+    '0 < d <= 50': lambda mate: 0 < mate['d_err'] <= 50,
+    '50 < d': lambda mate: 50 < mate['d_err'] < 200,
+    'WC': lambda mate: 200 < mate['d_err'],
+    'UM': lambda mate: mate['read'].is_unmapped
+    }
+
+  :return: iterator
+  """
+  for template in titer:
+    for mate in template:
+      mate['cat_list'] = mate.get('cat_list', []) + [k for k, f in f_dict.items() if f(mate)]
+    yield template
+
+
+@cytoolz.curry
+def count_reads(titer):
+  """The reads need to have gone through `categorize_reads` so that they have the
+    'cat_list' field filled out
+
+  :param titer:
+  :return: a Counter() object
+  """
+  c = Counter()
+  for template in titer:
+    for mate in template:
+      for cat in (mate['cat_list'] or ['nocat']):
+        c[cat] += 1
+  return c
+
+
+
+
+
+
+
 
 
 def get_header(bam_fname):
@@ -155,83 +235,8 @@ def make_pairs(riter):
       del read_dict[key]
 
 
-@cytoolz.curry
-def parse_read_qnames(sidecar_fname, titer):
-  """Mutates dictionary: adds 'read_info' field to it.
-
-  :param titer:
-  :return:
-  """
-  long_qname_table = load_qname_sidecar(sidecar_fname) if sidecar_fname is not None else None
-
-  for tplt in titer:
-    ri = parse_qname(
-        tplt[0]['read'].qname,
-        long_qname_table=long_qname_table
-    ) if long_qname_table is not None else [None, None]
-    for mate in tplt:
-      rd = mate['read']
-      mate['read_info'] = ri[1 if rd.is_read2 else 0]
-    yield tplt
 
 
-@cytoolz.curry
-def compute_derr(riter, max_d=200):
-  """Mutates dictionary: adds d_err field to it.
-
-  :param max_d:
-  :param riter:
-  :return:
-  """
-  for r in riter:
-    for mate in r:
-      mate['d_err'] = score_alignment_error(r=mate['read'], ri=mate['read_info'], max_d=max_d)
-    yield r
-
-
-@cytoolz.curry
-def categorize_reads(f_dict, r_iter):
-  """Fill in cat_list of Reads. Note that there is no loss of reads in this function.
-  If a read does not match any filter cat_list is empty, which corresponds to 'uncategorized'
-  Mutates read dictionary: adds 'cat_list' field to it. If a 'cat_list' field already exists
-  it appends to it.
-
-  :param r_iter:
-  :param f_dict: Dictionary of key: filter_function pairs
-                 key will go into cat_list field of read if filter passes
-
-  e.g. f_dict = {
-    'd = 0': lambda mate: mate['d_err'] == 0,
-    '0 < d <= 50': lambda mate: 0 < mate['d_err'] <= 50,
-    '50 < d': lambda mate: 50 < mate['d_err'] < 200,
-    'WC': lambda mate: 200 < mate['d_err'],
-    'UM': lambda mate: mate['read'].is_unmapped
-    }
-
-  :return: iterator
-  """
-  for r in r_iter:
-    for mate in r:
-      mate['cat_list'] = mate.get('cat_list', []) + [k for k, f in f_dict.items() if f(mate)]
-    yield r
-
-
-@cytoolz.curry
-def count_reads(counter, r_iter):
-  """The reads need to have gone through `categorize_reads` so that they have the
-    'cat_list'] field filled out
-
-  :param counter: a dictionary of counts
-  :param r_iter:
-  :return:
-  """
-  for r in r_iter:
-    for mate in r:
-      for cat in (mate['cat_list'] or ['nocat']):
-        if cat not in counter:
-          counter[cat] = 0
-        counter[cat] += 1
-    yield r
 
 
 def fastmultihist(sample, bins):
@@ -422,6 +427,8 @@ def histogramize(titer, pah=None, buf_size=1000000):
       idx = 0  # We don't bother to clear buf - we just over write it
 
   _finalize()
+
+  return pah
 
 
 def save_pah(pah, fname):
