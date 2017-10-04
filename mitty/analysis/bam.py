@@ -446,6 +446,23 @@ def collapse(pah, **m):
   return new_pah
 
 
+def force_sum(p1, p2):
+  """p1 + p2 when the axes labels are different results in an inner product (which is strange)
+  this function forces an element-wise addition and then applies axes metadata from p1 to the result
+
+  :param p1:
+  :param p2:
+  :return:
+  """
+  return xr.DataArray(
+    data=p1.data + p2.data,
+    coords=p1.coords,
+    dims=p1.dims,
+    name=p1.name,
+    attrs=p1.attrs
+  )
+
+
 def zero_dmv(max_d=200, max_MQ=70, max_vlen=200):
   return np.zeros(shape=(2 * max_d + 1 + 2, max_MQ + 1, 2 * max_vlen + 1 + 2), dtype=int)
 
