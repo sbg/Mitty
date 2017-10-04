@@ -241,6 +241,8 @@ def default_histogram_parameters():
   }
 
 
+# Some notes on histogram sizes saved as gzipped pickle file
+# (15, 15, 5, 5, 7, 7, 13, 5) -> 150 kB
 def initialize_histogram(
   xd_bin_edges=(-np.inf, -100, -40, -20, -10, -5, 0, 1, 6, 11, 21, 41, 101, np.inf),
   max_d=200,
@@ -309,6 +311,7 @@ def initialize_histogram(
       ('t', 'Correct template length', np.array(t_bin_edges), make_tick_labels(t_bin_edges, 'T'))
   ]
 
+  #TODO: remove cruft
   dimension_metadata = OrderedDict(
     [
       (k[0],
@@ -399,7 +402,7 @@ def histogramize(titer, histogram_def=None, buf_size=1000000):
   return pah
 
 
-def save_pah(pah, fname):
+def save_histogram(pah, fname):
   """Saves gzipped to pickle. Nice compression, imperceptibly slower than unzipped version but
   a LOT smaller. xarray's native serialization formats are hillariously broken.
 
@@ -412,12 +415,11 @@ def save_pah(pah, fname):
     pickle.dump(pah, f, protocol=-1)
 
 
-def load_pah(fname):
+def load_histogram(fname):
   with gzip.open(fname, 'rb') as f:
     return pickle.load(f)
 
 
-# TODO: copy over the attrs as well
 def collapse(pah, **m):
   """Returns the marginal for the dimensions supplied.
 
@@ -438,7 +440,10 @@ def collapse(pah, **m):
   # slice(i, j) is for the partially marginalized dimensions
   collapse_idx_l = tuple(i for i in range(len(pah.dims))
                          if pah.dims[i] not in [d for d, v in m.items() if v is None])
-  return pah[slices].sum(axis=collapse_idx_l)
+
+  new_pah = pah[slices].sum(axis=collapse_idx_l)
+  new_pah.attrs = pah.attrs  # sum does not copy these over, unfortunately
+  return new_pah
 
 
 def zero_dmv(max_d=200, max_MQ=70, max_vlen=200):
