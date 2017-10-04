@@ -98,38 +98,6 @@ def count_reads(titer):
   return c
 
 
-
-
-
-
-
-
-
-def get_header(bam_fname):
-  return pysam.AlignmentFile(bam_fname).header
-
-
-# Data Sources ----------------------------------------------------------------
-
-
-def read_bam(bam_fname):
-  """Fetch reads (including unmapped) from a BAM.
-
-  :param bam_fname: path to BAM file
-  :param sidecar_fname: If provided, will fill out read_info
-  :param every: Only take every nth read
-  :return:
-  """
-  for rd in pysam.AlignmentFile(bam_fname).fetch(until_eof=True):
-    if rd.flag & 0b100100000000: continue  # Skip supplementary or secondary alignments
-    yield (
-      {
-        'read': rd,
-        'fpass': True
-      },
-    )
-
-
 # Data sinks ------------------------------------------------------------------
 
 
@@ -216,34 +184,11 @@ def vsize(min, max):
 
 # Processing tools ------------------------------------------------------------
 
-
-def make_pairs(riter):
-  """Given a stream of reads pair them up by qname. Assumes riter is spewing tuples of
-  size 1
-
-  :param riter:
-  :return:
-  """
-  read_dict = {}
-  for r in riter:
-    rd = r[0]['read']
-    key = rd.qname[:20]
-    if key not in read_dict:
-      read_dict[key] = r[0]
-    else:  # You complete me
-      yield (r[0], read_dict[key]) if rd.is_read1 else (read_dict[key], r[0])
-      del read_dict[key]
-
-
-
-
-
-
 def fastmultihist(sample, bins):
-  """
+  """N-dimensional histogram
 
-  :param sample:
-  :param bins:
+  :param sample:  N x D array (samples x dimensions)
+  :param bins: D length list of arrays representing bin edges
   :return:
 
   Because np.histogramdd is broken in terms of performance.
@@ -266,6 +211,12 @@ def fastmultihist(sample, bins):
 
 
 def make_tick_labels(bin_edges, var_label='x'):
+  """Utility function that allows us to set bin labels for our histogram
+
+  :param bin_edges: the bin edges
+  :param var_label: what do we want to label this 'x', 'y', 'MQ' etc.
+  :return:
+  """
   b = bin_edges
   return [
     '{} <= {} < {}'.format(round(b[i], 2), var_label, round(b[i+1], 2))
@@ -273,7 +224,24 @@ def make_tick_labels(bin_edges, var_label='x'):
   ]
 
 
-def initialize_pah(
+def default_histogram_parameters():
+  """Give us reasonable defaults for the histogram.
+
+  :return: A dictionary which we can then modify if we wish
+           This dictionary can then be passed to `initialize_histogram`
+  """
+  return {
+    'xd_bin_edges': (-np.inf, -100, -40, -20, -10, -5, 0, 1, 6, 11, 21, 41, 101, np.inf),
+    'max_d': 200,
+    'mq_bin_edges': (0, 1, 11, 41, 51, np.inf),
+    'v_bin_edges': (-np.inf, -20, 0, 1, 21, np.inf),
+    'xt_bin_edges': (-np.inf, -100, -40, -20, -10, -5, 0, 1, 6, 11, 21, 41, 101, np.inf),
+    't_bin_edges': (-np.inf, 200, 301, 401, 601, np.inf),
+    'name': 'PairedAlignmentHistogram'
+  }
+
+
+def initialize_histogram(
   xd_bin_edges=(-np.inf, -100, -40, -20, -10, -5, 0, 1, 6, 11, 21, 41, 101, np.inf),
   max_d=200,
   mq_bin_edges=(0, 1, 11, 41, 51, np.inf),
@@ -373,7 +341,7 @@ def initialize_pah(
 
 
 @cytoolz.curry
-def histogramize(titer, pah=None, buf_size=1000000):
+def histogramize(titer, histogram_def=None, buf_size=1000000):
   """Iterate over reads and fill out the histogram.
 
   This works as a sink. For some reason, if I write this as a filter
@@ -395,9 +363,9 @@ def histogramize(titer, pah=None, buf_size=1000000):
     """
     pah.data += fastmultihist(buf[:idx, :], pah.attrs['bin_edges'])
 
-  if pah is None:
-    pah = initialize_pah()
+  assert histogram_def is not None, 'Histogram definition must be passed'
 
+  pah = initialize_histogram(**histogram_def)
   max_d, max_v = pah.attrs['max_d'], pah.attrs['max_v']
   temp_read = pysam.AlignedSegment()
 
