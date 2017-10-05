@@ -188,7 +188,10 @@ def fastmultihist(sample, bins):
   """N-dimensional histogram
 
   :param sample:  N x D array (samples x dimensions)
-  :param bins: D length list of arrays representing bin edges
+  :param bins:    D length list of arrays representing bin edges
+                  Some of D may be np.array(None), in which case those dimensions are ignored
+                  and a D' dimensional histogram is returned with the None dimensions
+                  collapsed
   :return:
 
   Because np.histogramdd is broken in terms of performance.
@@ -197,12 +200,12 @@ def fastmultihist(sample, bins):
   N, D = sample.shape
 
   # Compute the bin number each sample falls into.
-  Ncount = [np.digitize(sample[:, i], bins[i]) - 1 for i in np.arange(D)]
+  Ncount = [np.digitize(sample[:, i], bins[i]) - 1 for i in np.arange(D) if bins[i].shape != ()]
 
   # Unravel the D-dimensional coordinates onto a 1-D index
-  nbin = np.array([len(b) - 1 for b in bins], int)
+  nbin = np.array([len(b) - 1 for b in bins if b.shape != ()], int)
   xy = np.zeros(N, int)
-  for i in np.arange(0, D - 1):
+  for i in np.arange(0, len(nbin) - 1):
     xy += Ncount[i] * nbin[i + 1:].prod()
   xy += Ncount[-1]
 
@@ -217,6 +220,7 @@ def make_tick_labels(bin_edges, var_label='x'):
   :param var_label: what do we want to label this 'x', 'y', 'MQ' etc.
   :return:
   """
+  if bin_edges is None: return None
   b = bin_edges
   return [
     '{} <= {} < {}'.format(round(b[i], 2), var_label, round(b[i+1], 2))
@@ -225,7 +229,7 @@ def make_tick_labels(bin_edges, var_label='x'):
 
 
 def default_histogram_parameters():
-  """Give us reasonable defaults for the histogram.
+  """Give us reasonable defaults for the full (8D) histogram.
 
   :return: A dictionary which we can then modify if we wish
            This dictionary can then be passed to `initialize_histogram`
@@ -233,7 +237,7 @@ def default_histogram_parameters():
   return {
     'xd_bin_edges': (-np.inf, -100, -40, -20, -10, -5, 0, 1, 6, 11, 21, 41, 101, np.inf),
     'max_d': 200,
-    'mq_bin_edges': (0, 1, 11, 41, 51, np.inf),
+    'mq_bin_edges': (0, 1, 11, 21, 31, 41, 51, 61),
     'v_bin_edges': (-np.inf, -20, 0, 1, 21, np.inf),
     'xt_bin_edges': (-np.inf, -100, -40, -20, -10, -5, 0, 1, 6, 11, 21, 41, 101, np.inf),
     't_bin_edges': (-np.inf, 200, 301, 401, 601, np.inf),
@@ -271,35 +275,45 @@ def initialize_histogram(
 
   15 * 15 * 8 * 8 * 10 * 10 * 13 * 8 =  150 million elements
 
+  **We may set some of the dimensions to None to reduce the dimensionality**
   """
   # Some of the dimensions need extra bins for particular exceptions to the data
-  # xd_bin_edges has to be adjusted to accommodate WC and UM reads
-  xd_bin_edges = list(xd_bin_edges)
-  xd_bin_edges[-1] = max_d + 1
-  xd_bin_edges += [max_d + 2, max_d + 3]
-  # ...., max_d + 1, max_d + 2, max_d + 3
-  #     |          |          \----- UM
-  #     |          \----- WC
-  #     \---- max_d+
-  #
-  # Also note that alignment analysis (not us) takes care of clipping d_err at max_d
-  xd_labels = make_tick_labels(xd_bin_edges, 'xd')
-  xd_labels[-2] = 'WC'
-  xd_labels[-1] = 'UM'
 
-  max_v = v_bin_edges[-2] + 1  # This is what we clip v size to be
-  # xd_bin_edges has to be adjusted to accommodate Ref and V+
-  v_bin_edges = list(v_bin_edges)
-  v_bin_edges[-1] = max_v + 1
-  v_bin_edges += [max_v + 2, max_v + 3]
-  # ...., max_v + 1, max_v + 2, max_v + 3
-  #     |          |          \-- V+
-  #     |          \-- Ref
-  #     \-- varlen+
-  v_labels = make_tick_labels(v_bin_edges, 'V')
-  v_labels[-2] = 'Ref'
-  v_labels[-1] = 'V+'
+  if xd_bin_edges is not None:
+    # xd_bin_edges has to be adjusted to accommodate WC and UM reads
+    xd_bin_edges = list(xd_bin_edges)
+    xd_bin_edges[-1] = max_d + 1
+    xd_bin_edges += [max_d + 2, max_d + 3]
+    # ...., max_d + 1, max_d + 2, max_d + 3
+    #     |          |          \----- UM
+    #     |          \----- WC
+    #     \---- max_d+
+    #
+    # Also note that alignment analysis (not us) takes care of clipping d_err at max_d
+    xd_labels = make_tick_labels(xd_bin_edges, 'xd')
+    xd_labels[-2] = 'WC'
+    xd_labels[-1] = 'UM'
+  else:
+    xd_labels = None
 
+  if v_bin_edges is not None:
+    max_v = v_bin_edges[-2] + 1  # This is what we clip v size to be
+    # xd_bin_edges has to be adjusted to accommodate Ref and V+
+    v_bin_edges = list(v_bin_edges)
+    v_bin_edges[-1] = max_v + 1
+    v_bin_edges += [max_v + 2, max_v + 3]
+    # ...., max_v + 1, max_v + 2, max_v + 3
+    #     |          |          \-- V+
+    #     |          \-- Ref
+    #     \-- varlen+
+    v_labels = make_tick_labels(v_bin_edges, 'V')
+    v_labels[-2] = 'Ref'
+    v_labels[-1] = 'V+'
+  else:
+    max_v = None
+    v_labels = None
+
+  # The full suite of dimensions
   dimensions = [
       ('xd1', 'alignment error mate 1', np.array(xd_bin_edges), xd_labels),
       ('xd2', 'alignment error mate 2', np.array(xd_bin_edges), xd_labels),
@@ -311,25 +325,20 @@ def initialize_histogram(
       ('t', 'Correct template length', np.array(t_bin_edges), make_tick_labels(t_bin_edges, 'T'))
   ]
 
-  #TODO: remove cruft
-  dimension_metadata = OrderedDict(
-    [
-      (k[0],
-       {
-         'description': k[1],
-         'bin_edges': k[2],
-         'bin_centers': (k[2][:-1] + k[2][1:]) / 2
-       })
-      for k in dimensions
-    ]
-  )
+  # This is bin edges in the form of a list so that histogram can use it
+  # We make this list before collapsing None dimensions.
+  # histograminator needs the None dimensions to know which dimensions of the input data to ignore
+  full_bin_edges = [k[2] for k in dimensions]
+
+  # Reduce dimensions, if applicable
+  dimensions = [d for d in dimensions if d[3] is not None]
 
   metadata = {
     'max_d': max_d,
     'max_v': max_v,
     'description': [k[1] for k in dimensions],
     'bin_centers': [(k[2][:-1] + k[2][1:]) / 2 for k in dimensions],
-    'bin_edges': [k[2] for k in dimensions]  # This is bin edges in the form of a list so that histogram can use it
+    'bin_edges': full_bin_edges  # Note, not reduced dimensionality, but with 'None' where dimensions are collapsed
   }
 
   return xr.DataArray(
@@ -344,12 +353,14 @@ def initialize_histogram(
 
 
 @cytoolz.curry
-def histogramize(titer, histogram_def=None, buf_size=1000000):
-  """Iterate over reads and fill out the histogram.
+def histograminator(titer, histogram_def=None, buf_size=1000000):
+  """Iterate over read pairs and fill out the histogram
 
-  This works as a sink. For some reason, if I write this as a filter
-  nothing after the yield is executed and so we can't do the final finalize :/
-
+  :param titer:
+  :param histogram_def: This can be a list of histogram defs. If there are more than one
+                        Multiple histograms will be filled out. The constraint is that the
+                        max_d and max_v of each histogram have to match
+  :param buf_size:
   :return:
   """
   def _parse_vlist(_vl):
@@ -362,18 +373,31 @@ def histogramize(titer, histogram_def=None, buf_size=1000000):
       return max_v + 1  # Reference read
 
   def _finalize():
-    """given a buffer of data bin it into the histgram
+    """given a buffer of data bin it into the histogram
     """
-    pah.data += fastmultihist(buf[:idx, :], pah.attrs['bin_edges'])
+    for pah in aah:
+      pah.data += fastmultihist(buf[:idx, :], pah.attrs['bin_edges'])
 
   assert histogram_def is not None, 'Histogram definition must be passed'
+  if not isinstance(histogram_def, (list, tuple)):
+    histogram_def = (histogram_def, )
 
-  pah = initialize_histogram(**histogram_def)
-  max_d, max_v = pah.attrs['max_d'], pah.attrs['max_v']
+  aah = [initialize_histogram(**hd) for hd in histogram_def]
+  max_d_set = set(a.attrs['max_d'] for a in aah)
+  max_v_set = set(a.attrs['max_v'] for a in aah if a.attrs['max_v'] is not None)
+  max_d = max_d_set.pop()
+  max_v = max_v_set.pop() or 1  # We could have a case where we never bin by the max_v
+
+  if len(max_d_set) > 0:
+    raise RuntimeError('max_d for each histogram has to be the same')
+
+  if len(max_v_set) > 0:
+    raise RuntimeError('max_v for each histogram has to be the same')
+
   temp_read = pysam.AlignedSegment()
 
   bs = buf_size
-  buf = np.empty(shape=(bs, len(pah.coords)))
+  buf = np.empty(shape=(bs, 8))
   idx = 0
 
   for tpl in titer:
@@ -399,7 +423,7 @@ def histogramize(titer, histogram_def=None, buf_size=1000000):
 
   _finalize()
 
-  return pah
+  return aah
 
 
 def save_histogram(pah, fname):
