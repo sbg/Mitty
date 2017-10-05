@@ -21,6 +21,7 @@ def read_bam_st(bam_fname):
   :return: iterator over single read tuples (read,)
   """
   for read in pysam.AlignmentFile(bam_fname).fetch(until_eof=True):
+    if read.flag & 0b100100000000: continue  # Skip supplementary or secondary alignments
     yield (read,)
 
 
@@ -32,6 +33,7 @@ def read_bam_paired_st(bam_fname):
   """
   singles = {}
   for read in pysam.AlignmentFile(bam_fname).fetch(until_eof=True):
+    if read.flag & 0b100100000000: continue  # Skip supplementary or secondary alignments
     key = read.qname[:20]  # Is this enough?
     if key not in singles:
       singles[key] = read
@@ -39,7 +41,8 @@ def read_bam_paired_st(bam_fname):
       yield (read, singles[key]) if read.is_read1 else (singles[key], read)
       del singles[key]
   if len(singles):
-    logger.error('Unpaired reads left over!')
+    logger.error('{} unpaired reads left over!'.format(len(singles)))
+    logger.error(singles.keys())
 
 
 def read_iter(fp, contig_q):
@@ -55,9 +58,11 @@ def read_iter(fp, contig_q):
   for contig in iter(contig_q.get, None):
     logger.debug(contig[0])
     for read in fp.fetch(contig[0]):
+      if read.flag & 0b100100000000: continue  # Skip supplementary or secondary alignments
       yield read
     if contig[1]:  # Now want the trailing reads - fp is positioned just before them
       for read in fp.fetch(until_eof=contig[1]):
+        if read.flag & 0b100100000000: continue  # Skip supplementary or secondary alignments
         yield read
 
 
