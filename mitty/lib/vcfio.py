@@ -159,7 +159,7 @@ def unusable_variant(v):
     is_illegal = False
     var = _v.samples.values()[0]
     for g, po in zip(var['GT'], _p_overlap):
-      if g and po > _v.start:  # stop is 1 past the position, for some reason
+      if g and po > _v.start + 1:  # stop is 1 past the position, for some reason
         is_illegal = True
         logger.debug('Illegal overlap {}:{} {} -> {} (previous variant ends at {})'.format(_v.contig, _v.pos, _v.ref, _v.alts, po))
         break
