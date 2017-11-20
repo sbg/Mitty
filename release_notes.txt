@@ -4,6 +4,8 @@ Release Notes
 - enhancement: bamtoolz (parallelization of composable analysis) implemented
 - enhancement: Paired-Alignment-Histogram implemented
 - bugfix: tlen computation now handles reads fully inside insertions
+- enhancement: SNPs directly adjacent to deletions and insertions are properly handled
+  No algorithm was changed - just two checks were made more permissive.
 
 2.25.1
 - bugfix: bam2illumina discards read with tlen = 0
