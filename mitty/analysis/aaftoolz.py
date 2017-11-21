@@ -1,4 +1,6 @@
 """Functions to process .aaf (Alignment Analysis Format) files """
+import tempfile
+
 import pysam
 import cytoolz
 
@@ -28,9 +30,9 @@ def save_as_aaf(seq_dict, output_dir, titer):
        resorted in order to make use of tabix indexing
 
   """
-  f, tab_fname = tempfile.mkstemp(prefix='ra-', dir=output_dir)
+  f, aaf_fname = tempfile.mkstemp(prefix='aaf-', dir=output_dir)
 
-  with open(tab_fname, 'w') as fp:
+  with open(aaf_fname, 'w') as fp:
     for template in titer:
       for mate in template:
         rd, ri, d_err = mate['read'], mate['read_info'], mate['d_err']
@@ -39,6 +41,4 @@ def save_as_aaf(seq_dict, output_dir, titer):
                         d_err=d_err, mq=rd.mapping_quality,
                         vl=';'.join(str(v) for v in ri.v_list)))
 
-  return tab_fname
-
-
+  return aaf_fname
