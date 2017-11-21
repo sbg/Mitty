@@ -42,7 +42,7 @@ max_d = 200
 
 n1 = maly.parse_read_qnames(scar_fname)
 n2 = maly.compute_derr(max_d=max_d)
-n3 = maly.save_as_tab(maly.get_seq_dict(bam_fname), output_dir)
+n3 = maly.save_as_aaf(maly.get_seq_dict(bam_fname), output_dir)
 
 pipeline = [n1, n2, n3]
 
