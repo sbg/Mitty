@@ -20,9 +20,9 @@ usefulness, such as extracting particular bam regions etc.
 An example workflow is
 
 python3 alignment-analysis-per-read.py  alignments.bam  long-qname.txt ./ 4 \
-| sort -k 1,1 -k 2,2 -n -t $'\t' \
-| bgzip > scored-reads.gz \
-&& tabix -s 1 -b 2 -e 2 scored-reads.gz
+| sort -k 1,1V -k 2,2n \
+| bgzip > scored-reads.aaf.bgz \
+&& tabix -s 1 -b 2 -e 2 scored-reads.aaf.bgz
 
 """
 import sys
