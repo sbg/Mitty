@@ -19,8 +19,10 @@ usefulness, such as extracting particular bam regions etc.
 
 An example workflow is
 
-python3 alignment-analysis-per-read.py  alignments.bam  long-qname.txt ./ 4 | sort -k1 -k2 -n | bgzip > scored-reads.gz
-tabix -s 1 -b 2 -e 2 scored-reads.gz
+python3 alignment-analysis-per-read.py  alignments.bam  long-qname.txt ./ 4 \
+| sort -k 1,1 -k 2,2 -n -t $'\t' \
+| bgzip > scored-reads.gz \
+&& tabix -s 1 -b 2 -e 2 scored-reads.gz
 
 """
 import sys
@@ -40,7 +42,7 @@ max_d = 200
 
 n1 = maly.parse_read_qnames(scar_fname)
 n2 = maly.compute_derr(max_d=max_d)
-n3 = maly.save_as_tab(output_dir)
+n3 = maly.save_as_tab(maly.get_seq_dict(bam_fname), output_dir)
 
 pipeline = [n1, n2, n3]
 

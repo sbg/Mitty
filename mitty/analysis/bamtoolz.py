@@ -14,6 +14,18 @@ import logging
 logger = logging.getLogger(__name__)
 
 
+def get_seq_dict(bam_fname):
+  """Return us a dictionary converting reference_id to sequence name
+
+  :param bam_fname:
+  :return:
+  """
+  fp = pysam.AlignmentFile(bam_fname)
+  contig_dict = {n: cn['SN'] for n, cn in enumerate(fp.header['SQ'])}
+  contig_dict[-1] = '*'
+  return contig_dict
+
+
 def read_bam_st(bam_fname):
   """Vanilla single thread single read iterator
 
