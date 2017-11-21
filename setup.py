@@ -34,7 +34,9 @@ setup(
     'matplotlib>=1.3.0',
     'scipy',
     'pandas',
+    'bokeh',
     'cytoolz',
+    'xarray>=0.9.6',
     'nose'
   ],
   test_suite='nose.collector',

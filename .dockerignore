@@ -1,8 +1,12 @@
 .dockerignore
 .git
 .idea
+.ipynb_checkpoints
+build
+containerization
+dist
 docs
 mitty.egg-info
+scripts
+wrapper-scripts
 sandbox
-examples
-containerization

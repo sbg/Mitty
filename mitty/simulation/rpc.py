@@ -52,7 +52,7 @@ def create_node_list(ref_seq, ref_start_pos, vl):
 
   nodes = []
   for v in vl:
-    if v.pos < ref_pos: continue  # We are starting from a later position
+    if v.pos + 1 < ref_pos: continue  # We are starting from a later position
     new_nodes, samp_pos, ref_pos = create_nodes(ref_seq, samp_pos, ref_pos, v, ref_start_pos)
     nodes += new_nodes
 
