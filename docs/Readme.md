@@ -7,6 +7,7 @@ working of the programs.
 
 - [Read generation POS and CIGAR algorithm](readgeneration.md)
 - [Alignment scoring](alignmentscoring.md)
+- [Alignment Analysis Format](aaf.md)
 - [Read model format](readmodelformat.md)
 
 
