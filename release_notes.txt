@@ -1,5 +1,10 @@
 Release Notes
 =============
+2.27.0
+- enhancement: aaftoolz (parallelization of composable analysis for AAF files)
+- enhancement: tool to collate alignment accuracy vs variant content vs MQ data
+               from an AAF and write it out as a CSV
+
 2.26.0
 - enhancement: bamtoolz (parallelization of composable analysis) implemented
 - enhancement: Paired-Alignment-Histogram implemented
