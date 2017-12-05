@@ -1,8 +1,17 @@
 """Functions to process .aaf (Alignment Analysis Format) files """
 import tempfile
+from collections import namedtuple
+from multiprocessing import Process, Queue
 
 import pysam
 import cytoolz
+import cytoolz.curried as cyt
+
+import logging
+logger = logging.getLogger(__name__)
+
+
+AafRead = namedtuple('AAF', ['chrom', 'pos', 'd_err', 'MQ', 'vlist'])
 
 
 @cytoolz.curry
@@ -42,3 +51,87 @@ def save_as_aaf(seq_dict, output_dir, titer):
                         vl=';'.join(str(v) for v in ri.v_list)))
 
   return aaf_fname
+
+
+def aaf_iter(fp, contig_q):
+  """Returns read objects from contigs until someone passes None as a contig
+
+  :param fp: tabixfile pointer (pysam.TabixFile)
+  :param contig_q: a queue into which we put contig string
+  :return: a generator
+  """
+  for contig in iter(contig_q.get, None):
+    cnt = 0
+    for cnt, read in enumerate(fp.fetch(contig)):
+      _, _, d_err, MQ, v_list = read.split('\t')
+      yield int(d_err), int(MQ), [int(v) for v in v_list.split(';') if v is not '']
+    logger.debug('{}: {} reads'.format(contig, cnt))
+
+
+def worker(pipeline, aaf_fname, result_q, contig_q):
+  """Given a pipeline, run it with reads from the given AAF taken from contigs supplied
+  over the contig_q.
+
+  This expects the pipeline to yield one final result which it can then return.
+
+  It expects the last element of pipeline to be a function that consumes a aaf
+  iterator and returns a result.
+
+  :param pipeline:  A list of pipeline nodes
+  :param aaf_fname: Source AAF file
+  :param result_q:  The result is put here.
+  :param contig_q:  messages are contig names. A None indicates stop_iter
+  :return:
+  """
+
+  aaf = pysam.TabixFile(aaf_fname)
+  t1 = aaf_iter(aaf, contig_q)
+  sink = pipeline[-1]
+  result_q.put(sink(cyt.pipe(t1, *pipeline[:-1])))
+
+
+def scatter_aaf(pipeline, aaf_fname, ncpus=2):
+  """Given a pipeline and a source bam file use multiprocessing to run the pipeline
+  via multiple workers splitting up the work by contig
+
+  python multiprocessing will be used for running the pipelines in parallel and care
+  must be taken to ensure the individual pipeline nodes are parallelizable
+
+  This expects the pipeline to yield one final result which it can then return.
+
+  :param bam_fname:
+  :param pipeline:
+  :param paired:  When run in parallel, paired vs unpaired pipelines work differently
+                  So we have to tell scatter if we want to source paired or unpaired reads
+  :param ncpus:
+  :param max_singles:
+  :return:
+  """
+  assert ncpus > 1, "ncpus = 1 can't use scatter!"
+
+  result_q = Queue()
+  contig_q = Queue()
+
+  p_list = []
+  for i in range(ncpus):
+    p_list += [
+      Process(target=worker,
+              args=(pipeline, aaf_fname, result_q, contig_q))
+    ]
+
+  for p in p_list:
+    p.start()
+
+  for contig in pysam.TabixFile(aaf_fname).contigs:
+    contig_q.put(contig)
+
+  # Tell child processes to stop
+  for i in range(ncpus):
+    contig_q.put(None)
+
+  for i in range(ncpus):
+    yield result_q.get()
+
+  # Orderly exit
+  for p in p_list:
+    p.join()
