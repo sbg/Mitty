@@ -68,7 +68,7 @@ def count_alignment_category(riter):
   for i, v_cat in enumerate(v_cats):
     for j in range(61):
       for k, d_cat in enumerate(d_cats):
-        counter_dict[', '.join([v_cat, str(j), d_cat])] = cnt[k][j][i]
+        counter_dict[','.join([v_cat, str(j), d_cat])] = cnt[k][j][i]
 
   return counter_dict
 
@@ -100,6 +100,6 @@ counts = combine_counts(maly.aaftoolz.scatter_aaf(pipeline, aaf_fname=aaf_fname,
                                          ncpus=ncpus))
 
 with open(out_fname, 'w') as fout:
-  fout.write(', '.join(['category', 'MQ', 'derr', 'count']))
+  fout.write(','.join(['category', 'MQ', 'derr', 'count']))
   for k, v in counts.items():
-    fout.write('{}, {}\n'.format(k, v))
+    fout.write('{},{}\n'.format(k, v))
