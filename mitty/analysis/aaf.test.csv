@@ -1,0 +1,2746 @@
+category,MQ,derr,count
+DEL <= 10,4,d = 0,82
+Multi,9,wrong chrom,762
+SNP,35,d > 50,26
+INS > 50,12,wrong chrom,14
+DEL 11-50,60,0 < d <= 50,11277
+Ref,47,unmapped,0
+INS 11-50,44,d = 0,185
+INS 11-50,52,d = 0,129
+Multi,43,d = 0,22735
+DEL > 50,27,0 < d <= 50,0
+DEL 11-50,7,unmapped,0
+SNP,34,wrong chrom,59
+DEL <= 10,17,d > 50,21
+Ref,31,wrong chrom,97
+Multi,40,wrong chrom,994
+DEL 11-50,20,d = 0,11
+DEL > 50,58,0 < d <= 50,0
+SNP,56,unmapped,0
+Multi,19,0 < d <= 50,65
+Multi,22,d > 50,619
+SNP,12,unmapped,0
+SNP,28,d = 0,3096
+INS 11-50,9,0 < d <= 50,2
+SNP,1,unmapped,0
+DEL <= 10,47,unmapped,0
+Multi,32,d > 50,93
+DEL > 50,56,d = 0,4
+DEL 11-50,23,0 < d <= 50,1
+DEL 11-50,56,wrong chrom,0
+INS <= 10,11,wrong chrom,35
+INS <= 10,7,0 < d <= 50,7
+INS > 50,52,d > 50,2
+INS 11-50,39,unmapped,0
+INS > 50,1,0 < d <= 50,0
+DEL > 50,8,d > 50,0
+SNP,6,d > 50,893
+INS <= 10,37,unmapped,0
+INS 11-50,45,d = 0,160
+DEL > 50,30,0 < d <= 50,0
+DEL 11-50,36,wrong chrom,0
+DEL > 50,58,wrong chrom,0
+Multi,35,unmapped,0
+Ref,40,d = 0,5206307
+INS 11-50,38,wrong chrom,12
+INS 11-50,1,0 < d <= 50,1
+DEL 11-50,34,d > 50,0
+SNP,25,d = 0,30346
+INS > 50,10,0 < d <= 50,1
+INS 11-50,46,0 < d <= 50,0
+Multi,0,0 < d <= 50,1306
+DEL 11-50,31,wrong chrom,1
+INS <= 10,52,unmapped,0
+INS 11-50,24,unmapped,0
+DEL > 50,19,d > 50,0
+SNP,3,wrong chrom,848
+Ref,12,d = 0,40833
+Multi,44,0 < d <= 50,26
+DEL 11-50,51,unmapped,0
+DEL > 50,24,wrong chrom,0
+DEL > 50,12,wrong chrom,0
+INS 11-50,25,d = 0,68
+DEL 11-50,21,d = 0,66
+Ref,54,d = 0,160588
+Ref,15,0 < d <= 50,23
+DEL > 50,25,d > 50,0
+INS > 50,50,unmapped,0
+Ref,28,wrong chrom,105
+Multi,25,0 < d <= 50,128
+DEL 11-50,0,d = 0,232
+DEL > 50,57,d = 0,14
+INS 11-50,32,0 < d <= 50,0
+DEL 11-50,52,0 < d <= 50,8
+DEL <= 10,37,d > 50,19
+Ref,15,unmapped,0
+Ref,19,d = 0,84782
+SNP,33,unmapped,0
+SNP,36,0 < d <= 50,4
+Multi,33,0 < d <= 50,66
+DEL <= 10,18,d = 0,165
+INS <= 10,54,d = 0,1398
+DEL > 50,0,d > 50,1
+DEL 11-50,57,0 < d <= 50,2
+DEL <= 10,5,d = 0,90
+Ref,3,0 < d <= 50,215
+Ref,24,unmapped,0
+INS 11-50,21,d = 0,109
+Multi,49,unmapped,0
+DEL <= 10,39,d = 0,1360
+INS > 50,23,wrong chrom,0
+DEL <= 10,23,d = 0,328
+DEL > 50,12,d > 50,0
+Ref,9,d > 50,3045
+INS > 50,24,0 < d <= 50,4
+INS <= 10,36,wrong chrom,8
+Multi,25,d > 50,1431
+DEL <= 10,25,d > 50,90
+INS 11-50,18,unmapped,0
+DEL 11-50,51,d = 0,138
+Ref,6,d = 0,28911
+SNP,16,0 < d <= 50,11
+INS <= 10,0,unmapped,0
+INS > 50,42,wrong chrom,0
+DEL > 50,35,0 < d <= 50,0
+INS > 50,52,wrong chrom,0
+INS > 50,32,unmapped,0
+DEL 11-50,28,wrong chrom,0
+DEL <= 10,23,0 < d <= 50,4
+SNP,25,wrong chrom,1061
+DEL <= 10,10,0 < d <= 50,1
+Ref,5,d = 0,20484
+INS <= 10,25,d = 0,1072
+DEL <= 10,22,unmapped,0
+Ref,53,d > 50,2
+Ref,22,wrong chrom,1517
+SNP,21,wrong chrom,697
+Multi,4,d > 50,315
+Ref,29,unmapped,0
+DEL > 50,48,unmapped,0
+DEL > 50,30,d = 0,0
+INS <= 10,9,d = 0,1527
+SNP,24,d > 50,1406
+INS > 50,48,d > 50,2
+Ref,54,wrong chrom,6
+INS > 50,8,d > 50,3
+DEL <= 10,56,0 < d <= 50,23
+INS 11-50,29,wrong chrom,5
+INS 11-50,42,0 < d <= 50,2
+INS 11-50,44,unmapped,0
+INS <= 10,34,d = 0,326
+INS > 50,43,wrong chrom,2
+SNP,55,unmapped,0
+SNP,2,unmapped,0
+Ref,50,wrong chrom,8
+DEL > 50,19,d = 0,1
+DEL > 50,14,unmapped,0
+SNP,7,unmapped,0
+Multi,16,0 < d <= 50,14
+DEL <= 10,57,0 < d <= 50,61
+SNP,9,unmapped,0
+INS 11-50,29,unmapped,0
+INS <= 10,35,d > 50,5
+DEL <= 10,25,d = 0,1516
+DEL <= 10,27,d > 50,159
+Ref,26,d = 0,18727
+DEL > 50,54,d = 0,1
+DEL <= 10,16,d > 50,8
+DEL <= 10,40,d = 0,25038
+Multi,49,0 < d <= 50,71
+INS 11-50,46,wrong chrom,10
+INS 11-50,17,d = 0,12
+DEL <= 10,42,0 < d <= 50,20
+Ref,39,0 < d <= 50,14
+INS 11-50,56,d > 50,2
+SNP,55,d = 0,24450
+SNP,12,d = 0,2877
+DEL 11-50,29,0 < d <= 50,0
+Multi,57,d = 0,15197
+Multi,2,unmapped,0
+DEL 11-50,41,d > 50,0
+INS <= 10,27,unmapped,0
+Ref,13,d > 50,879
+INS > 50,51,0 < d <= 50,0
+INS <= 10,13,wrong chrom,65
+DEL 11-50,44,d > 50,0
+DEL <= 10,53,d = 0,1088
+SNP,36,d > 50,32
+INS 11-50,3,unmapped,0
+SNP,9,d > 50,2007
+INS 11-50,23,unmapped,0
+DEL <= 10,55,unmapped,0
+Ref,43,unmapped,0
+INS > 50,46,d > 50,5
+DEL <= 10,50,unmapped,0
+DEL 11-50,19,unmapped,0
+Multi,37,d = 0,7139
+INS > 50,24,d > 50,10
+INS > 50,34,d = 0,6
+Multi,34,wrong chrom,102
+DEL <= 10,49,d > 50,0
+INS > 50,48,wrong chrom,0
+Multi,58,wrong chrom,11
+DEL <= 10,0,d > 50,4347
+Ref,27,d = 0,2219150
+Ref,38,d > 50,14
+INS > 50,30,d > 50,3
+DEL <= 10,36,d = 0,356
+DEL > 50,48,wrong chrom,0
+SNP,51,0 < d <= 50,19
+DEL 11-50,31,d = 0,23
+Ref,29,d = 0,22443
+INS <= 10,31,0 < d <= 50,7
+Multi,59,0 < d <= 50,65
+DEL <= 10,39,d > 50,139
+Multi,13,d = 0,2205
+INS > 50,32,0 < d <= 50,1
+Ref,28,0 < d <= 50,9
+SNP,31,wrong chrom,61
+Ref,32,unmapped,0
+Multi,21,0 < d <= 50,91
+DEL 11-50,60,d = 0,368802
+Ref,37,wrong chrom,123
+INS > 50,44,unmapped,0
+DEL <= 10,44,d > 50,0
+Multi,59,d > 50,87
+DEL > 50,52,0 < d <= 50,0
+INS > 50,60,d > 50,102
+INS 11-50,4,wrong chrom,38
+DEL > 50,5,unmapped,0
+SNP,17,unmapped,0
+INS 11-50,21,unmapped,0
+INS <= 10,28,unmapped,0
+DEL 11-50,34,wrong chrom,0
+INS <= 10,54,wrong chrom,2
+INS <= 10,48,unmapped,0
+INS <= 10,51,d = 0,4009
+Multi,55,wrong chrom,25
+INS > 50,6,d > 50,9
+Multi,1,unmapped,0
+DEL > 50,0,d = 0,5
+Multi,14,d = 0,987
+DEL > 50,17,0 < d <= 50,0
+Multi,51,unmapped,0
+DEL <= 10,31,0 < d <= 50,9
+INS <= 10,36,unmapped,0
+INS 11-50,6,d = 0,52
+DEL > 50,46,wrong chrom,0
+DEL <= 10,21,d > 50,115
+Multi,41,0 < d <= 50,55
+DEL <= 10,51,d = 0,3208
+INS <= 10,33,unmapped,0
+DEL > 50,42,wrong chrom,0
+INS 11-50,6,wrong chrom,29
+SNP,9,d = 0,9008
+DEL 11-50,57,unmapped,0
+Ref,4,d = 0,17094
+DEL 11-50,55,d > 50,1
+Multi,29,0 < d <= 50,6
+INS 11-50,25,unmapped,0
+Multi,42,unmapped,0
+INS <= 10,14,wrong chrom,13
+Ref,56,unmapped,0
+DEL > 50,54,unmapped,0
+INS <= 10,29,wrong chrom,11
+DEL > 50,36,0 < d <= 50,0
+DEL <= 10,15,wrong chrom,22
+INS <= 10,7,d = 0,620
+INS 11-50,42,unmapped,0
+INS 11-50,19,unmapped,0
+DEL <= 10,4,wrong chrom,27
+INS <= 10,51,unmapped,0
+DEL > 50,23,unmapped,0
+INS > 50,60,d = 0,5793
+Ref,16,d = 0,57545
+DEL > 50,13,d > 50,0
+INS <= 10,18,d > 50,20
+Ref,37,d > 50,91
+Multi,41,d = 0,15531
+DEL 11-50,59,0 < d <= 50,3
+DEL <= 10,46,d = 0,1537
+Ref,9,unmapped,0
+SNP,19,d = 0,6673
+SNP,29,d = 0,3215
+SNP,39,d = 0,21247
+SNP,27,d > 50,18099
+DEL <= 10,39,0 < d <= 50,20
+SNP,0,d > 50,63062
+Ref,13,d = 0,59266
+DEL 11-50,1,d > 50,6
+INS <= 10,30,0 < d <= 50,2
+DEL 11-50,54,unmapped,0
+DEL 11-50,14,0 < d <= 50,0
+SNP,10,unmapped,0
+Multi,46,wrong chrom,76
+INS <= 10,40,wrong chrom,50
+INS > 50,44,wrong chrom,1
+Ref,23,wrong chrom,951
+DEL > 50,38,wrong chrom,0
+DEL <= 10,30,d = 0,570
+DEL > 50,49,d > 50,0
+DEL 11-50,37,d > 50,2
+DEL > 50,50,d > 50,0
+Multi,28,d = 0,2153
+Ref,18,wrong chrom,1397
+INS > 50,27,d > 50,2
+INS 11-50,28,wrong chrom,3
+SNP,28,d > 50,25
+Multi,52,wrong chrom,19
+SNP,34,0 < d <= 50,2
+Ref,38,wrong chrom,50
+INS > 50,13,wrong chrom,3
+DEL 11-50,16,unmapped,0
+INS <= 10,24,unmapped,0
+INS <= 10,12,0 < d <= 50,10
+INS 11-50,58,wrong chrom,4
+INS <= 10,0,wrong chrom,2309
+Multi,17,0 < d <= 50,26
+INS <= 10,20,unmapped,0
+DEL > 50,40,wrong chrom,0
+SNP,6,unmapped,0
+DEL > 50,14,d = 0,0
+DEL 11-50,58,d > 50,1
+SNP,15,d = 0,10226
+Multi,1,wrong chrom,879
+Ref,37,0 < d <= 50,10
+DEL > 50,34,wrong chrom,0
+Ref,47,d > 50,12
+INS 11-50,45,wrong chrom,14
+INS 11-50,36,d = 0,80
+DEL <= 10,55,d = 0,2010
+DEL <= 10,14,wrong chrom,4
+INS > 50,30,0 < d <= 50,3
+INS <= 10,4,d > 50,19
+INS 11-50,15,unmapped,0
+Ref,0,unmapped,0
+DEL 11-50,37,0 < d <= 50,3
+SNP,20,unmapped,0
+Multi,2,d = 0,922
+SNP,54,0 < d <= 50,11
+INS 11-50,43,0 < d <= 50,1
+DEL 11-50,8,0 < d <= 50,0
+SNP,60,wrong chrom,29
+SNP,41,d = 0,38981
+DEL 11-50,24,d > 50,13
+SNP,48,unmapped,0
+DEL <= 10,41,d = 0,2192
+INS > 50,42,unmapped,0
+Ref,45,unmapped,0
+DEL > 50,23,d = 0,0
+INS > 50,40,0 < d <= 50,20
+DEL > 50,4,wrong chrom,0
+SNP,54,d > 50,3
+INS <= 10,55,wrong chrom,1
+INS <= 10,12,d = 0,221
+SNP,13,unmapped,0
+INS <= 10,58,d > 50,1
+DEL <= 10,12,d > 50,58
+SNP,51,unmapped,0
+SNP,2,0 < d <= 50,6
+DEL 11-50,9,d = 0,51
+DEL > 50,27,unmapped,0
+DEL <= 10,45,d = 0,4218
+DEL > 50,25,0 < d <= 50,0
+DEL 11-50,28,d > 50,1
+DEL 11-50,21,d > 50,5
+SNP,46,unmapped,0
+SNP,37,0 < d <= 50,10
+Ref,44,d > 50,5
+INS > 50,55,0 < d <= 50,3
+INS > 50,56,0 < d <= 50,2
+INS 11-50,20,unmapped,0
+Ref,16,0 < d <= 50,6
+INS <= 10,53,d > 50,7
+Multi,23,unmapped,0
+Multi,26,wrong chrom,83
+DEL <= 10,51,d > 50,17
+DEL > 50,45,wrong chrom,0
+INS <= 10,8,wrong chrom,68
+SNP,44,d = 0,46526
+INS 11-50,13,unmapped,0
+DEL 11-50,17,d > 50,2
+INS > 50,16,wrong chrom,5
+DEL > 50,50,unmapped,0
+INS > 50,1,d > 50,14
+Multi,26,unmapped,0
+INS > 50,19,d = 0,4
+SNP,45,unmapped,0
+INS 11-50,49,unmapped,0
+Ref,32,d > 50,26
+Ref,11,0 < d <= 50,7
+Multi,16,d = 0,1835
+INS <= 10,20,wrong chrom,27
+Ref,10,d = 0,35345
+INS <= 10,36,0 < d <= 50,5
+SNP,53,wrong chrom,1
+Ref,20,wrong chrom,1502
+DEL > 50,36,wrong chrom,0
+DEL > 50,37,d = 0,2
+INS 11-50,31,d = 0,47
+Multi,56,unmapped,0
+DEL > 50,20,wrong chrom,0
+SNP,3,d > 50,1796
+INS > 50,56,wrong chrom,0
+INS 11-50,53,unmapped,0
+DEL <= 10,29,wrong chrom,3
+DEL > 50,19,wrong chrom,0
+SNP,33,wrong chrom,133
+Ref,42,d = 0,196454
+DEL <= 10,3,d = 0,1176
+Ref,19,0 < d <= 50,19
+Multi,24,d > 50,782
+Multi,4,d = 0,1544
+INS > 50,42,d = 0,17
+SNP,7,d = 0,4257
+DEL > 50,16,wrong chrom,0
+INS > 50,17,unmapped,0
+DEL 11-50,11,wrong chrom,1
+DEL > 50,31,d > 50,1
+DEL <= 10,40,d > 50,50
+Ref,46,wrong chrom,57
+INS <= 10,58,wrong chrom,0
+INS <= 10,32,unmapped,0
+Ref,58,wrong chrom,0
+Multi,25,d = 0,8278
+INS <= 10,11,d = 0,146
+INS <= 10,15,wrong chrom,78
+Ref,17,unmapped,0
+INS <= 10,32,d = 0,234
+DEL <= 10,44,d = 0,1470
+INS > 50,18,0 < d <= 50,5
+DEL > 50,32,wrong chrom,0
+INS <= 10,43,0 < d <= 50,28
+INS <= 10,17,wrong chrom,54
+Multi,55,unmapped,0
+Ref,21,wrong chrom,1138
+SNP,13,d > 50,506
+DEL > 50,44,wrong chrom,0
+DEL 11-50,48,unmapped,0
+DEL 11-50,25,wrong chrom,0
+INS > 50,22,wrong chrom,2
+INS 11-50,11,wrong chrom,6
+DEL > 50,40,d > 50,1
+SNP,42,d > 50,32
+DEL <= 10,56,d = 0,3517
+Ref,49,0 < d <= 50,9
+INS > 50,49,wrong chrom,0
+SNP,26,d = 0,2196
+INS 11-50,27,unmapped,0
+DEL 11-50,15,wrong chrom,0
+INS <= 10,3,unmapped,0
+INS > 50,11,d > 50,3
+Multi,54,unmapped,0
+Ref,58,0 < d <= 50,5
+DEL > 50,26,d > 50,0
+DEL > 50,7,0 < d <= 50,0
+SNP,31,0 < d <= 50,12
+Multi,0,d = 0,22747
+DEL <= 10,0,d = 0,4090
+Multi,43,d > 50,252
+INS 11-50,42,d = 0,167
+Ref,48,d = 0,2437602
+DEL > 50,0,unmapped,0
+Ref,25,0 < d <= 50,72
+DEL > 50,5,0 < d <= 50,0
+INS <= 10,27,wrong chrom,91
+DEL 11-50,50,unmapped,0
+SNP,5,unmapped,0
+DEL > 50,5,d > 50,0
+INS > 50,6,unmapped,0
+DEL <= 10,27,wrong chrom,29
+Ref,5,d > 50,625
+SNP,0,d = 0,73670
+INS > 50,19,d > 50,7
+DEL <= 10,49,unmapped,0
+Ref,37,d = 0,99710
+DEL 11-50,48,d = 0,278
+INS <= 10,8,unmapped,0
+INS > 50,8,unmapped,0
+DEL > 50,34,d > 50,0
+DEL 11-50,24,d = 0,40
+INS > 50,22,d > 50,5
+INS > 50,54,wrong chrom,0
+INS 11-50,22,d = 0,32
+Multi,7,d > 50,1402
+Ref,42,d > 50,5
+INS <= 10,5,d > 50,47
+INS > 50,57,d = 0,5
+DEL 11-50,31,unmapped,0
+INS 11-50,7,0 < d <= 50,1
+DEL 11-50,30,unmapped,0
+DEL 11-50,60,d > 50,38
+INS <= 10,23,0 < d <= 50,2
+INS 11-50,57,0 < d <= 50,2
+DEL <= 10,56,unmapped,0
+SNP,60,unmapped,0
+SNP,11,d > 50,147
+SNP,6,0 < d <= 50,21
+INS <= 10,42,d = 0,982
+INS > 50,47,0 < d <= 50,0
+DEL 11-50,10,0 < d <= 50,0
+Ref,1,unmapped,0
+Multi,39,unmapped,0
+DEL <= 10,48,0 < d <= 50,82
+Ref,37,unmapped,0
+SNP,24,d = 0,14081
+Ref,25,wrong chrom,1716
+DEL <= 10,14,d = 0,55
+DEL 11-50,21,unmapped,0
+DEL <= 10,33,wrong chrom,11
+INS <= 10,21,wrong chrom,56
+Ref,21,d > 50,1737
+Multi,57,d > 50,1065
+Multi,15,d > 50,1095
+DEL > 50,3,d > 50,2
+Multi,21,d > 50,1360
+INS <= 10,30,unmapped,0
+INS 11-50,58,d = 0,223
+SNP,46,0 < d <= 50,5
+Multi,22,d = 0,3615
+Multi,5,d > 50,531
+DEL 11-50,7,0 < d <= 50,2
+DEL <= 10,26,d > 50,3
+Multi,18,d = 0,2833
+DEL 11-50,34,d = 0,19
+Multi,39,d > 50,606
+DEL <= 10,1,0 < d <= 50,16
+Multi,19,d = 0,3206
+DEL > 50,25,wrong chrom,0
+Ref,51,unmapped,0
+DEL > 50,46,d = 0,3
+Multi,52,d > 50,46
+Ref,26,unmapped,0
+SNP,41,wrong chrom,49
+DEL > 50,43,d = 0,0
+DEL <= 10,30,d > 50,5
+Ref,60,d = 0,757126407
+Ref,14,d > 50,382
+INS > 50,14,wrong chrom,15
+DEL 11-50,12,d = 0,8
+INS > 50,18,d > 50,8
+DEL <= 10,13,wrong chrom,7
+Multi,60,d > 50,2283
+SNP,50,wrong chrom,0
+Multi,29,d > 50,88
+DEL <= 10,9,d = 0,814
+Ref,38,0 < d <= 50,3
+DEL 11-50,20,d > 50,5
+SNP,60,d > 50,106
+INS <= 10,23,unmapped,0
+DEL 11-50,20,wrong chrom,2
+Multi,17,d > 50,285
+DEL <= 10,30,unmapped,0
+DEL 11-50,45,d > 50,15
+DEL 11-50,15,d = 0,74
+DEL <= 10,13,0 < d <= 50,18
+DEL <= 10,44,unmapped,0
+INS 11-50,42,d > 50,6
+SNP,50,d = 0,34493
+DEL <= 10,23,wrong chrom,14
+INS 11-50,8,wrong chrom,24
+DEL 11-50,60,unmapped,0
+Multi,30,unmapped,0
+DEL > 50,56,d > 50,0
+DEL 11-50,27,0 < d <= 50,9
+SNP,34,unmapped,0
+DEL > 50,59,0 < d <= 50,0
+DEL <= 10,30,0 < d <= 50,6
+DEL 11-50,58,wrong chrom,0
+SNP,10,d > 50,138
+Ref,3,d > 50,8528
+Ref,42,wrong chrom,26
+INS 11-50,27,wrong chrom,14
+DEL 11-50,33,d > 50,10
+INS > 50,3,0 < d <= 50,3
+INS <= 10,3,wrong chrom,114
+INS <= 10,8,d > 50,52
+DEL > 50,33,d > 50,2
+DEL > 50,49,wrong chrom,0
+INS > 50,8,0 < d <= 50,0
+INS 11-50,38,0 < d <= 50,0
+INS > 50,4,d > 50,5
+DEL 11-50,21,0 < d <= 50,5
+INS 11-50,37,0 < d <= 50,1
+INS > 50,20,unmapped,0
+SNP,58,d = 0,24195
+INS <= 10,6,0 < d <= 50,8
+Ref,45,d > 50,10
+SNP,30,d > 50,46
+Ref,40,wrong chrom,2117
+DEL <= 10,33,0 < d <= 50,24
+INS <= 10,57,0 < d <= 50,57
+Multi,17,unmapped,0
+INS <= 10,34,wrong chrom,4
+DEL 11-50,22,wrong chrom,0
+INS > 50,14,d = 0,5
+INS <= 10,57,wrong chrom,33
+INS > 50,1,wrong chrom,42
+INS > 50,43,unmapped,0
+INS > 50,2,unmapped,0
+INS 11-50,35,unmapped,0
+INS <= 10,45,unmapped,0
+DEL > 50,7,d > 50,0
+DEL 11-50,34,unmapped,0
+SNP,32,wrong chrom,57
+SNP,45,d > 50,209
+Ref,11,unmapped,0
+INS > 50,19,0 < d <= 50,1
+DEL <= 10,35,0 < d <= 50,8
+INS <= 10,48,0 < d <= 50,26
+Multi,59,wrong chrom,13
+Multi,28,unmapped,0
+INS > 50,34,d > 50,1
+INS > 50,14,0 < d <= 50,0
+DEL 11-50,41,d = 0,110
+DEL 11-50,25,d = 0,83
+DEL > 50,24,unmapped,0
+Multi,22,wrong chrom,705
+SNP,50,d > 50,3
+INS > 50,35,wrong chrom,0
+SNP,14,wrong chrom,553
+DEL > 50,43,unmapped,0
+SNP,30,unmapped,0
+Multi,36,d > 50,129
+DEL > 50,35,unmapped,0
+Multi,5,unmapped,0
+SNP,2,d = 0,943
+Ref,27,d > 50,19970
+Ref,16,unmapped,0
+Multi,47,d > 50,608
+SNP,4,wrong chrom,712
+DEL > 50,29,d > 50,1
+INS > 50,37,d = 0,5
+Ref,11,d > 50,319
+DEL > 50,60,wrong chrom,0
+INS 11-50,6,d > 50,23
+Ref,30,wrong chrom,156
+INS > 50,11,wrong chrom,11
+INS 11-50,50,wrong chrom,2
+DEL 11-50,41,0 < d <= 50,1
+INS <= 10,1,wrong chrom,70
+Ref,35,d = 0,45431
+DEL > 50,4,unmapped,0
+INS > 50,0,d = 0,31
+DEL 11-50,38,d = 0,26
+INS > 50,55,wrong chrom,1
+INS 11-50,21,d > 50,31
+DEL 11-50,18,unmapped,0
+DEL 11-50,11,d = 0,5
+INS > 50,10,wrong chrom,3
+DEL <= 10,33,unmapped,0
+DEL > 50,28,wrong chrom,0
+DEL <= 10,4,unmapped,0
+DEL <= 10,17,unmapped,0
+INS <= 10,58,d = 0,2483
+SNP,41,0 < d <= 50,6
+DEL > 50,14,wrong chrom,0
+INS <= 10,1,unmapped,0
+INS 11-50,28,d > 50,7
+INS <= 10,59,unmapped,0
+SNP,52,wrong chrom,4
+DEL > 50,53,0 < d <= 50,0
+INS <= 10,10,unmapped,0
+SNP,15,unmapped,0
+INS 11-50,48,unmapped,0
+DEL <= 10,31,unmapped,0
+INS > 50,0,0 < d <= 50,2
+DEL 11-50,38,unmapped,0
+INS <= 10,48,d = 0,2022
+DEL <= 10,2,0 < d <= 50,3
+Multi,9,d > 50,1205
+Multi,50,d = 0,9288
+INS <= 10,38,0 < d <= 50,5
+Ref,23,d > 50,1163
+INS 11-50,53,d = 0,139
+SNP,13,0 < d <= 50,36
+INS <= 10,22,wrong chrom,43
+INS > 50,24,wrong chrom,3
+DEL 11-50,6,unmapped,0
+DEL <= 10,32,unmapped,0
+INS <= 10,41,unmapped,0
+INS > 50,36,unmapped,0
+INS 11-50,38,d > 50,10
+DEL > 50,59,unmapped,0
+INS > 50,54,0 < d <= 50,0
+DEL <= 10,25,wrong chrom,19
+INS 11-50,12,wrong chrom,12
+INS 11-50,60,wrong chrom,39
+Multi,53,0 < d <= 50,51
+SNP,33,d > 50,390
+INS 11-50,52,d > 50,1
+INS 11-50,53,d > 50,2
+SNP,8,wrong chrom,1759
+DEL 11-50,50,wrong chrom,0
+SNP,32,d > 50,15
+INS > 50,17,d > 50,1
+INS 11-50,19,0 < d <= 50,3
+INS > 50,39,d > 50,7
+DEL 11-50,39,d > 50,21
+INS 11-50,16,0 < d <= 50,0
+INS <= 10,28,0 < d <= 50,1
+DEL 11-50,9,wrong chrom,0
+SNP,25,unmapped,0
+Multi,31,d > 50,233
+DEL 11-50,8,unmapped,0
+DEL 11-50,45,d = 0,221
+DEL 11-50,24,0 < d <= 50,0
+DEL > 50,6,wrong chrom,0
+DEL 11-50,59,d > 50,0
+DEL 11-50,10,d = 0,4
+INS > 50,49,0 < d <= 50,1
+DEL <= 10,45,wrong chrom,8
+Multi,19,wrong chrom,693
+INS 11-50,30,wrong chrom,13
+Ref,8,d = 0,44240
+DEL <= 10,2,wrong chrom,15
+SNP,22,d = 0,9657
+INS > 50,34,wrong chrom,0
+DEL 11-50,18,d > 50,1
+SNP,30,wrong chrom,73
+SNP,59,0 < d <= 50,6
+Ref,47,wrong chrom,21
+SNP,42,unmapped,0
+INS <= 10,8,0 < d <= 50,1
+SNP,51,d > 50,13
+INS <= 10,38,unmapped,0
+Multi,14,0 < d <= 50,10
+SNP,4,d = 0,1538
+DEL <= 10,3,wrong chrom,49
+DEL 11-50,50,d > 50,0
+SNP,40,0 < d <= 50,43
+Multi,36,d = 0,7056
+DEL <= 10,44,wrong chrom,0
+DEL > 50,30,unmapped,0
+DEL > 50,41,wrong chrom,0
+INS > 50,55,d = 0,8
+INS > 50,3,wrong chrom,17
+Multi,35,0 < d <= 50,14
+Multi,0,d > 50,20997
+Multi,60,0 < d <= 50,79997
+DEL > 50,44,d = 0,3
+SNP,30,0 < d <= 50,8
+SNP,14,0 < d <= 50,11
+INS <= 10,4,d = 0,180
+DEL <= 10,8,wrong chrom,21
+DEL > 50,10,d > 50,1
+DEL 11-50,39,0 < d <= 50,1
+DEL > 50,16,d = 0,0
+DEL <= 10,37,d = 0,550
+INS > 50,26,unmapped,0
+DEL 11-50,11,unmapped,0
+Multi,29,d = 0,2297
+INS 11-50,45,d > 50,10
+INS > 50,38,unmapped,0
+INS 11-50,11,0 < d <= 50,0
+Multi,16,unmapped,0
+DEL > 50,43,wrong chrom,0
+INS <= 10,15,unmapped,0
+INS 11-50,56,wrong chrom,1
+SNP,41,d > 50,26
+Multi,1,d = 0,1895
+INS 11-50,15,d > 50,6
+Ref,1,d = 0,32795
+INS > 50,58,wrong chrom,0
+DEL > 50,3,0 < d <= 50,1
+INS <= 10,22,unmapped,0
+SNP,54,unmapped,0
+DEL > 50,36,unmapped,0
+INS > 50,8,wrong chrom,6
+INS > 50,53,wrong chrom,0
+SNP,28,unmapped,0
+DEL > 50,26,0 < d <= 50,0
+DEL 11-50,13,wrong chrom,0
+SNP,10,0 < d <= 50,6
+DEL > 50,22,0 < d <= 50,0
+INS <= 10,16,d = 0,170
+DEL <= 10,15,d = 0,1195
+DEL 11-50,4,wrong chrom,1
+INS > 50,40,wrong chrom,7
+DEL <= 10,3,0 < d <= 50,19
+DEL 11-50,45,unmapped,0
+DEL <= 10,18,unmapped,0
+DEL 11-50,19,d > 50,4
+INS 11-50,15,d = 0,108
+DEL <= 10,16,unmapped,0
+Multi,10,d = 0,1118
+DEL > 50,25,unmapped,0
+DEL > 50,59,d > 50,1
+INS 11-50,59,d > 50,5
+INS > 50,58,unmapped,0
+INS 11-50,10,unmapped,0
+INS 11-50,7,wrong chrom,34
+Multi,34,d > 50,94
+DEL <= 10,21,0 < d <= 50,22
+SNP,23,wrong chrom,427
+INS > 50,49,unmapped,0
+SNP,2,wrong chrom,552
+SNP,56,d = 0,35601
+DEL > 50,48,d = 0,1
+DEL 11-50,32,d = 0,14
+DEL <= 10,35,d = 0,220
+INS 11-50,57,wrong chrom,16
+Multi,8,0 < d <= 50,22
+INS <= 10,45,d = 0,4190
+DEL > 50,17,d > 50,0
+Multi,55,d > 50,175
+INS 11-50,24,d = 0,54
+INS > 50,36,0 < d <= 50,5
+INS 11-50,50,d > 50,2
+DEL > 50,17,unmapped,0
+SNP,17,wrong chrom,632
+Multi,11,wrong chrom,475
+DEL 11-50,57,d > 50,10
+INS <= 10,58,unmapped,0
+DEL > 50,42,0 < d <= 50,0
+SNP,8,0 < d <= 50,20
+Multi,50,wrong chrom,24
+INS > 50,29,unmapped,0
+INS <= 10,23,d = 0,251
+Ref,40,d > 50,3116
+Multi,38,d = 0,1911
+DEL > 50,40,0 < d <= 50,0
+DEL > 50,22,wrong chrom,0
+Ref,54,0 < d <= 50,10
+SNP,36,unmapped,0
+Multi,48,d > 50,455
+Multi,44,unmapped,0
+DEL > 50,8,wrong chrom,0
+INS <= 10,5,d = 0,202
+INS <= 10,7,d > 50,93
+Ref,55,0 < d <= 50,9
+Multi,3,d > 50,1239
+DEL <= 10,59,d = 0,2864
+INS > 50,17,d = 0,0
+SNP,46,d > 50,199
+Ref,58,unmapped,0
+INS <= 10,37,d = 0,806
+INS <= 10,55,d > 50,13
+DEL <= 10,23,unmapped,0
+Multi,27,wrong chrom,1314
+INS > 50,27,wrong chrom,2
+DEL > 50,24,0 < d <= 50,0
+Multi,58,d = 0,19649
+Multi,54,d > 50,79
+INS > 50,58,d > 50,1
+SNP,57,d = 0,63874
+SNP,5,d > 50,555
+INS > 50,58,0 < d <= 50,0
+SNP,47,d = 0,162715
+Ref,20,d > 50,400
+Multi,51,0 < d <= 50,94
+INS > 50,6,wrong chrom,17
+Ref,34,d > 50,34
+INS > 50,27,d = 0,7
+DEL 11-50,30,d > 50,1
+DEL > 50,16,unmapped,0
+SNP,59,unmapped,0
+DEL > 50,31,wrong chrom,0
+Multi,10,unmapped,0
+DEL <= 10,40,wrong chrom,17
+Multi,5,d = 0,1578
+Multi,18,0 < d <= 50,29
+INS > 50,9,d = 0,6
+Multi,56,wrong chrom,21
+Multi,33,d = 0,7983
+INS <= 10,43,wrong chrom,33
+INS 11-50,12,d = 0,67
+DEL 11-50,42,d = 0,192
+Ref,52,d = 0,308010
+INS > 50,11,d = 0,3
+DEL 11-50,42,d > 50,0
+Multi,58,unmapped,0
+Multi,51,d > 50,328
+DEL 11-50,52,wrong chrom,0
+DEL 11-50,34,0 < d <= 50,0
+Ref,21,unmapped,0
+DEL > 50,7,unmapped,0
+Multi,56,0 < d <= 50,54
+DEL <= 10,56,d > 50,0
+DEL > 50,15,0 < d <= 50,0
+Ref,51,d = 0,161623
+SNP,10,d = 0,2171
+INS > 50,51,wrong chrom,2
+DEL > 50,1,unmapped,0
+INS <= 10,47,unmapped,0
+INS > 50,50,wrong chrom,1
+Ref,44,wrong chrom,23
+DEL 11-50,6,d = 0,14
+DEL 11-50,27,d = 0,260
+INS 11-50,34,unmapped,0
+DEL <= 10,23,d > 50,12
+Ref,36,d > 50,36
+Multi,27,unmapped,0
+Multi,37,wrong chrom,116
+DEL 11-50,7,wrong chrom,1
+DEL 11-50,41,wrong chrom,4
+INS > 50,4,d = 0,0
+DEL 11-50,4,d > 50,2
+Ref,41,0 < d <= 50,7
+INS 11-50,51,d = 0,127
+INS <= 10,18,d = 0,334
+DEL <= 10,54,d = 0,1869
+Multi,6,d = 0,2664
+Ref,41,wrong chrom,16
+INS <= 10,24,wrong chrom,28
+DEL 11-50,37,wrong chrom,0
+INS > 50,38,d = 0,3
+DEL > 50,57,wrong chrom,0
+DEL <= 10,53,0 < d <= 50,30
+INS > 50,36,d > 50,2
+INS > 50,56,unmapped,0
+DEL > 50,27,d = 0,18
+Multi,46,d > 50,194
+INS > 50,56,d = 0,10
+INS > 50,31,0 < d <= 50,1
+INS 11-50,25,d > 50,22
+SNP,11,0 < d <= 50,5
+DEL <= 10,25,0 < d <= 50,36
+Multi,50,0 < d <= 50,40
+INS 11-50,50,unmapped,0
+INS 11-50,48,0 < d <= 50,4
+Multi,43,0 < d <= 50,80
+INS > 50,46,unmapped,0
+Ref,60,wrong chrom,27
+Ref,6,0 < d <= 50,11
+Ref,32,0 < d <= 50,4
+INS <= 10,5,unmapped,0
+Multi,37,unmapped,0
+DEL 11-50,44,wrong chrom,1
+DEL > 50,1,wrong chrom,0
+Ref,49,unmapped,0
+DEL <= 10,26,0 < d <= 50,1
+INS > 50,57,unmapped,0
+DEL 11-50,21,wrong chrom,4
+SNP,44,0 < d <= 50,3
+INS <= 10,57,unmapped,0
+DEL 11-50,15,d > 50,12
+Ref,44,0 < d <= 50,6
+Multi,35,wrong chrom,59
+INS 11-50,38,unmapped,0
+INS <= 10,42,wrong chrom,6
+DEL 11-50,30,d = 0,40
+Multi,33,wrong chrom,206
+DEL <= 10,49,0 < d <= 50,31
+DEL 11-50,43,unmapped,0
+Ref,10,d > 50,333
+DEL > 50,38,d = 0,0
+INS > 50,23,d > 50,1
+INS <= 10,1,d = 0,275
+Multi,45,0 < d <= 50,132
+INS 11-50,50,0 < d <= 50,0
+INS <= 10,19,0 < d <= 50,20
+INS <= 10,54,0 < d <= 50,27
+DEL > 50,40,unmapped,0
+DEL <= 10,6,unmapped,0
+Ref,15,d = 0,107507
+Ref,4,d > 50,516
+INS <= 10,47,d = 0,6642
+DEL 11-50,25,unmapped,0
+INS > 50,60,unmapped,0
+SNP,21,d = 0,12013
+DEL > 50,42,d > 50,0
+DEL <= 10,54,0 < d <= 50,53
+SNP,20,wrong chrom,683
+SNP,30,d = 0,10396
+DEL 11-50,5,unmapped,0
+SNP,53,unmapped,0
+INS > 50,23,d = 0,1
+DEL 11-50,52,d = 0,131
+Ref,28,d > 50,27
+SNP,5,wrong chrom,698
+Multi,45,d > 50,516
+DEL <= 10,58,d > 50,0
+Ref,23,d = 0,210956
+Multi,40,unmapped,0
+Ref,3,unmapped,0
+Multi,59,d = 0,29852
+DEL > 50,2,d = 0,0
+DEL 11-50,37,unmapped,0
+Ref,5,unmapped,0
+Multi,48,d = 0,9005
+DEL > 50,11,d = 0,0
+DEL <= 10,13,unmapped,0
+SNP,60,0 < d <= 50,3133
+SNP,0,0 < d <= 50,1464
+SNP,23,d = 0,9129
+INS 11-50,31,0 < d <= 50,3
+INS 11-50,13,wrong chrom,9
+SNP,58,0 < d <= 50,3
+DEL > 50,56,0 < d <= 50,0
+DEL > 50,21,wrong chrom,0
+Ref,15,d > 50,2182
+SNP,15,wrong chrom,828
+Ref,9,d = 0,89611
+INS 11-50,22,d > 50,3
+DEL <= 10,2,unmapped,0
+Multi,13,d > 50,374
+Ref,41,unmapped,0
+INS <= 10,3,d = 0,686
+INS > 50,50,d = 0,8
+INS <= 10,39,wrong chrom,40
+INS > 50,15,d > 50,11
+Multi,8,unmapped,0
+INS <= 10,43,d = 0,2612
+DEL 11-50,56,0 < d <= 50,1
+Multi,4,wrong chrom,915
+Ref,51,0 < d <= 50,6
+SNP,58,wrong chrom,0
+DEL <= 10,42,unmapped,0
+DEL 11-50,57,wrong chrom,1
+INS 11-50,53,0 < d <= 50,2
+DEL > 50,37,d > 50,0
+DEL > 50,2,unmapped,0
+DEL > 50,46,0 < d <= 50,0
+Multi,32,d = 0,2697
+DEL <= 10,57,d > 50,27
+DEL <= 10,35,d > 50,7
+DEL 11-50,40,wrong chrom,5
+DEL 11-50,59,d = 0,151
+INS > 50,21,d = 0,12
+DEL 11-50,26,0 < d <= 50,0
+INS > 50,2,d = 0,3
+Ref,10,wrong chrom,2483
+DEL 11-50,26,unmapped,0
+INS <= 10,34,d > 50,6
+DEL 11-50,13,unmapped,0
+INS > 50,21,wrong chrom,3
+Multi,47,d = 0,74530
+INS 11-50,7,d = 0,49
+INS 11-50,60,d > 50,177
+SNP,51,wrong chrom,1
+INS 11-50,32,d > 50,15
+DEL 11-50,33,0 < d <= 50,6
+DEL > 50,53,d > 50,0
+DEL > 50,7,wrong chrom,0
+DEL 11-50,2,0 < d <= 50,0
+INS > 50,9,unmapped,0
+INS > 50,31,unmapped,0
+Ref,46,unmapped,0
+INS > 50,31,d > 50,1
+DEL <= 10,13,d > 50,34
+Ref,39,unmapped,0
+Multi,13,0 < d <= 50,50
+Ref,36,d = 0,60743
+Multi,30,wrong chrom,131
+DEL <= 10,47,wrong chrom,1
+SNP,38,0 < d <= 50,0
+DEL > 50,31,d = 0,1
+Multi,11,0 < d <= 50,14
+DEL 11-50,17,d = 0,2
+Ref,8,unmapped,0
+INS <= 10,13,d > 50,114
+INS > 50,44,d = 0,6
+DEL 11-50,12,0 < d <= 50,0
+INS 11-50,0,unmapped,0
+INS 11-50,21,0 < d <= 50,3
+INS <= 10,2,d > 50,6
+DEL 11-50,10,wrong chrom,0
+Multi,39,wrong chrom,217
+INS > 50,28,0 < d <= 50,0
+INS <= 10,33,0 < d <= 50,18
+INS > 50,2,d > 50,7
+DEL 11-50,35,wrong chrom,0
+DEL <= 10,30,wrong chrom,2
+Multi,34,unmapped,0
+DEL > 50,47,wrong chrom,0
+DEL > 50,0,wrong chrom,0
+INS > 50,30,wrong chrom,1
+INS 11-50,12,0 < d <= 50,0
+INS <= 10,21,unmapped,0
+DEL > 50,20,0 < d <= 50,0
+INS > 50,25,0 < d <= 50,2
+INS > 50,2,0 < d <= 50,0
+INS > 50,5,d > 50,2
+INS > 50,40,d = 0,92
+SNP,40,d > 50,761
+Ref,54,d > 50,4
+DEL <= 10,10,d > 50,11
+DEL 11-50,36,unmapped,0
+INS 11-50,20,0 < d <= 50,0
+INS 11-50,54,0 < d <= 50,3
+Multi,0,unmapped,11
+DEL <= 10,7,0 < d <= 50,6
+INS 11-50,9,d > 50,21
+DEL <= 10,36,unmapped,0
+DEL <= 10,60,d > 50,43
+DEL <= 10,16,0 < d <= 50,4
+DEL 11-50,27,unmapped,0
+INS > 50,52,0 < d <= 50,0
+SNP,49,wrong chrom,2
+INS > 50,25,unmapped,0
+SNP,20,0 < d <= 50,15
+INS <= 10,16,wrong chrom,33
+DEL > 50,51,wrong chrom,0
+SNP,1,0 < d <= 50,67
+SNP,4,unmapped,0
+DEL <= 10,4,0 < d <= 50,0
+Multi,58,d > 50,31
+DEL 11-50,32,0 < d <= 50,0
+DEL > 50,8,unmapped,0
+INS > 50,25,wrong chrom,3
+Multi,1,0 < d <= 50,96
+Multi,14,unmapped,0
+DEL > 50,13,wrong chrom,0
+DEL > 50,20,unmapped,0
+DEL <= 10,1,d = 0,275
+DEL <= 10,40,unmapped,0
+Multi,6,wrong chrom,796
+DEL <= 10,43,d > 50,6
+Multi,4,0 < d <= 50,19
+DEL 11-50,35,unmapped,0
+INS > 50,30,unmapped,0
+SNP,56,wrong chrom,0
+DEL <= 10,52,d = 0,2047
+DEL <= 10,46,d > 50,2
+DEL > 50,49,0 < d <= 50,0
+DEL <= 10,54,unmapped,0
+INS > 50,53,unmapped,0
+DEL <= 10,55,0 < d <= 50,42
+SNP,6,d = 0,1980
+INS <= 10,17,d > 50,102
+SNP,52,unmapped,0
+Multi,49,wrong chrom,32
+DEL 11-50,59,unmapped,0
+Multi,41,unmapped,0
+SNP,43,0 < d <= 50,9
+INS <= 10,26,d > 50,16
+DEL <= 10,29,0 < d <= 50,3
+Multi,52,0 < d <= 50,52
+INS > 50,46,wrong chrom,1
+DEL > 50,38,0 < d <= 50,0
+DEL <= 10,29,unmapped,0
+INS <= 10,45,0 < d <= 50,35
+INS <= 10,12,d > 50,55
+INS <= 10,9,d > 50,205
+INS <= 10,23,wrong chrom,27
+Multi,3,d = 0,3908
+INS <= 10,54,unmapped,0
+SNP,47,unmapped,0
+DEL > 50,32,unmapped,0
+SNP,32,0 < d <= 50,3
+INS > 50,34,0 < d <= 50,0
+INS 11-50,24,wrong chrom,8
+INS <= 10,53,unmapped,0
+DEL 11-50,50,0 < d <= 50,9
+SNP,37,d > 50,51
+INS <= 10,14,unmapped,0
+DEL <= 10,53,wrong chrom,0
+SNP,36,d = 0,7926
+Ref,59,d > 50,3
+INS 11-50,46,d = 0,256
+INS 11-50,15,0 < d <= 50,2
+DEL <= 10,38,wrong chrom,2
+SNP,35,0 < d <= 50,0
+INS 11-50,39,d > 50,25
+INS 11-50,5,d = 0,14
+DEL > 50,38,unmapped,0
+DEL <= 10,53,unmapped,0
+SNP,27,d = 0,107753
+DEL > 50,8,d = 0,0
+INS > 50,10,unmapped,0
+INS 11-50,36,wrong chrom,7
+INS 11-50,1,d = 0,25
+Ref,45,0 < d <= 50,20
+Multi,51,d = 0,23041
+Ref,34,0 < d <= 50,2
+DEL <= 10,52,wrong chrom,15
+SNP,20,d = 0,6963
+INS 11-50,55,d > 50,0
+Ref,53,wrong chrom,4
+Multi,42,d > 50,140
+Multi,9,d = 0,5810
+Ref,28,d = 0,24221
+DEL 11-50,54,wrong chrom,0
+INS > 50,59,wrong chrom,0
+INS <= 10,48,d > 50,50
+INS <= 10,25,d > 50,142
+SNP,44,d > 50,68
+INS <= 10,19,d = 0,432
+DEL 11-50,53,0 < d <= 50,8
+Multi,17,wrong chrom,608
+DEL <= 10,20,d > 50,7
+INS 11-50,54,unmapped,0
+DEL 11-50,1,unmapped,0
+Multi,48,wrong chrom,162
+INS 11-50,39,wrong chrom,8
+Ref,59,d = 0,153521
+DEL > 50,10,wrong chrom,0
+DEL > 50,54,wrong chrom,0
+INS 11-50,6,0 < d <= 50,0
+INS 11-50,59,wrong chrom,2
+DEL > 50,57,unmapped,0
+INS > 50,18,unmapped,0
+SNP,16,wrong chrom,656
+DEL <= 10,42,d > 50,4
+DEL <= 10,24,d = 0,660
+SNP,39,d > 50,250
+DEL 11-50,40,unmapped,0
+INS 11-50,54,d = 0,213
+DEL > 50,18,d = 0,0
+DEL 11-50,3,wrong chrom,4
+INS <= 10,27,d > 50,194
+INS 11-50,37,d > 50,16
+INS <= 10,34,0 < d <= 50,3
+DEL <= 10,59,0 < d <= 50,67
+Multi,57,unmapped,0
+Multi,28,0 < d <= 50,10
+DEL > 50,41,unmapped,0
+INS 11-50,16,d > 50,3
+INS 11-50,4,0 < d <= 50,1
+DEL > 50,56,wrong chrom,0
+INS 11-50,55,0 < d <= 50,0
+DEL 11-50,43,d > 50,0
+DEL 11-50,40,d > 50,10
+INS <= 10,55,d = 0,1524
+Multi,60,unmapped,0
+SNP,3,unmapped,0
+Ref,52,unmapped,0
+DEL 11-50,56,d = 0,188
+DEL <= 10,17,wrong chrom,13
+DEL > 50,37,unmapped,0
+Ref,52,d > 50,3
+INS 11-50,2,wrong chrom,34
+Ref,58,d = 0,57890
+INS > 50,17,wrong chrom,7
+INS <= 10,29,unmapped,0
+DEL > 50,54,0 < d <= 50,0
+SNP,9,wrong chrom,862
+INS <= 10,39,d > 50,72
+INS <= 10,19,d > 50,49
+Multi,37,d > 50,207
+DEL > 50,33,wrong chrom,0
+DEL 11-50,4,d = 0,5
+DEL > 50,9,wrong chrom,0
+Multi,26,d > 50,48
+INS > 50,15,wrong chrom,7
+INS <= 10,45,d > 50,138
+DEL > 50,10,d = 0,0
+INS 11-50,6,unmapped,0
+DEL <= 10,0,unmapped,0
+DEL <= 10,28,wrong chrom,1
+INS 11-50,14,0 < d <= 50,0
+INS <= 10,49,d = 0,3196
+DEL > 50,55,wrong chrom,0
+SNP,1,wrong chrom,719
+Ref,7,unmapped,0
+INS > 50,52,d = 0,10
+DEL > 50,52,unmapped,0
+SNP,49,unmapped,0
+INS 11-50,48,d = 0,217
+INS 11-50,27,0 < d <= 50,0
+Multi,12,d > 50,293
+DEL > 50,9,d > 50,3
+DEL > 50,9,unmapped,0
+INS > 50,43,d = 0,2
+INS > 50,16,0 < d <= 50,3
+DEL > 50,22,d > 50,0
+DEL > 50,58,d = 0,3
+DEL <= 10,55,wrong chrom,0
+Ref,14,wrong chrom,4653
+DEL <= 10,6,wrong chrom,18
+DEL <= 10,26,unmapped,0
+Multi,47,0 < d <= 50,105
+INS 11-50,40,d = 0,2446
+DEL > 50,32,0 < d <= 50,0
+Ref,43,0 < d <= 50,19
+Ref,55,unmapped,0
+DEL <= 10,7,d = 0,321
+INS <= 10,26,0 < d <= 50,0
+SNP,42,d = 0,31943
+DEL > 50,30,wrong chrom,0
+INS > 50,58,d = 0,14
+DEL <= 10,59,unmapped,0
+INS > 50,20,wrong chrom,5
+INS <= 10,27,d = 0,4384
+DEL <= 10,9,0 < d <= 50,38
+Ref,14,d = 0,50032
+Multi,28,d > 50,97
+SNP,31,unmapped,0
+DEL 11-50,41,unmapped,0
+Multi,23,0 < d <= 50,26
+INS 11-50,40,unmapped,0
+INS > 50,29,d > 50,1
+DEL > 50,56,unmapped,0
+DEL <= 10,8,d > 50,9
+INS > 50,21,0 < d <= 50,2
+Ref,27,0 < d <= 50,56
+DEL > 50,13,unmapped,0
+INS 11-50,24,0 < d <= 50,0
+DEL <= 10,58,d = 0,1965
+DEL 11-50,9,0 < d <= 50,6
+INS > 50,10,d = 0,4
+Ref,14,unmapped,0
+Ref,53,0 < d <= 50,3
+DEL > 50,34,d = 0,1
+INS > 50,59,d > 50,0
+DEL <= 10,46,unmapped,0
+DEL <= 10,31,d = 0,541
+INS > 50,7,d > 50,8
+DEL > 50,31,unmapped,0
+Ref,57,0 < d <= 50,13
+DEL > 50,28,d = 0,4
+DEL 11-50,52,unmapped,0
+DEL 11-50,3,unmapped,0
+DEL 11-50,20,0 < d <= 50,0
+Multi,38,0 < d <= 50,2
+INS <= 10,38,wrong chrom,4
+INS <= 10,36,d > 50,15
+DEL 11-50,5,wrong chrom,3
+Multi,6,d > 50,538
+INS > 50,18,d = 0,8
+DEL 11-50,3,0 < d <= 50,2
+INS > 50,45,d > 50,3
+DEL > 50,17,d = 0,0
+INS 11-50,17,wrong chrom,11
+DEL > 50,34,unmapped,0
+INS > 50,13,0 < d <= 50,0
+SNP,28,0 < d <= 50,4
+DEL <= 10,14,0 < d <= 50,2
+DEL 11-50,23,wrong chrom,1
+DEL > 50,12,d = 0,2
+DEL <= 10,27,unmapped,0
+INS > 50,44,d > 50,2
+INS > 50,35,0 < d <= 50,0
+INS <= 10,31,unmapped,0
+INS 11-50,58,unmapped,0
+Ref,48,unmapped,0
+Multi,27,d > 50,5684
+SNP,14,unmapped,0
+Multi,56,d > 50,55
+DEL <= 10,46,0 < d <= 50,30
+INS 11-50,22,unmapped,0
+Ref,2,d > 50,313
+INS > 50,45,d = 0,8
+INS <= 10,25,unmapped,0
+DEL 11-50,4,unmapped,0
+SNP,54,d = 0,26643
+INS 11-50,42,wrong chrom,7
+DEL > 50,6,0 < d <= 50,0
+INS <= 10,52,wrong chrom,0
+SNP,8,d = 0,2424
+Multi,22,unmapped,0
+INS 11-50,25,wrong chrom,7
+DEL 11-50,1,d = 0,32
+SNP,45,d = 0,96166
+INS 11-50,47,wrong chrom,4
+INS <= 10,2,0 < d <= 50,2
+DEL <= 10,12,0 < d <= 50,1
+INS <= 10,54,d > 50,6
+INS > 50,13,unmapped,0
+DEL <= 10,14,unmapped,0
+INS 11-50,18,wrong chrom,20
+Ref,7,wrong chrom,3957
+INS <= 10,20,d = 0,157
+Multi,59,unmapped,0
+SNP,19,unmapped,0
+INS <= 10,18,wrong chrom,31
+Ref,8,wrong chrom,4854
+INS <= 10,23,d > 50,62
+Multi,18,wrong chrom,537
+Multi,15,unmapped,0
+INS 11-50,2,d = 0,10
+INS <= 10,51,d > 50,49
+INS > 50,2,wrong chrom,24
+DEL <= 10,10,wrong chrom,15
+DEL <= 10,7,unmapped,0
+DEL > 50,29,0 < d <= 50,0
+INS 11-50,36,d > 50,7
+SNP,34,d > 50,24
+DEL <= 10,0,wrong chrom,1498
+DEL > 50,33,0 < d <= 50,0
+DEL > 50,45,d > 50,1
+INS <= 10,24,d > 50,73
+INS <= 10,49,wrong chrom,1
+SNP,22,d > 50,566
+Ref,31,d = 0,59060
+INS > 50,33,unmapped,0
+Ref,46,d > 50,12
+DEL 11-50,33,wrong chrom,1
+Multi,50,unmapped,0
+INS > 50,6,0 < d <= 50,1
+Ref,0,wrong chrom,1253902
+DEL <= 10,47,d > 50,6
+Multi,2,d > 50,177
+DEL > 50,37,0 < d <= 50,0
+DEL <= 10,28,d > 50,1
+Ref,16,d > 50,332
+DEL <= 10,36,0 < d <= 50,9
+INS <= 10,50,d = 0,1980
+INS 11-50,28,0 < d <= 50,0
+DEL 11-50,14,d > 50,0
+Ref,0,0 < d <= 50,25513
+DEL 11-50,46,d > 50,0
+SNP,19,wrong chrom,675
+INS 11-50,0,d > 50,282
+Multi,45,wrong chrom,162
+SNP,24,unmapped,0
+INS 11-50,35,d = 0,26
+DEL <= 10,17,0 < d <= 50,6
+DEL <= 10,18,d > 50,10
+Multi,57,wrong chrom,249
+SNP,13,wrong chrom,579
+SNP,54,wrong chrom,0
+INS 11-50,30,d > 50,14
+Ref,10,0 < d <= 50,6
+INS 11-50,29,d > 50,2
+DEL 11-50,53,d > 50,0
+DEL <= 10,54,wrong chrom,0
+INS <= 10,59,d = 0,2643
+INS <= 10,1,d > 50,78
+INS <= 10,6,wrong chrom,69
+SNP,14,d = 0,2419
+INS <= 10,15,d = 0,795
+INS 11-50,1,wrong chrom,20
+DEL <= 10,32,d = 0,119
+DEL <= 10,5,wrong chrom,16
+Multi,7,0 < d <= 50,80
+DEL <= 10,5,unmapped,0
+INS <= 10,32,0 < d <= 50,1
+DEL > 50,44,unmapped,0
+INS <= 10,39,d = 0,2151
+INS > 50,1,d = 0,2
+SNP,36,wrong chrom,61
+DEL > 50,35,d > 50,1
+INS <= 10,21,0 < d <= 50,23
+DEL <= 10,57,d = 0,4968
+Multi,34,d = 0,4255
+Multi,54,0 < d <= 50,69
+Ref,24,d > 50,2524
+Multi,44,d = 0,17160
+Ref,42,0 < d <= 50,8
+Multi,23,d = 0,3405
+SNP,11,d = 0,2369
+INS 11-50,15,wrong chrom,10
+DEL > 50,21,d = 0,14
+INS > 50,56,d > 50,1
+DEL <= 10,11,d > 50,11
+DEL 11-50,35,d = 0,25
+DEL 11-50,3,d = 0,55
+Multi,31,wrong chrom,119
+INS <= 10,35,d = 0,319
+INS > 50,45,unmapped,0
+INS > 50,59,unmapped,0
+DEL <= 10,38,d > 50,1
+INS 11-50,24,d > 50,9
+Ref,26,wrong chrom,99
+Ref,6,d > 50,899
+DEL 11-50,56,unmapped,0
+DEL > 50,46,d > 50,2
+DEL > 50,38,d > 50,0
+INS > 50,9,wrong chrom,7
+INS > 50,26,0 < d <= 50,1
+INS 11-50,13,d = 0,37
+INS > 50,30,d = 0,2
+INS > 50,5,unmapped,0
+INS > 50,4,wrong chrom,27
+SNP,43,wrong chrom,68
+INS 11-50,27,d = 0,173
+DEL 11-50,33,unmapped,0
+Ref,52,wrong chrom,9
+INS <= 10,15,0 < d <= 50,31
+DEL > 50,1,d > 50,0
+DEL 11-50,16,wrong chrom,0
+DEL 11-50,29,wrong chrom,1
+INS > 50,54,d = 0,12
+INS 11-50,44,wrong chrom,3
+DEL 11-50,38,0 < d <= 50,0
+INS 11-50,26,wrong chrom,3
+DEL 11-50,55,unmapped,0
+DEL <= 10,13,d = 0,386
+DEL <= 10,18,wrong chrom,10
+DEL <= 10,45,d > 50,35
+Multi,49,d > 50,97
+Multi,30,0 < d <= 50,27
+SNP,1,d > 50,699
+INS > 50,51,unmapped,0
+INS 11-50,37,unmapped,0
+INS 11-50,56,unmapped,0
+INS > 50,12,d = 0,6
+Ref,11,d = 0,33627
+DEL <= 10,11,wrong chrom,16
+DEL <= 10,5,d > 50,24
+Multi,37,0 < d <= 50,40
+INS > 50,25,d = 0,10
+Ref,29,wrong chrom,105
+INS 11-50,5,d > 50,12
+Ref,12,0 < d <= 50,9
+DEL <= 10,34,unmapped,0
+DEL <= 10,43,wrong chrom,2
+INS <= 10,33,d = 0,1241
+DEL <= 10,19,unmapped,0
+INS > 50,53,d > 50,1
+DEL <= 10,8,unmapped,0
+SNP,21,unmapped,0
+DEL <= 10,12,d = 0,179
+Multi,24,unmapped,0
+Ref,38,unmapped,0
+DEL <= 10,52,unmapped,0
+Ref,20,0 < d <= 50,6
+Multi,51,wrong chrom,57
+Ref,46,d = 0,783358
+Ref,18,d > 50,372
+Ref,43,d = 0,393382
+SNP,26,wrong chrom,29
+INS 11-50,7,unmapped,0
+SNP,20,d > 50,230
+Multi,7,wrong chrom,1038
+Multi,7,d = 0,3462
+INS > 50,50,d > 50,0
+INS 11-50,41,d = 0,102
+INS > 50,10,d > 50,6
+SNP,7,d > 50,1536
+INS 11-50,34,wrong chrom,8
+SNP,49,d > 50,5
+DEL 11-50,26,d > 50,1
+Ref,53,d = 0,101406
+INS > 50,37,d > 50,3
+Multi,53,wrong chrom,11
+DEL <= 10,52,d > 50,15
+SNP,29,0 < d <= 50,7
+DEL <= 10,29,d = 0,134
+INS > 50,47,d = 0,12
+INS > 50,60,0 < d <= 50,43
+Multi,15,d = 0,4883
+INS <= 10,11,unmapped,0
+INS 11-50,38,d = 0,18
+SNP,21,0 < d <= 50,47
+INS > 50,38,0 < d <= 50,0
+DEL <= 10,2,d > 50,5
+DEL <= 10,55,d > 50,1
+INS <= 10,52,d > 50,5
+DEL <= 10,33,d > 50,25
+INS <= 10,19,wrong chrom,55
+INS 11-50,59,d = 0,187
+SNP,38,unmapped,0
+Ref,35,0 < d <= 50,3
+INS 11-50,34,d > 50,9
+INS 11-50,14,d = 0,14
+Ref,51,d > 50,4
+DEL 11-50,48,0 < d <= 50,2
+Multi,26,d = 0,1328
+Multi,39,d = 0,13610
+DEL > 50,1,0 < d <= 50,0
+SNP,40,unmapped,0
+DEL 11-50,22,d > 50,0
+Ref,33,d > 50,267
+Ref,35,wrong chrom,83
+INS 11-50,33,wrong chrom,18
+INS 11-50,40,0 < d <= 50,8
+DEL > 50,42,d = 0,2
+INS > 50,12,unmapped,0
+Ref,10,unmapped,0
+SNP,58,d > 50,3
+DEL 11-50,47,unmapped,0
+DEL > 50,18,d > 50,1
+DEL 11-50,58,unmapped,0
+INS 11-50,54,d > 50,4
+Multi,38,unmapped,0
+DEL 11-50,2,d = 0,8
+Ref,33,wrong chrom,235
+Ref,12,d > 50,413
+Ref,52,0 < d <= 50,7
+INS <= 10,37,wrong chrom,19
+Ref,41,d = 0,244040
+DEL <= 10,33,d = 0,1631
+INS > 50,26,wrong chrom,0
+SNP,42,wrong chrom,34
+INS > 50,41,unmapped,0
+SNP,6,wrong chrom,806
+INS <= 10,51,wrong chrom,15
+DEL > 50,32,d > 50,0
+Multi,12,wrong chrom,427
+Multi,12,0 < d <= 50,27
+DEL 11-50,48,wrong chrom,0
+Ref,43,d > 50,9
+DEL > 50,35,wrong chrom,0
+DEL 11-50,11,d > 50,3
+DEL > 50,25,d = 0,4
+INS 11-50,29,0 < d <= 50,0
+INS <= 10,42,0 < d <= 50,11
+DEL > 50,6,d = 0,0
+Multi,36,0 < d <= 50,41
+Ref,4,unmapped,0
+DEL > 50,45,unmapped,0
+DEL 11-50,25,d > 50,0
+Ref,20,d = 0,98001
+DEL <= 10,36,d > 50,6
+SNP,49,d = 0,33405
+Multi,5,0 < d <= 50,11
+DEL 11-50,49,unmapped,0
+INS > 50,18,wrong chrom,2
+DEL > 50,43,d > 50,0
+INS > 50,13,d > 50,1
+DEL <= 10,15,d > 50,136
+SNP,56,d > 50,3
+SNP,22,wrong chrom,656
+Multi,20,d > 50,328
+DEL 11-50,36,0 < d <= 50,0
+INS 11-50,2,d > 50,7
+DEL 11-50,27,d > 50,9
+DEL 11-50,23,d > 50,1
+Ref,7,d > 50,1412
+DEL <= 10,28,unmapped,0
+SNP,22,unmapped,0
+DEL <= 10,50,wrong chrom,2
+Multi,31,0 < d <= 50,43
+SNP,3,0 < d <= 50,51
+Multi,3,wrong chrom,1050
+Ref,18,d = 0,58271
+INS > 50,39,wrong chrom,5
+DEL > 50,45,0 < d <= 50,0
+DEL 11-50,1,wrong chrom,3
+DEL <= 10,17,d = 0,129
+INS <= 10,28,wrong chrom,7
+Ref,1,d > 50,3734
+DEL 11-50,23,unmapped,0
+DEL <= 10,58,unmapped,0
+DEL <= 10,11,unmapped,0
+SNP,39,unmapped,0
+DEL <= 10,1,wrong chrom,25
+SNP,27,wrong chrom,4262
+SNP,57,0 < d <= 50,14
+SNP,29,unmapped,0
+Multi,8,d > 50,780
+INS 11-50,10,wrong chrom,10
+DEL <= 10,50,d = 0,1432
+DEL <= 10,16,wrong chrom,10
+DEL <= 10,36,wrong chrom,5
+DEL <= 10,10,d = 0,92
+SNP,9,0 < d <= 50,38
+DEL > 50,39,d > 50,6
+DEL > 50,41,d > 50,0
+INS > 50,46,0 < d <= 50,0
+SNP,26,0 < d <= 50,1
+Ref,36,unmapped,0
+DEL > 50,11,0 < d <= 50,0
+Ref,0,d > 50,4882872
+INS 11-50,49,d > 50,8
+SNP,10,wrong chrom,519
+Ref,55,wrong chrom,9
+SNP,23,0 < d <= 50,45
+INS <= 10,21,d = 0,1127
+INS > 50,7,wrong chrom,9
+INS <= 10,24,d = 0,552
+INS <= 10,29,0 < d <= 50,4
+DEL 11-50,43,wrong chrom,1
+DEL 11-50,29,d > 50,3
+Multi,53,d = 0,7160
+DEL > 50,1,d = 0,0
+INS <= 10,10,d = 0,116
+INS <= 10,44,0 < d <= 50,6
+SNP,46,wrong chrom,115
+INS <= 10,49,d > 50,3
+Multi,25,unmapped,0
+Multi,44,wrong chrom,81
+Multi,58,0 < d <= 50,68
+INS <= 10,60,d = 0,5891364
+Multi,40,0 < d <= 50,569
+SNP,38,d = 0,5191
+DEL <= 10,27,d = 0,5599
+DEL <= 10,47,d = 0,8922
+Multi,53,d > 50,43
+DEL <= 10,21,unmapped,0
+Multi,0,wrong chrom,32213
+DEL > 50,51,0 < d <= 50,0
+Ref,19,unmapped,0
+INS > 50,7,unmapped,0
+Multi,31,d = 0,4279
+DEL 11-50,48,d > 50,2
+Ref,16,wrong chrom,2417
+INS <= 10,2,unmapped,0
+INS 11-50,17,unmapped,0
+INS <= 10,4,0 < d <= 50,3
+SNP,31,d > 50,86
+INS 11-50,32,wrong chrom,3
+Multi,29,unmapped,0
+INS 11-50,20,d = 0,16
+DEL <= 10,50,0 < d <= 50,35
+Ref,32,wrong chrom,89
+SNP,4,0 < d <= 50,18
+DEL > 50,39,wrong chrom,0
+INS <= 10,50,unmapped,0
+INS 11-50,50,d = 0,125
+INS <= 10,25,wrong chrom,73
+INS <= 10,40,0 < d <= 50,139
+DEL 11-50,55,d = 0,198
+INS > 50,53,0 < d <= 50,0
+INS > 50,53,d = 0,8
+SNP,52,d > 50,1
+DEL 11-50,40,d = 0,1844
+DEL 11-50,14,d = 0,5
+Ref,59,wrong chrom,3
+DEL 11-50,55,0 < d <= 50,8
+Ref,60,d > 50,210
+Multi,33,unmapped,0
+DEL > 50,58,d > 50,0
+Ref,13,wrong chrom,2605
+INS <= 10,47,wrong chrom,10
+INS 11-50,35,d > 50,14
+INS 11-50,51,unmapped,0
+Ref,29,d > 50,23
+DEL > 50,18,unmapped,0
+DEL > 50,50,0 < d <= 50,0
+DEL <= 10,7,d > 50,67
+INS <= 10,11,0 < d <= 50,2
+INS <= 10,52,0 < d <= 50,27
+INS 11-50,19,wrong chrom,35
+DEL 11-50,53,unmapped,0
+INS 11-50,3,d = 0,87
+Multi,57,0 < d <= 50,103
+Ref,53,unmapped,0
+Ref,12,unmapped,0
+Multi,45,unmapped,0
+Multi,47,wrong chrom,174
+Multi,20,0 < d <= 50,27
+SNP,48,wrong chrom,609
+INS <= 10,31,d = 0,481
+INS <= 10,44,unmapped,0
+DEL <= 10,5,0 < d <= 50,6
+Multi,20,wrong chrom,753
+Ref,13,0 < d <= 50,15
+Ref,26,d > 50,16
+DEL 11-50,45,wrong chrom,3
+SNP,47,0 < d <= 50,13
+Ref,39,wrong chrom,233
+INS 11-50,60,unmapped,0
+DEL <= 10,32,0 < d <= 50,2
+DEL > 50,16,0 < d <= 50,0
+DEL <= 10,9,wrong chrom,70
+DEL <= 10,22,d = 0,282
+SNP,12,wrong chrom,453
+INS > 50,3,d = 0,7
+INS 11-50,55,wrong chrom,4
+DEL <= 10,39,wrong chrom,52
+DEL 11-50,53,d = 0,157
+Multi,23,d > 50,449
+INS 11-50,23,d = 0,30
+INS 11-50,44,0 < d <= 50,1
+INS 11-50,16,unmapped,0
+DEL <= 10,45,unmapped,0
+INS > 50,47,wrong chrom,1
+Ref,12,wrong chrom,1771
+DEL <= 10,20,wrong chrom,19
+DEL 11-50,47,d > 50,3
+Multi,9,unmapped,0
+DEL <= 10,32,wrong chrom,2
+INS <= 10,3,0 < d <= 50,32
+DEL 11-50,17,wrong chrom,0
+Ref,6,wrong chrom,2798
+DEL 11-50,4,0 < d <= 50,0
+INS > 50,35,d > 50,1
+INS > 50,12,d > 50,19
+INS > 50,16,d > 50,3
+DEL 11-50,12,wrong chrom,0
+INS 11-50,2,0 < d <= 50,0
+INS <= 10,14,d = 0,83
+DEL > 50,4,0 < d <= 50,0
+DEL 11-50,8,d > 50,1
+INS <= 10,13,unmapped,0
+DEL 11-50,29,d = 0,7
+INS <= 10,41,0 < d <= 50,8
+Ref,44,d = 0,362022
+Multi,42,d = 0,12224
+SNP,31,d = 0,7194
+DEL <= 10,48,d = 0,2053
+Multi,52,d = 0,8366
+INS > 50,13,d = 0,3
+DEL > 50,49,unmapped,0
+INS 11-50,10,d = 0,24
+Multi,10,0 < d <= 50,10
+SNP,48,d = 0,167144
+INS <= 10,46,d = 0,1251
+Ref,17,d > 50,364
+DEL <= 10,58,wrong chrom,1
+DEL > 50,51,unmapped,0
+INS <= 10,59,d > 50,4
+Ref,8,0 < d <= 50,6
+DEL > 50,13,d = 0,4
+DEL > 50,31,0 < d <= 50,0
+DEL 11-50,1,0 < d <= 50,1
+DEL > 50,47,d > 50,4
+Multi,16,wrong chrom,605
+INS <= 10,48,wrong chrom,14
+DEL > 50,24,d > 50,0
+Multi,48,0 < d <= 50,22
+DEL > 50,20,d = 0,0
+DEL > 50,21,0 < d <= 50,0
+INS 11-50,49,d = 0,129
+Multi,47,unmapped,0
+INS > 50,26,d > 50,1
+DEL <= 10,15,unmapped,0
+SNP,18,d > 50,279
+Ref,42,unmapped,0
+INS <= 10,26,d = 0,104
+DEL > 50,15,wrong chrom,0
+INS 11-50,10,0 < d <= 50,1
+SNP,16,d = 0,3816
+Ref,34,d = 0,43408
+Multi,46,unmapped,0
+Ref,5,wrong chrom,2699
+DEL > 50,16,d > 50,0
+DEL > 50,13,0 < d <= 50,0
+DEL <= 10,24,unmapped,0
+INS 11-50,19,d > 50,9
+INS > 50,19,unmapped,0
+Ref,49,wrong chrom,2
+Multi,13,wrong chrom,497
+Ref,26,0 < d <= 50,2
+INS <= 10,58,0 < d <= 50,9
+INS 11-50,52,wrong chrom,1
+INS > 50,7,d = 0,2
+SNP,5,0 < d <= 50,7
+DEL 11-50,30,wrong chrom,0
+INS <= 10,25,0 < d <= 50,22
+DEL > 50,35,d = 0,0
+Ref,21,d = 0,120831
+DEL > 50,2,d > 50,0
+INS 11-50,46,unmapped,0
+DEL > 50,3,unmapped,0
+DEL <= 10,22,0 < d <= 50,6
+INS > 50,47,unmapped,0
+INS 11-50,43,d = 0,111
+Ref,50,0 < d <= 50,5
+SNP,52,d = 0,42993
+DEL > 50,24,d = 0,7
+DEL > 50,11,wrong chrom,0
+SNP,35,d = 0,5774
+SNP,60,d = 0,84853193
+INS <= 10,50,0 < d <= 50,17
+SNP,27,unmapped,0
+Multi,16,d > 50,229
+DEL 11-50,26,d = 0,5
+DEL 11-50,19,wrong chrom,0
+DEL > 50,30,d > 50,3
+INS 11-50,26,unmapped,0
+DEL > 50,55,0 < d <= 50,0
+SNP,26,unmapped,0
+SNP,28,wrong chrom,51
+SNP,0,unmapped,0
+DEL 11-50,19,d = 0,12
+DEL <= 10,16,d = 0,125
+INS <= 10,43,unmapped,0
+INS <= 10,41,wrong chrom,12
+DEL 11-50,46,wrong chrom,8
+INS > 50,12,0 < d <= 50,2
+SNP,17,d = 0,4311
+Ref,59,0 < d <= 50,10
+INS 11-50,33,d > 50,20
+INS <= 10,28,d > 50,4
+DEL 11-50,9,unmapped,0
+Ref,57,unmapped,0
+DEL 11-50,51,d > 50,3
+INS > 50,57,wrong chrom,0
+INS <= 10,53,wrong chrom,0
+INS > 50,32,wrong chrom,0
+INS 11-50,16,wrong chrom,17
+SNP,25,d > 50,3570
+INS > 50,51,d > 50,2
+INS 11-50,26,d = 0,24
+INS 11-50,27,d > 50,41
+INS <= 10,5,0 < d <= 50,4
+DEL <= 10,28,d = 0,132
+DEL > 50,9,0 < d <= 50,0
+DEL 11-50,44,unmapped,0
+INS 11-50,23,wrong chrom,12
+SNP,11,unmapped,0
+Ref,23,0 < d <= 50,19
+INS > 50,15,unmapped,0
+INS 11-50,23,d > 50,4
+Ref,44,unmapped,0
+SNP,58,unmapped,0
+INS 11-50,5,0 < d <= 50,0
+INS <= 10,50,wrong chrom,4
+SNP,0,wrong chrom,53760
+SNP,43,d = 0,61255
+DEL <= 10,37,unmapped,0
+INS <= 10,56,wrong chrom,5
+Ref,56,d > 50,2
+DEL 11-50,59,wrong chrom,0
+Ref,24,d = 0,411526
+DEL > 50,36,d = 0,1
+DEL <= 10,35,wrong chrom,1
+Multi,33,d > 50,565
+DEL > 50,44,d > 50,0
+DEL <= 10,51,0 < d <= 50,35
+DEL 11-50,57,d = 0,261
+INS <= 10,22,0 < d <= 50,4
+INS > 50,48,d = 0,13
+Multi,56,d = 0,23412
+DEL <= 10,20,0 < d <= 50,2
+Ref,27,wrong chrom,4881
+DEL > 50,27,wrong chrom,0
+DEL <= 10,18,0 < d <= 50,4
+DEL > 50,53,wrong chrom,0
+SNP,50,unmapped,0
+INS <= 10,26,wrong chrom,11
+INS > 50,39,0 < d <= 50,0
+INS 11-50,0,0 < d <= 50,9
+INS 11-50,30,d = 0,69
+DEL > 50,59,d = 0,2
+Multi,35,d = 0,3733
+INS > 50,28,wrong chrom,2
+DEL 11-50,29,unmapped,0
+DEL 11-50,28,0 < d <= 50,0
+INS <= 10,17,0 < d <= 50,6
+INS <= 10,60,unmapped,0
+Multi,46,0 < d <= 50,40
+SNP,52,0 < d <= 50,3
+SNP,51,d = 0,42512
+DEL > 50,37,wrong chrom,0
+DEL > 50,21,d > 50,2
+INS 11-50,55,unmapped,0
+DEL <= 10,48,unmapped,0
+INS <= 10,29,d > 50,4
+INS 11-50,5,wrong chrom,39
+DEL <= 10,43,unmapped,0
+DEL <= 10,21,wrong chrom,28
+DEL > 50,15,d = 0,14
+DEL 11-50,2,wrong chrom,4
+Ref,49,d > 50,5
+INS <= 10,49,0 < d <= 50,19
+SNP,53,d = 0,20215
+INS <= 10,1,0 < d <= 50,13
+INS <= 10,46,unmapped,0
+INS 11-50,10,d > 50,7
+DEL <= 10,0,0 < d <= 50,337
+DEL > 50,11,unmapped,0
+SNP,32,unmapped,0
+Ref,31,0 < d <= 50,11
+SNP,49,0 < d <= 50,10
+INS > 50,15,0 < d <= 50,1
+DEL 11-50,54,0 < d <= 50,9
+INS 11-50,60,0 < d <= 50,2309
+DEL 11-50,5,0 < d <= 50,0
+DEL 11-50,45,0 < d <= 50,1
+Ref,35,unmapped,0
+INS > 50,45,wrong chrom,4
+INS 11-50,31,wrong chrom,13
+Ref,11,wrong chrom,1926
+DEL > 50,18,wrong chrom,0
+SNP,53,d > 50,8
+DEL 11-50,32,unmapped,0
+INS 11-50,59,0 < d <= 50,4
+INS <= 10,38,d = 0,177
+DEL 11-50,8,wrong chrom,0
+DEL > 50,32,d = 0,0
+INS <= 10,56,0 < d <= 50,19
+INS <= 10,60,wrong chrom,61
+DEL <= 10,6,0 < d <= 50,1
+INS <= 10,33,d > 50,86
+Ref,4,0 < d <= 50,4
+INS 11-50,47,d > 50,1
+DEL 11-50,20,unmapped,0
+INS 11-50,47,0 < d <= 50,0
+SNP,34,d = 0,5887
+SNP,24,0 < d <= 50,60
+SNP,33,d = 0,13209
+SNP,5,d = 0,1673
+Ref,60,0 < d <= 50,8262
+INS <= 10,60,d > 50,154
+DEL 11-50,2,unmapped,0
+Ref,18,0 < d <= 50,23
+INS > 50,36,d = 0,5
+INS 11-50,44,d > 50,5
+INS > 50,20,0 < d <= 50,1
+DEL 11-50,7,d > 50,13
+Multi,41,wrong chrom,90
+SNP,8,unmapped,0
+INS > 50,4,unmapped,0
+SNP,24,wrong chrom,562
+SNP,33,0 < d <= 50,10
+DEL > 50,60,unmapped,0
+DEL > 50,26,d = 0,1
+Multi,31,unmapped,0
+SNP,15,d > 50,1544
+DEL 11-50,56,d > 50,2
+Ref,1,0 < d <= 50,323
+Multi,6,unmapped,0
+INS > 50,0,d > 50,83
+INS 11-50,12,d > 50,7
+INS > 50,22,d = 0,4
+Multi,27,0 < d <= 50,186
+DEL > 50,33,unmapped,0
+INS 11-50,2,unmapped,0
+INS 11-50,18,d > 50,6
+Ref,22,d = 0,210126
+SNP,12,d > 50,263
+INS <= 10,6,d > 50,55
+DEL > 50,12,unmapped,0
+INS 11-50,51,wrong chrom,1
+INS 11-50,20,d > 50,12
+INS 11-50,48,wrong chrom,1
+DEL > 50,52,d = 0,1
+Ref,28,unmapped,0
+INS > 50,33,d > 50,3
+INS > 50,48,0 < d <= 50,0
+DEL <= 10,24,d > 50,41
+DEL > 50,7,d = 0,0
+Multi,25,wrong chrom,629
+Multi,30,d > 50,161
+SNP,37,d = 0,10388
+Ref,39,d > 50,428
+INS > 50,4,0 < d <= 50,1
+SNP,47,wrong chrom,120
+DEL > 50,40,d = 0,3
+DEL 11-50,47,0 < d <= 50,12
+INS > 50,59,d = 0,6
+DEL 11-50,32,d > 50,0
+DEL > 50,11,d > 50,0
+INS <= 10,5,wrong chrom,54
+INS 11-50,1,d > 50,5
+INS <= 10,41,d > 50,10
+SNP,1,d = 0,2501
+DEL 11-50,42,wrong chrom,6
+INS > 50,38,wrong chrom,2
+DEL 11-50,15,0 < d <= 50,7
+INS 11-50,41,wrong chrom,7
+INS 11-50,33,unmapped,0
+DEL <= 10,34,0 < d <= 50,5
+INS <= 10,26,unmapped,0
+DEL <= 10,57,wrong chrom,8
+DEL 11-50,44,0 < d <= 50,0
+INS <= 10,41,d = 0,3054
+INS > 50,36,wrong chrom,1
+DEL > 50,47,0 < d <= 50,0
+INS > 50,47,d > 50,1
+Multi,55,d = 0,12441
+DEL > 50,55,d = 0,5
+DEL > 50,51,d = 0,24
+INS 11-50,14,wrong chrom,5
+DEL 11-50,9,d > 50,43
+Ref,51,wrong chrom,3
+Multi,8,d = 0,794
+DEL > 50,45,d = 0,9
+INS <= 10,20,d > 50,15
+DEL 11-50,0,wrong chrom,135
+Multi,38,wrong chrom,87
+Multi,24,d = 0,5607
+DEL <= 10,44,0 < d <= 50,27
+INS 11-50,51,0 < d <= 50,3
+Ref,17,d = 0,63135
+DEL 11-50,19,0 < d <= 50,0
+DEL 11-50,42,0 < d <= 50,1
+INS <= 10,24,0 < d <= 50,7
+SNP,38,wrong chrom,38
+INS <= 10,55,unmapped,0
+SNP,48,d > 50,1763
+INS 11-50,14,unmapped,0
+DEL <= 10,47,0 < d <= 50,81
+INS 11-50,37,wrong chrom,14
+INS 11-50,12,unmapped,0
+INS > 50,59,0 < d <= 50,2
+Multi,49,d = 0,18328
+DEL <= 10,43,0 < d <= 50,49
+Multi,13,unmapped,0
+INS 11-50,7,d > 50,34
+INS <= 10,31,wrong chrom,14
+DEL <= 10,50,d > 50,0
+DEL <= 10,53,d > 50,0
+DEL > 50,0,0 < d <= 50,0
+INS <= 10,17,unmapped,0
+INS > 50,49,d > 50,3
+DEL 11-50,18,d = 0,10
+DEL 11-50,16,d = 0,2
+SNP,45,0 < d <= 50,14
+DEL > 50,51,d > 50,6
+Ref,55,d > 50,3
+INS 11-50,9,d = 0,82
+DEL > 50,20,d > 50,0
+SNP,59,d > 50,6
+INS 11-50,36,unmapped,0
+SNP,27,0 < d <= 50,102
+INS 11-50,3,wrong chrom,51
+DEL > 50,52,wrong chrom,0
+INS <= 10,20,0 < d <= 50,4
+INS <= 10,35,0 < d <= 50,2
+DEL <= 10,24,wrong chrom,6
+INS <= 10,10,d > 50,18
+Multi,38,d > 50,79
+Ref,14,0 < d <= 50,3
+Ref,39,d = 0,210060
+DEL <= 10,37,0 < d <= 50,8
+Multi,43,unmapped,0
+INS 11-50,40,d > 50,28
+INS <= 10,29,d = 0,190
+Multi,21,wrong chrom,700
+Multi,29,wrong chrom,92
+INS > 50,40,unmapped,0
+INS > 50,41,0 < d <= 50,1
+INS > 50,22,0 < d <= 50,1
+Ref,17,wrong chrom,1941
+Multi,22,0 < d <= 50,30
+SNP,8,d > 50,4529
+INS > 50,46,d = 0,12
+INS <= 10,11,d > 50,44
+DEL <= 10,60,unmapped,0
+DEL 11-50,28,unmapped,0
+Ref,30,unmapped,0
+Ref,34,unmapped,0
+DEL > 50,54,d > 50,2
+INS 11-50,58,d > 50,2
+INS <= 10,55,0 < d <= 50,29
+Multi,4,unmapped,0
+DEL <= 10,59,wrong chrom,2
+INS > 50,54,unmapped,0
+DEL 11-50,55,wrong chrom,0
+Ref,3,wrong chrom,3331
+INS <= 10,15,d > 50,266
+Multi,28,wrong chrom,94
+INS 11-50,45,0 < d <= 50,7
+Ref,4,wrong chrom,2630
+DEL > 50,26,unmapped,0
+Ref,43,wrong chrom,41
+INS 11-50,34,d = 0,26
+INS 11-50,57,d = 0,188
+SNP,46,d = 0,61870
+DEL > 50,23,0 < d <= 50,0
+Ref,30,d = 0,125332
+DEL 11-50,60,wrong chrom,8
+DEL 11-50,51,0 < d <= 50,5
+INS > 50,48,unmapped,0
+DEL 11-50,28,d = 0,9
+DEL 11-50,2,d > 50,2
+Multi,53,unmapped,0
+DEL > 50,34,0 < d <= 50,0
+DEL > 50,41,d = 0,0
+INS <= 10,40,d = 0,32979
+INS <= 10,10,0 < d <= 50,1
+INS 11-50,31,d > 50,13
+DEL <= 10,60,wrong chrom,7
+INS > 50,45,0 < d <= 50,4
+DEL <= 10,12,wrong chrom,42
+SNP,13,d = 0,4533
+INS 11-50,25,0 < d <= 50,1
+Ref,45,d = 0,661469
+DEL > 50,55,unmapped,0
+DEL > 50,9,d = 0,28
+INS <= 10,52,d = 0,3392
+Ref,34,wrong chrom,139
+DEL <= 10,38,d = 0,190
+DEL 11-50,17,unmapped,0
+INS <= 10,37,d > 50,28
+INS > 50,43,0 < d <= 50,0
+INS <= 10,0,0 < d <= 50,199
+DEL <= 10,19,wrong chrom,26
+Multi,55,0 < d <= 50,79
+INS > 50,39,d = 0,16
+INS <= 10,40,d > 50,130
+SNP,18,unmapped,0
+Ref,46,0 < d <= 50,6
+DEL > 50,50,wrong chrom,0
+Multi,10,wrong chrom,510
+Multi,32,wrong chrom,91
+INS <= 10,39,0 < d <= 50,17
+SNP,37,unmapped,0
+INS <= 10,51,0 < d <= 50,33
+DEL <= 10,4,d > 50,11
+Ref,1,wrong chrom,2834
+INS <= 10,42,d > 50,8
+INS > 50,41,d > 50,1
+SNP,50,0 < d <= 50,2
+INS > 50,29,wrong chrom,4
+SNP,15,0 < d <= 50,29
+INS > 50,38,d > 50,0
+DEL > 50,19,unmapped,0
+INS > 50,20,d > 50,1
+DEL > 50,57,0 < d <= 50,0
+DEL > 50,42,unmapped,0
+DEL <= 10,34,d = 0,190
+INS 11-50,16,d = 0,11
+DEL 11-50,49,wrong chrom,0
+SNP,12,0 < d <= 50,15
+INS > 50,16,unmapped,0
+INS <= 10,9,0 < d <= 50,22
+INS <= 10,56,d > 50,5
+INS 11-50,36,0 < d <= 50,1
+DEL <= 10,40,0 < d <= 50,354
+INS 11-50,48,d > 50,16
+INS > 50,37,0 < d <= 50,1
+INS <= 10,60,0 < d <= 50,41581
+DEL <= 10,26,d = 0,79
+DEL 11-50,58,0 < d <= 50,3
+INS 11-50,37,d = 0,67
+DEL 11-50,49,d = 0,175
+DEL <= 10,43,d = 0,3855
+Multi,44,d > 50,92
+Multi,2,wrong chrom,856
+INS 11-50,9,unmapped,0
+INS <= 10,47,d > 50,22
+Ref,7,0 < d <= 50,20
+DEL <= 10,42,wrong chrom,3
+SNP,43,d > 50,116
+DEL <= 10,3,unmapped,0
+INS 11-50,33,0 < d <= 50,4
+INS <= 10,8,d = 0,92
+INS 11-50,49,wrong chrom,2
+DEL <= 10,41,0 < d <= 50,26
+Multi,40,d = 0,349752
+SNP,7,0 < d <= 50,25
+DEL 11-50,10,unmapped,0
+DEL > 50,43,0 < d <= 50,0
+SNP,2,d > 50,146
+INS <= 10,30,d > 50,22
+Ref,50,d = 0,238596
+Multi,10,d > 50,227
+Ref,24,wrong chrom,1102
+Ref,25,d > 50,5197
+DEL <= 10,52,0 < d <= 50,62
+SNP,37,wrong chrom,65
+Multi,32,0 < d <= 50,1
+Ref,24,0 < d <= 50,51
+DEL <= 10,11,d = 0,120
+DEL > 50,8,0 < d <= 50,0
+Multi,42,0 < d <= 50,42
+INS 11-50,53,wrong chrom,1
+INS <= 10,9,wrong chrom,86
+INS 11-50,47,d = 0,141
+DEL 11-50,15,unmapped,0
+Ref,40,unmapped,0
+INS 11-50,3,d > 50,19
+DEL <= 10,14,d > 50,0
+INS > 50,44,0 < d <= 50,0
+Ref,6,unmapped,0
+INS 11-50,22,0 < d <= 50,0
+INS > 50,0,wrong chrom,465
+SNP,19,d > 50,502
+Multi,30,d = 0,4441
+INS > 50,57,0 < d <= 50,2
+INS 11-50,0,wrong chrom,924
+Multi,14,d > 50,88
+INS > 50,9,d > 50,10
+DEL <= 10,39,unmapped,0
+INS <= 10,44,wrong chrom,8
+SNP,32,d = 0,4885
+Ref,31,unmapped,0
+Multi,20,unmapped,0
+DEL > 50,57,d > 50,5
+DEL <= 10,31,wrong chrom,6
+INS > 50,3,d > 50,16
+Ref,32,d = 0,35560
+Ref,0,d = 0,4315339
+INS <= 10,35,unmapped,0
+INS <= 10,12,wrong chrom,44
+Multi,48,unmapped,0
+Ref,33,unmapped,0
+DEL 11-50,36,d > 50,1
+INS > 50,34,unmapped,0
+DEL 11-50,23,d = 0,16
+INS 11-50,28,unmapped,0
+DEL <= 10,20,d = 0,145
+DEL 11-50,38,wrong chrom,0
+DEL > 50,47,unmapped,0
+Ref,13,unmapped,0
+INS <= 10,16,d > 50,15
+SNP,55,0 < d <= 50,17
+INS > 50,5,0 < d <= 50,2
+INS 11-50,56,0 < d <= 50,2
+Ref,54,unmapped,0
+DEL <= 10,20,unmapped,0
+INS > 50,25,d > 50,0
+DEL 11-50,8,d = 0,8
+INS 11-50,46,d > 50,9
+Multi,46,d = 0,14582
+DEL <= 10,6,d > 50,39
+INS > 50,32,d > 50,4
+DEL > 50,6,unmapped,0
+SNP,26,d > 50,11
+INS 11-50,3,0 < d <= 50,3
+INS <= 10,13,0 < d <= 50,5
+INS 11-50,52,unmapped,0
+INS <= 10,0,d > 50,3869
+DEL > 50,21,unmapped,0
+INS 11-50,23,0 < d <= 50,0
+DEL <= 10,32,d > 50,4
+DEL 11-50,26,wrong chrom,0
+DEL > 50,29,d = 0,0
+INS > 50,33,0 < d <= 50,1
+INS <= 10,30,wrong chrom,15
+INS <= 10,30,d = 0,517
+INS 11-50,54,wrong chrom,3
+INS > 50,14,unmapped,0
+INS > 50,28,unmapped,0
+DEL 11-50,40,0 < d <= 50,67
+INS <= 10,17,d = 0,136
+Multi,5,wrong chrom,978
+Multi,24,0 < d <= 50,44
+SNP,11,wrong chrom,488
+DEL > 50,14,d > 50,0
+DEL 11-50,35,0 < d <= 50,1
+DEL > 50,17,wrong chrom,0
+DEL > 50,4,d > 50,0
+DEL <= 10,2,d = 0,50
+Multi,11,d > 50,212
+DEL <= 10,26,wrong chrom,4
+DEL <= 10,48,wrong chrom,2
+DEL > 50,41,0 < d <= 50,0
+DEL > 50,47,d = 0,0
+SNP,23,unmapped,0
+DEL > 50,22,d = 0,0
+INS 11-50,17,0 < d <= 50,0
+DEL > 50,23,d > 50,0
+INS <= 10,6,unmapped,0
+Multi,36,unmapped,0
+SNP,57,unmapped,0
+INS <= 10,9,unmapped,0
+SNP,4,d > 50,343
+Multi,60,wrong chrom,423
+INS > 50,24,d = 0,10
+INS <= 10,40,unmapped,0
+INS <= 10,44,d > 50,9
+Ref,27,unmapped,0
+SNP,47,d > 50,436
+Multi,34,0 < d <= 50,11
+DEL 11-50,10,d > 50,5
+SNP,19,0 < d <= 50,35
+INS 11-50,30,unmapped,0
+DEL 11-50,35,d > 50,0
+INS 11-50,31,unmapped,0
+DEL <= 10,60,0 < d <= 50,89049
+SNP,14,d > 50,102
+Ref,33,0 < d <= 50,12
+INS > 50,14,d > 50,2
+INS > 50,27,unmapped,0
+DEL 11-50,52,d > 50,0
+DEL <= 10,38,unmapped,0
+Ref,2,wrong chrom,2312
+INS <= 10,53,d = 0,983
+DEL <= 10,54,d > 50,0
+DEL > 50,50,d = 0,4
+INS <= 10,18,0 < d <= 50,5
+DEL > 50,53,d = 0,5
+INS <= 10,2,wrong chrom,43
+SNP,21,d > 50,1589
+INS > 50,23,0 < d <= 50,0
+DEL 11-50,54,d > 50,0
+INS 11-50,49,0 < d <= 50,2
+DEL <= 10,48,d > 50,5
+Ref,38,d = 0,39228
+SNP,39,wrong chrom,104
+INS 11-50,40,wrong chrom,33
+SNP,22,0 < d <= 50,24
+Ref,21,0 < d <= 50,25
+SNP,55,wrong chrom,4
+DEL <= 10,59,d > 50,1
+INS <= 10,4,unmapped,0
+DEL 11-50,13,d > 50,2
+Multi,1,d > 50,569
+Ref,57,d > 50,8
+Ref,2,unmapped,0
+DEL 11-50,49,d > 50,0
+INS > 50,50,0 < d <= 50,0
+Multi,52,unmapped,0
+DEL 11-50,16,0 < d <= 50,0
+INS > 50,15,d = 0,10
+SNP,17,0 < d <= 50,15
+DEL > 50,2,wrong chrom,0
+Ref,57,wrong chrom,6
+Multi,43,wrong chrom,147
+INS <= 10,33,wrong chrom,48
+INS 11-50,58,0 < d <= 50,1
+SNP,17,d > 50,196
+DEL <= 10,34,d > 50,4
+INS 11-50,32,d = 0,14
+DEL > 50,2,0 < d <= 50,0
+INS > 50,35,d = 0,3
+DEL > 50,59,wrong chrom,0
+Ref,22,unmapped,0
+DEL 11-50,3,d > 50,25
+Ref,50,d > 50,0
+INS > 50,21,d > 50,1
+SNP,44,wrong chrom,65
+INS 11-50,41,d > 50,18
+INS > 50,31,d = 0,7
+INS 11-50,39,0 < d <= 50,0
+Ref,31,d > 50,82
+DEL 11-50,6,d > 50,7
+INS 11-50,45,unmapped,0
+INS > 50,28,d = 0,5
+SNP,18,0 < d <= 50,26
+DEL 11-50,5,d > 50,1
+INS 11-50,13,0 < d <= 50,0
+Multi,18,d > 50,339
+Multi,12,unmapped,0
+DEL 11-50,11,0 < d <= 50,0
+DEL > 50,22,unmapped,0
+SNP,16,unmapped,0
+INS 11-50,52,0 < d <= 50,1
+DEL > 50,12,0 < d <= 50,0
+DEL > 50,55,d > 50,0
+INS <= 10,47,0 < d <= 50,21
+DEL > 50,27,d > 50,4
+SNP,45,wrong chrom,109
+INS > 50,23,unmapped,0
+DEL <= 10,12,unmapped,0
+DEL > 50,60,d > 50,516
+DEL <= 10,9,d > 50,248
+SNP,23,d > 50,571
+DEL 11-50,14,unmapped,0
+INS > 50,17,0 < d <= 50,1
+DEL 11-50,25,0 < d <= 50,2
+DEL <= 10,51,unmapped,0
+DEL <= 10,24,0 < d <= 50,10
+INS 11-50,47,unmapped,0
+INS <= 10,46,0 < d <= 50,15
+DEL 11-50,12,unmapped,0
+Multi,35,d > 50,100
+DEL > 50,58,unmapped,0
+Multi,14,wrong chrom,473
+INS <= 10,34,unmapped,0
+INS > 50,5,d = 0,5
+DEL <= 10,25,unmapped,0
+INS > 50,35,unmapped,0
+INS > 50,27,0 < d <= 50,5
+DEL 11-50,18,wrong chrom,0
+DEL <= 10,38,0 < d <= 50,2
+DEL <= 10,37,wrong chrom,9
+DEL <= 10,57,unmapped,0
+DEL > 50,23,wrong chrom,0
+INS <= 10,37,0 < d <= 50,16
+SNP,59,d = 0,52549
+INS > 50,33,d = 0,11
+DEL > 50,28,d > 50,0
+DEL <= 10,1,d > 50,51
+DEL 11-50,46,d = 0,294
+SNP,16,d > 50,171
+DEL 11-50,43,d = 0,119
+DEL 11-50,7,d = 0,26
+Multi,54,d = 0,10957
+SNP,7,wrong chrom,905
+SNP,44,unmapped,0
+DEL 11-50,24,wrong chrom,0
+DEL 11-50,54,d = 0,270
+DEL 11-50,0,d > 50,202
+DEL > 50,39,unmapped,0
+INS <= 10,7,unmapped,0
+INS <= 10,46,d > 50,21
+DEL 11-50,27,wrong chrom,3
+INS <= 10,44,d = 0,1247
+DEL > 50,60,0 < d <= 50,4
+INS 11-50,19,d = 0,39
+INS 11-50,1,unmapped,0
+Ref,55,d = 0,184516
+DEL 11-50,14,wrong chrom,0
+DEL 11-50,22,d = 0,19
+DEL <= 10,49,d = 0,3324
+Ref,47,d = 0,614022
+DEL 11-50,44,d = 0,229
+INS <= 10,56,unmapped,0
+Ref,18,unmapped,0
+DEL > 50,4,d = 0,0
+SNP,42,0 < d <= 50,2
+INS > 50,11,unmapped,0
+Ref,7,d = 0,48088
+DEL > 50,15,d > 50,4
+Ref,50,unmapped,0
+INS 11-50,11,d = 0,20
+INS > 50,1,unmapped,0
+Multi,18,unmapped,0
+INS > 50,33,wrong chrom,3
+Ref,3,d = 0,73384
+Ref,9,0 < d <= 50,28
+INS 11-50,41,0 < d <= 50,0
+Ref,23,unmapped,0
+INS <= 10,13,d = 0,385
+INS <= 10,16,0 < d <= 50,4
+DEL > 50,29,wrong chrom,0
+Ref,22,d > 50,1158
+Ref,22,0 < d <= 50,12
+Ref,48,0 < d <= 50,11
+DEL 11-50,17,0 < d <= 50,0
+INS <= 10,18,unmapped,0
+Multi,6,0 < d <= 50,32
+Multi,3,0 < d <= 50,115
+INS <= 10,28,d = 0,171
+INS 11-50,60,d = 0,273247
+INS 11-50,8,0 < d <= 50,0
+INS 11-50,39,d = 0,124
+INS 11-50,56,d = 0,141
+DEL > 50,46,unmapped,0
+DEL 11-50,18,0 < d <= 50,1
+INS > 50,40,d > 50,44
+INS 11-50,51,d > 50,17
+INS > 50,37,wrong chrom,3
+DEL > 50,14,0 < d <= 50,0
+INS <= 10,38,d > 50,2
+DEL 11-50,43,0 < d <= 50,2
+Ref,41,d > 50,1
+DEL 11-50,22,0 < d <= 50,0
+Ref,48,d > 50,44
+INS <= 10,45,wrong chrom,35
+DEL > 50,29,unmapped,0
+DEL 11-50,47,wrong chrom,0
+Multi,12,d = 0,3810
+INS > 50,20,d = 0,1
+Ref,2,d = 0,10611
+INS 11-50,26,0 < d <= 50,0
+INS <= 10,57,d > 50,48
+Ref,15,wrong chrom,3384
+DEL <= 10,27,0 < d <= 50,89
+INS > 50,55,unmapped,0
+DEL > 50,44,0 < d <= 50,0
+INS > 50,11,0 < d <= 50,1
+DEL <= 10,1,unmapped,0
+INS 11-50,22,wrong chrom,19
+SNP,40,wrong chrom,758
+INS 11-50,33,d = 0,111
+DEL 11-50,53,wrong chrom,0
+DEL <= 10,41,d > 50,3
+Ref,30,d > 50,126
+SNP,48,0 < d <= 50,8
+DEL <= 10,51,wrong chrom,7
+INS 11-50,55,d = 0,154
+INS 11-50,30,0 < d <= 50,0
+INS > 50,7,0 < d <= 50,0
+DEL 11-50,38,d > 50,0
+DEL <= 10,10,unmapped,0
+INS > 50,55,d > 50,1
+DEL <= 10,8,d = 0,106
+INS > 50,42,0 < d <= 50,1
+Ref,29,0 < d <= 50,4
+Multi,24,wrong chrom,467
+INS 11-50,59,unmapped,0
+INS <= 10,31,d > 50,25
+DEL 11-50,37,d = 0,48
+DEL <= 10,21,d = 0,823
+INS <= 10,59,wrong chrom,3
+INS <= 10,2,d = 0,88
+DEL 11-50,24,unmapped,0
+INS > 50,29,d = 0,7
+Multi,32,unmapped,0
+INS <= 10,49,unmapped,0
+DEL <= 10,46,wrong chrom,1
+INS > 50,8,d = 0,3
+SNP,57,d > 50,28
+SNP,57,wrong chrom,16
+Multi,50,d > 50,82
+INS > 50,19,wrong chrom,4
+INS <= 10,43,d > 50,41
+DEL 11-50,6,wrong chrom,4
+INS 11-50,43,d > 50,12
+DEL <= 10,41,unmapped,0
+Multi,19,d > 50,462
+INS 11-50,57,unmapped,0
+INS > 50,60,wrong chrom,4
+Ref,60,unmapped,0
+INS > 50,21,unmapped,0
+INS <= 10,59,0 < d <= 50,22
+INS <= 10,32,d > 50,6
+Multi,23,wrong chrom,404
+INS 11-50,14,d > 50,0
+INS <= 10,35,wrong chrom,8
+INS <= 10,57,d = 0,2645
+SNP,38,d > 50,6
+INS > 50,29,0 < d <= 50,0
+SNP,3,d = 0,6729
+DEL 11-50,39,d = 0,67
+INS 11-50,41,unmapped,0
+INS > 50,24,unmapped,0
+DEL 11-50,42,unmapped,0
+DEL 11-50,0,0 < d <= 50,26
+DEL > 50,33,d = 0,16
+INS <= 10,4,wrong chrom,43
+INS <= 10,10,wrong chrom,41
+Multi,21,unmapped,0
+DEL > 50,3,wrong chrom,0
+DEL 11-50,30,0 < d <= 50,2
+INS 11-50,35,wrong chrom,9
+INS > 50,0,unmapped,63
+INS 11-50,28,d = 0,25
+DEL <= 10,34,wrong chrom,3
+Multi,26,0 < d <= 50,5
+DEL > 50,52,d > 50,0
+INS <= 10,36,d = 0,484
+DEL <= 10,8,0 < d <= 50,3
+INS <= 10,53,0 < d <= 50,8
+DEL <= 10,9,unmapped,0
+INS 11-50,43,wrong chrom,7
+DEL <= 10,56,wrong chrom,0
+DEL > 50,3,d = 0,14
+Multi,11,unmapped,0
+INS <= 10,50,d > 50,4
+DEL <= 10,11,0 < d <= 50,3
+INS <= 10,12,unmapped,0
+DEL 11-50,51,wrong chrom,0
+Ref,8,d > 50,759
+DEL <= 10,28,0 < d <= 50,3
+Ref,45,wrong chrom,31
+DEL > 50,39,0 < d <= 50,0
+Ref,59,unmapped,0
+DEL 11-50,58,d = 0,264
+DEL > 50,39,d = 0,6
+DEL > 50,6,d > 50,0
+SNP,25,0 < d <= 50,108
+Multi,19,unmapped,0
+DEL <= 10,31,d > 50,12
+INS > 50,39,unmapped,0
+Multi,27,d = 0,25594
+INS <= 10,16,unmapped,0
+INS > 50,57,d > 50,3
+SNP,29,d > 50,21
+DEL 11-50,12,d > 50,0
+DEL > 50,48,d > 50,0
+INS > 50,54,d > 50,6
+DEL 11-50,31,d > 50,1
+SNP,35,wrong chrom,40
+INS > 50,22,unmapped,0
+DEL 11-50,39,unmapped,0
+INS > 50,9,0 < d <= 50,0
+Multi,2,0 < d <= 50,14
+INS <= 10,32,wrong chrom,3
+DEL 11-50,32,wrong chrom,1
+INS 11-50,4,unmapped,0
+INS <= 10,27,0 < d <= 50,35
+DEL 11-50,50,d = 0,112
+Ref,17,0 < d <= 50,9
+INS > 50,42,d > 50,0
+DEL <= 10,29,d > 50,4
+INS 11-50,26,d > 50,2
+INS > 50,43,d > 50,3
+DEL > 50,19,0 < d <= 50,0
+Ref,40,0 < d <= 50,302
+INS <= 10,7,wrong chrom,68
+INS <= 10,56,d = 0,2405
+DEL <= 10,35,unmapped,0
+DEL <= 10,19,d = 0,301
+SNP,59,wrong chrom,1
+INS <= 10,6,d = 0,274
+SNP,40,d = 0,822368
+INS 11-50,4,d > 50,12
+INS 11-50,8,unmapped,0
+INS > 50,41,wrong chrom,1
+Ref,36,0 < d <= 50,8
+DEL 11-50,46,unmapped,0
+INS 11-50,35,0 < d <= 50,0
+INS 11-50,57,d > 50,14
+Multi,21,d = 0,5981
+Multi,8,wrong chrom,847
+DEL 11-50,13,d = 0,22
+Multi,39,0 < d <= 50,61
+INS <= 10,14,d > 50,4
+INS 11-50,20,wrong chrom,19
+Multi,11,d = 0,1192
+DEL > 50,28,0 < d <= 50,0
+SNP,35,unmapped,0
+INS > 50,26,d = 0,2
+INS > 50,32,d = 0,2
+INS <= 10,21,d > 50,187
+INS 11-50,8,d = 0,12
+SNP,39,0 < d <= 50,6
+INS <= 10,22,d = 0,236
+Ref,25,d = 0,856624
+SNP,18,d = 0,4488
+DEL > 50,15,unmapped,0
+DEL > 50,5,wrong chrom,0
+INS 11-50,32,unmapped,0
+DEL 11-50,16,d > 50,1
+Ref,36,wrong chrom,143
+DEL <= 10,6,d = 0,139
+INS 11-50,18,d = 0,59
+DEL <= 10,7,wrong chrom,34
+DEL > 50,60,d = 0,4983
+DEL <= 10,15,0 < d <= 50,31
+DEL > 50,48,0 < d <= 50,0
+INS 11-50,8,d > 50,21
+Multi,42,wrong chrom,86
+SNP,56,0 < d <= 50,3
+INS 11-50,17,d > 50,2
+Multi,3,unmapped,0
+INS > 50,16,d = 0,2
+INS 11-50,4,d = 0,14
+DEL 11-50,36,d = 0,39
+DEL <= 10,42,d = 0,904
+INS > 50,37,unmapped,0
+Ref,9,wrong chrom,3529
+INS 11-50,5,unmapped,0
+DEL > 50,5,d = 0,0
+INS 11-50,11,d > 50,7
+INS > 50,5,wrong chrom,20
+DEL > 50,36,d > 50,0
+INS <= 10,46,wrong chrom,4
+Ref,20,unmapped,0
+DEL 11-50,13,0 < d <= 50,1
+SNP,43,unmapped,0
+DEL <= 10,49,wrong chrom,3
+DEL <= 10,45,0 < d <= 50,75
+INS 11-50,29,d = 0,34
+INS <= 10,3,d > 50,259
+INS <= 10,19,unmapped,0
+DEL <= 10,22,d > 50,24
+DEL <= 10,19,0 < d <= 50,7
+INS <= 10,22,d > 50,37
+DEL > 50,18,0 < d <= 50,0
+INS 11-50,9,wrong chrom,35
+Multi,60,d = 0,18180328
+DEL > 50,10,unmapped,0
+DEL <= 10,60,d = 0,6385974
+DEL <= 10,19,d > 50,36
+Ref,56,wrong chrom,2
+Ref,57,d = 0,680231
+DEL 11-50,22,unmapped,0
+INS 11-50,13,d > 50,7
+SNP,55,d > 50,8
+DEL 11-50,49,0 < d <= 50,2
+Multi,15,0 < d <= 50,93
+Multi,41,d > 50,138
+DEL 11-50,33,d = 0,77
+Multi,36,wrong chrom,83
+INS <= 10,14,0 < d <= 50,2
+Multi,7,unmapped,0
+Ref,30,0 < d <= 50,35
+INS > 50,41,d = 0,10
+DEL 11-50,31,0 < d <= 50,3
+Multi,20,d = 0,2561
+SNP,41,unmapped,0
+DEL > 50,26,wrong chrom,0
+DEL 11-50,39,wrong chrom,2
+INS <= 10,0,d = 0,3379
+DEL 11-50,46,0 < d <= 50,8
+DEL <= 10,22,wrong chrom,16
+DEL 11-50,47,d = 0,160
+Ref,2,0 < d <= 50,5
+INS > 50,51,d = 0,17
+Multi,40,d > 50,1095
+DEL > 50,10,0 < d <= 50,0
+INS 11-50,34,0 < d <= 50,0
+INS 11-50,11,unmapped,0
+SNP,18,wrong chrom,523
+DEL 11-50,0,unmapped,0
+Multi,9,0 < d <= 50,99
+INS > 50,31,wrong chrom,2
+Multi,45,d = 0,35034
+Multi,17,d = 0,1761
+Ref,48,wrong chrom,58
+INS <= 10,39,unmapped,0
+INS > 50,28,d > 50,6
+INS 11-50,0,d = 0,227
+INS > 50,49,d = 0,11
+Multi,15,wrong chrom,626
+DEL > 50,28,unmapped,0
+Ref,35,d > 50,22
+Ref,19,d > 50,584
+Multi,54,wrong chrom,19
+DEL > 50,49,d = 0,6
+DEL <= 10,41,wrong chrom,7
+INS > 50,52,unmapped,0
+Ref,56,d = 0,104529
+SNP,53,0 < d <= 50,2
+SNP,29,wrong chrom,55
+Ref,33,d = 0,117831
+INS <= 10,42,unmapped,0
+INS 11-50,43,unmapped,0
+Ref,19,wrong chrom,1521
+DEL 11-50,5,d = 0,8
+INS 11-50,21,wrong chrom,26
+Ref,56,0 < d <= 50,5
+Ref,25,unmapped,0
+Ref,58,d > 50,4
+DEL 11-50,6,0 < d <= 50,0
+INS > 50,3,unmapped,0
+DEL <= 10,3,d > 50,127
+DEL > 50,53,unmapped,0
+Ref,5,0 < d <= 50,9
+Ref,47,0 < d <= 50,29
+DEL <= 10,58,0 < d <= 50,23
+Ref,49,d = 0,124865
+INS 11-50,18,0 < d <= 50,1
+INS > 50,6,d = 0,5
