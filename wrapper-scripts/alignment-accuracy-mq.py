@@ -22,8 +22,8 @@ logging.basicConfig(level=logging.DEBUG)
 
 
 def count_alignment_category(riter):
-  v_cats = ['Ref', 'Multi', 'SNP', 'DEL <= 10', 'DEL 11-50', 'INS <= 10', 'INS 11-50']
-  d_cats = ['0', '<= 50', '> 50', 'unmapped']
+  v_cats = ['Ref', 'Multi', 'SNP', 'DEL <= 10', 'DEL 11-50', 'INS <= 10', 'INS 11-50', 'DEL > 50', 'INS > 50']
+  d_cats = ['d = 0', '0 < d <= 50', 'd > 50', 'wrong chrom', 'unmapped']
 
   un_cat = 0
   cnt = [[[0 for _ in v_cats] for _ in range(61)] for _ in d_cats]
@@ -45,8 +45,12 @@ def count_alignment_category(riter):
       i = 5  # ['INS <= 10']
     elif 10 < v_list[0] <= 50:
       i = 6  # ['INS 11-50']
+    elif v_list[0] < -50:
+      i = 7  # ['DEL > 50']
+    elif 50 < v_list[0]:
+      i = 8  # ['INS > 50']
     else:
-      un_cat += 1
+      un_cat += 1  # This should be zero, or we have a bug
       continue
 
     j = min(mq, 60)
@@ -55,10 +59,12 @@ def count_alignment_category(riter):
       k = 0  # ['0']
     elif abs(d_err) <= 50:
       k = 1  # ['<= 50']
-    elif 50 < abs(d_err) < 202:
+    elif 50 < abs(d_err) < 201:
       k = 2  # ['> 50']
+    elif d_err == 201:
+      k = 3  # ['wrong chrom']
     else:
-      k = 3  # ['unmapped']
+      k = 4  # ['unmapped']
 
     cnt[k][j][i] += 1
 
@@ -100,6 +106,6 @@ counts = combine_counts(maly.aaftoolz.scatter_aaf(pipeline, aaf_fname=aaf_fname,
                                          ncpus=ncpus))
 
 with open(out_fname, 'w') as fout:
-  fout.write(','.join(['category', 'MQ', 'derr', 'count']))
+  fout.write(','.join(['category', 'MQ', 'derr', 'count']) + '\n')
   for k, v in counts.items():
     fout.write('{},{}\n'.format(k, v))
