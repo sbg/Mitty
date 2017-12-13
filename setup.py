@@ -35,7 +35,7 @@ setup(
     'scipy',
     'pandas>=0.20.3',
     'bokeh>=0.12.9',
-    'jupyter>=1.0.0'
+    'jupyter>=1.0.0',
     'cytoolz',
     'xarray>=0.9.6',
     'nose'
