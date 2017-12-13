@@ -33,8 +33,9 @@ setup(
     'pysam==0.10.0',
     'matplotlib>=1.3.0',
     'scipy',
-    'pandas',
-    'bokeh',
+    'pandas>=0.20.3',
+    'bokeh>=0.12.9',
+    'jupyter>=1.0.0'
     'cytoolz',
     'xarray>=0.9.6',
     'nose'
