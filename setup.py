@@ -34,7 +34,7 @@ setup(
     'matplotlib>=1.3.0',
     'scipy',
     'pandas>=0.20.3',
-    'bokeh>=0.12.9',
+    'bokeh>=0.12.13',
     'jupyter>=1.0.0',
     'cytoolz',
     'xarray>=0.9.6',
