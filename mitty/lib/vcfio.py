@@ -158,15 +158,15 @@ def unusable_variant(v):
   def _illegal_overlap(_v, _p_overlap):
     is_illegal = False
     var = _v.samples.values()[0]
-    for g, po in zip(var['GT'], _p_overlap):
-      if g and po > _v.start + 1:  # stop is 1 past the position, for some reason
-        is_illegal = True
-        logger.debug('Illegal overlap {}:{} {} -> {} (previous variant ends at {})'.format(_v.contig, _v.pos, _v.ref, _v.alts, po))
-        break
-    else:  # Only gets here if is_illegal is false
-      for n, g in enumerate(var['GT']):
-        if g:
-          _p_overlap[n] = _v.stop
+    for n, (g, alt, po) in enumerate(zip(var['GT'], var.alleles, _p_overlap)):
+      # _v.start and po are 0-indexed
+      if g:
+        if _v.start <= po:  # This is overlapping don't use the variant
+          is_illegal = True
+          logger.debug('Illegal overlap {}:{} {} -> {} (previous variant ends at {})'.format(_v.contig, _v.pos, _v.ref, _v.alts, po + 1))
+          break
+        else:
+          _p_overlap[n] = _v.stop - 1
     return is_illegal
 
   return _complex_variant(v) or _angle_bracketed_id(v) or _breakend_replacement(v) or _illegal_overlap(v, unusable_variant.p_overlap)
