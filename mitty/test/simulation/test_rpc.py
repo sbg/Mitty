@@ -179,3 +179,31 @@ def test_read_gen_ins():
   nodes = rgen.create_node_list(ref_seq, ref_start_pos=1, vl=vcf[0]['v'][1])
 
   assert rgen.generate_read(9, 2, 3, 3, nodes) == (9, '>0+2I', [3], 'TT')
+
+
+def test_read_gen_crowded1():
+  """Read gen: DEL followed immediately by a SNP"""
+  ref_seq = open(os.path.join(mitty.test.example_data_dir, 'tiny.fasta')).readlines()[1]
+  vcf = vio.load_variant_file(
+    os.path.join(mitty.test.example_data_dir, 'test-del-snp.vcf.gz'),
+    'g0_s0',
+    os.path.join(mitty.test.example_data_dir, 'tiny.whole.bed'))
+
+  # ATGACGTATCCAAGGAGGCGTTACC
+  # 12345678901234567890
+  nodes = rgen.create_node_list(ref_seq, ref_start_pos=1, vl=vcf[0]['v'][1])
+  assert rgen.generate_read(1, 10, 0, 3, nodes) == (1, '5=2D1X4=', [-2, 0], 'ATGACTTCCA')
+
+
+def test_read_gen_crowded2():
+  """Read gen: SNP immediately followed by an INS"""
+  ref_seq = open(os.path.join(mitty.test.example_data_dir, 'tiny.fasta')).readlines()[1]
+  vcf = vio.load_variant_file(
+    os.path.join(mitty.test.example_data_dir, 'test-snp-ins.vcf.gz'),
+    'g0_s0',
+    os.path.join(mitty.test.example_data_dir, 'tiny.whole.bed'))
+
+  # ATGACGTATCCAAGGAGGCGTTACC
+  # 12345678901234567890
+  nodes = rgen.create_node_list(ref_seq, ref_start_pos=1, vl=vcf[0]['v'][1])
+  assert rgen.generate_read(1, 10, 0, 3, nodes) == (1, '4=1X3I2=', [0, 3], 'ATGATTTTGT')
