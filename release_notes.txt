@@ -1,5 +1,13 @@
 Release Notes
 =============
+2.28.1
+- bugfix: major: now properly handling crowded variants
+  Previous modification to allow VCFs where a SNP is immediately followed by an
+  INS or DEL introduced different bugs (it allowed genuinely illegal variants to
+  pass). The current filtering correctly rejects such illegal variants but
+  passes legitimate crowded variants
+- enhancement: Notebook based alignment analysis
+
 2.27.0
 - enhancement: aaftoolz (parallelization of composable analysis for AAF files)
 - enhancement: tool to collate alignment accuracy vs variant content vs MQ data

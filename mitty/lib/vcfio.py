@@ -161,12 +161,20 @@ def unusable_variant(v):
     for n, (g, alt, po) in enumerate(zip(var['GT'], var.alleles, _p_overlap)):
       # _v.start and po are 0-indexed
       if g:
-        if _v.start <= po:  # This is overlapping don't use the variant
+        if len(alt) == len(_v.ref) == 1:  # SNP
+          start = _v.start  # A SNP's footprint is where it is
+        else:
+          start = _v.start + 1 # INS and DEL affect one base over
+        if start <= po:  # This is overlapping don't use the variant
           is_illegal = True
           logger.debug('Illegal overlap {}:{} {} -> {} (previous variant ends at {})'.format(_v.contig, _v.pos, _v.ref, _v.alts, po + 1))
           break
-        else:
+
+    if not is_illegal:
+      for n, g in enumerate(var['GT']):
+        if g:
           _p_overlap[n] = _v.stop - 1
+
     return is_illegal
 
   return _complex_variant(v) or _angle_bracketed_id(v) or _breakend_replacement(v) or _illegal_overlap(v, unusable_variant.p_overlap)
