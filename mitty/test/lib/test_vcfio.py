@@ -27,6 +27,24 @@ def test_complex_variant_error():
                 os.path.join(mitty.test.example_data_dir, 'tiny.whole.bed'))
 
 
+# This tests
+# 1. test-del-snp.vcf : DEL followed immediately by a SNP
+# 2. test-snp-ins.vcf : SNP followed by an INS
+# 3. test-snp-del-opposite-phase.vcf : DEL and SNP oppositely phased
+
+# ATGACGTATCCAAGGAGGCGTTACC
+# 12345678901234567890
+#
+
+def test_crowded_vcf():
+  """I/O: These are all legal - if crowded - variant combinations"""
+  for f in ['test-del-snp.vcf.gz', 'test-snp-ins.vcf.gz', 'test-snp-del-opposite-phase.vcf.gz']:
+    v = vio.load_variant_file(
+      os.path.join(mitty.test.example_data_dir, f),
+      'g0_s0',
+      os.path.join(mitty.test.example_data_dir, 'tiny.whole.bed'))
+
+
 def load_data():
   """A set of reference and variants for testing read generation."""
   seq = open(os.path.join(mitty.test.example_data_dir, 'tiny.fasta')).readlines()[1]
