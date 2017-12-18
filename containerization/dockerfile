@@ -14,7 +14,7 @@ RUN apt-get update && apt-get install -y \
   git \
   tabix \
   vcftools \
-  samtools
+  bcftools
 
 # Run these before adding mitty3 code so we can cache the libraries
 RUN pip3 install -U pip
