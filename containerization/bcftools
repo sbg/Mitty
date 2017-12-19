@@ -1,0 +1,53 @@
+# Sit at the level of setup.py
+# docker build -f containerization/bcftools -t images.sbgenomics.com/kghosesbg/bcftools:1.6 .
+FROM ubuntu:xenial
+
+# Make sure we update to gcc-6
+RUN apt-get update && apt-get install -y software-properties-common python-software-properties
+
+#gcc and zlib
+RUN add-apt-repository ppa:ubuntu-toolchain-r/test && \
+  apt-get update && apt-get install -y \
+  build-essential \
+  gcc-6 \
+  g++-6 \
+  cmake \
+  zlib1g-dev \
+  libbz2-dev \
+  liblzma-dev \
+  git \
+  wget \
+  autoconf
+
+# Make gcc-6 the compiler
+RUN update-alternatives \
+  --install /usr/bin/gcc gcc /usr/bin/gcc-6 60 \
+  --slave /usr/bin/g++ g++ /usr/bin/g++-6
+
+
+# htslib
+RUN mkdir htslib
+RUN cd htslib && wget https://github.com/samtools/htslib/archive/1.6.tar.gz
+RUN cd htslib && tar zxf 1.6.tar.gz
+RUN cd htslib/htslib-1.6 && autoheader && autoconf && ./configure && make && make install
+
+# samtools
+# RUN mkdir samtools
+# RUN cd samtools && wget https://github.com/samtools/samtools/archive/1.6.tar.gz
+# RUN cd samtools && tar zxf 1.6.tar.gz
+# RUN cd samtools/samtools-1.6 && autoheader && autoconf -Wno-syntax && ./configure && make && make install
+
+# bcftools
+RUN mkdir bcftools
+RUN cd bcftools && wget https://github.com/samtools/bcftools/archive/1.6.tar.gz
+RUN cd bcftools && tar zxf 1.6.tar.gz
+RUN cd bcftools/bcftools-1.6 && autoheader && autoconf && ./configure && make && make install
+
+# update linked libraries
+RUN ldconfig
+
+# You can now test with
+# docker run -ti --rm images.sbgenomics.com/kghosesbg/bcftools:1.6 bcftools --version
+
+# And push with
+# docker push images.sbgenomics.com/kghosesbg/bcftools:1.6
