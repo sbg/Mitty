@@ -88,11 +88,11 @@ def split_copies(region, vl, ploidy):
 
 
 def parse_vl(vl, cpy, ploidy):
-  unusable_variant.p_overlap = [0] * ploidy
-  return list(filter(None, (parse(v, cpy=cpy) for v in vl)))
+  v_check = UnusableVariantFilter(ploidy)
+  return list(filter(None, (parse(v, cpy=cpy, v_check=v_check) for v in vl)))
 
 
-def parse(v, cpy):
+def parse(v, cpy, v_check):
   """Take a pysam.cbcf.VariantRecord and convert it into a Variant object
 
   :param v: variant
@@ -103,7 +103,7 @@ def parse(v, cpy):
   if v.samples[0]['GT'][cpy] == 0:  # Not present in this copy
     return None
 
-  if unusable_variant(v):
+  if v_check.usable(v):
     logger.error("Unusable variants present in VCF. Please filter or refactor these.")
     raise ValueError("Unusable variants present in VCF. Please filter or refactor these.")
 
@@ -122,18 +122,38 @@ def parse(v, cpy):
   return Variant(v.pos, v.ref, v.samples[0].alleles[cpy], op, op_len)
 
 
-def unusable_variant(v):
-  """
+class UnusableVariantFilter:
+  def __init__(self, ploidy):
+    self.p_overlap = [0] * ploidy
+    self.last_variant = [(0, '', '') for _ in range(ploidy)]
 
-  :param v:
-  :param p_overlap: meant to be a private mutable (updated in place)
-                    Quintisomy should be enough for everyone
-  :return: T/F
+  def usable(self, v):
+    """Return True if we can use this variant
 
-  This function uses a state variable p_overlap which should be initialized to [0, 0, 0, ....]
-  when calling this on a new region or other stretch of variants. The number of elements you
-  keep must be at least the ploidy of the genomes you are handling.
-  """
+    :param v:
+    :return:
+    """
+    var = v.samples.values()[0]
+    is_usable = \
+      self._complex_variant(v) or \
+      self._angle_bracketed_id(v, var) or \
+      self._breakend_replacement(v) or \
+      self._illegal_overlap(v, var, self.p_overlap) or \
+      self._duplicate_variant(v, var, self.last_variant)
+
+    if is_usable:
+      for n, g in enumerate(var['GT']):
+        if g:
+          self.p_overlap[n] = v.stop - 1
+
+    for n, (g, alt) in enumerate(zip(var['GT'], var.alleles)):
+      # lv -> (pos, ref, alt)
+      if g:
+        self.last_variant[n] = (v.pos, v.ref, alt)
+
+    return is_usable
+
+  @staticmethod
   def _complex_variant(_v):
     for alt in _v.alts:
       if _v.rlen > 1 and len(alt) > 1:
@@ -141,23 +161,24 @@ def unusable_variant(v):
         return True
     return False
 
-  def _angle_bracketed_id(_v):
-    var = _v.samples.values()[0]
+  @staticmethod
+  def _angle_bracketed_id(_v, var):
     for alt in var.alleles:
       if alt[0] == '<':
         logger.debug('Angle bracketed variant entry {}:{} {} -> {}'.format(_v.contig, _v.pos, _v.ref, var.alleles))
         return True
     return False
 
+  @staticmethod
   def _breakend_replacement(_v):
     if _v.info.get('SVTYPE', None) == 'BND':
       logger.debug('Breakend entry {}:{} {} -> {}'.format(_v.contig, _v.pos, _v.ref, _v.alts))
       return True
     return False
 
-  def _illegal_overlap(_v, _p_overlap):
+  @staticmethod
+  def _illegal_overlap(_v, var, _p_overlap):
     is_illegal = False
-    var = _v.samples.values()[0]
     for n, (g, alt, po) in enumerate(zip(var['GT'], var.alleles, _p_overlap)):
       # _v.start and po are 0-indexed
       if g:
@@ -170,14 +191,20 @@ def unusable_variant(v):
           logger.debug('Illegal overlap {}:{} {} -> {} (previous variant ends at {})'.format(_v.contig, _v.pos, _v.ref, _v.alts, po + 1))
           break
 
-    if not is_illegal:
-      for n, g in enumerate(var['GT']):
-        if g:
-          _p_overlap[n] = _v.stop - 1
-
     return is_illegal
 
-  return _complex_variant(v) or _angle_bracketed_id(v) or _breakend_replacement(v) or _illegal_overlap(v, unusable_variant.p_overlap)
+  @staticmethod
+  def _duplicate_variant(_v, var, _last_variant):
+    is_duplicate = False
+    for n, (g, alt, lv) in enumerate(zip(var['GT'], var.alleles, _last_variant)):
+      # lv -> (pos, ref, alt)
+      if g:
+        if (lv[0] == _v.pos) & (lv[1] == _v.ref) & (alt == lv[2]):
+          is_duplicate = True
+          logger.debug(
+            'Duplicate line {}:{} {} -> {}'.format(_v.contig, _v.pos, _v.ref, _v.alts))
+          break
+    return is_duplicate
 
 
 def prepare_variant_file(fname_in, sample, bed_fname, fname_out, write_mode='w'):
@@ -207,11 +234,12 @@ def prepare_variant_file(fname_in, sample, bed_fname, fname_out, write_mode='w')
     if region[0] not in contig_dict:
       empty_gt = fetch_first_variant_in_contig_as_empty(vcf_in, region[0])
       contig_dict.add(region[0])
-    unusable_variant.p_overlap = [0] * sniff_ploidy(vcf_in, contig=region[0])
+
+    v_check = UnusableVariantFilter(sniff_ploidy(vcf_in, contig=region[0]))
 
     for n, v in enumerate(vcf_in.fetch(contig=region[0], start=region[1], stop=region[2])):
       if not any(v.samples.values()[0]['GT']): continue  # This variant does not exist in this sample
-      if unusable_variant(v):
+      if v_check.usable(v):
         exclude_cnt += 1
         continue
       vcf_out.write(v)

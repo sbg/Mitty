@@ -1,5 +1,9 @@
 Release Notes
 =============
+2.28.2
+- bugfix: major: duplicate variants now being discarded properly
+
+
 2.28.1
 - bugfix: major: now properly handling crowded variants
   Previous modification to allow VCFs where a SNP is immediately followed by an
