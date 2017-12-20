@@ -103,7 +103,7 @@ def parse(v, cpy, v_check):
   if v.samples[0]['GT'][cpy] == 0:  # Not present in this copy
     return None
 
-  if v_check.usable(v):
+  if v_check.unusable(v):
     logger.error("Unusable variants present in VCF. Please filter or refactor these.")
     raise ValueError("Unusable variants present in VCF. Please filter or refactor these.")
 
@@ -127,31 +127,28 @@ class UnusableVariantFilter:
     self.p_overlap = [0] * ploidy
     self.last_variant = [(0, '', '') for _ in range(ploidy)]
 
-  def usable(self, v):
+  def unusable(self, v):
     """Return True if we can use this variant
 
     :param v:
     :return:
     """
     var = v.samples.values()[0]
-    is_usable = \
+    is_unusable = \
       self._complex_variant(v) or \
       self._angle_bracketed_id(v, var) or \
       self._breakend_replacement(v) or \
       self._illegal_overlap(v, var, self.p_overlap) or \
       self._duplicate_variant(v, var, self.last_variant)
 
-    if is_usable:
-      for n, g in enumerate(var['GT']):
+    if not is_unusable:
+      for n, (g, alt) in enumerate(zip(var['GT'], var.alleles)):
+        # lv -> (pos, ref, alt)
         if g:
           self.p_overlap[n] = v.stop - 1
+          self.last_variant[n] = (v.pos, v.ref, alt)
 
-    for n, (g, alt) in enumerate(zip(var['GT'], var.alleles)):
-      # lv -> (pos, ref, alt)
-      if g:
-        self.last_variant[n] = (v.pos, v.ref, alt)
-
-    return is_usable
+    return is_unusable
 
   @staticmethod
   def _complex_variant(_v):
@@ -199,7 +196,7 @@ class UnusableVariantFilter:
     for n, (g, alt, lv) in enumerate(zip(var['GT'], var.alleles, _last_variant)):
       # lv -> (pos, ref, alt)
       if g:
-        if (lv[0] == _v.pos) & (lv[1] == _v.ref) & (alt == lv[2]):
+        if (lv[0] == _v.pos) & (lv[1] == _v.ref) & (lv[2] == alt):
           is_duplicate = True
           logger.debug(
             'Duplicate line {}:{} {} -> {}'.format(_v.contig, _v.pos, _v.ref, _v.alts))
@@ -239,7 +236,7 @@ def prepare_variant_file(fname_in, sample, bed_fname, fname_out, write_mode='w')
 
     for n, v in enumerate(vcf_in.fetch(contig=region[0], start=region[1], stop=region[2])):
       if not any(v.samples.values()[0]['GT']): continue  # This variant does not exist in this sample
-      if v_check.usable(v):
+      if v_check.unusable(v):
         exclude_cnt += 1
         continue
       vcf_out.write(v)
