@@ -4,9 +4,15 @@ AAF
 The Alignment Analysis Format file is a tab delimited file with the following fields:
 
 ```
-chrom pos d_err MQ  variantlist
+chrom pos d_err wchrom wpos MQ variantlist
 ```
 
+`chrom` is the correct chrom of the read
+`pos` is the correct pos of the read
+`d_err` is the alignment error of the read
+`wchrom` is the aligned chrom of read IF different (blank other wise)
+`wpos` is the aligned pos of read IF different (blank other wise)
+`MQ` is the mapping quality
 `variantlist` is a semicolon separated, spaceless list of variant sizes that 
 looks like `-1;+2;+1...`
 

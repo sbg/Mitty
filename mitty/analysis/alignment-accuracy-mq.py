@@ -29,7 +29,7 @@ def count_alignment_category(riter):
   cnt = [[[0 for _ in v_cats] for _ in range(61)] for _ in d_cats]
 
   for r in riter:
-    d_err, mq, v_list = r
+    _, _, d_err, _, _, mq, v_list = r
 
     if len(v_list) == 0:
       i = 0  # ['Ref']
