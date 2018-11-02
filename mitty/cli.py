@@ -201,7 +201,8 @@ def print_variant_model_list(ctx, param, value):
 @click.option('--seed-for-random-number-generator', type=int)
 def simulate_variants(vcf, output_name, sample_name, default_allele_freq, seed_for_random_number_generator):
   """Generates a VCF with random GT information based on the allele frequency (AF) of the variants. If AF is not present
-   for a variant, it uses default allele frequency.
+   for a variant, it uses default allele frequency. If a variant in input VCF contains multiallelics,
+   only the first ALT will be used.
   """
   import mitty.simulation.genome.sampledgenome as sample_genome
 

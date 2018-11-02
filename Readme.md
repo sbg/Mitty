@@ -733,6 +733,7 @@ mitty -v4 sample-genome \
   --seed-for-random-number-generator ${SEED_FOR_RNG}
 ```
 `SEED_FOR_RNG` should be smaller than 2^32 - 1
+If a variant in input VCF contains multiallelics, only the first ALT will be used.
 
 ### Simulated variants
 ([Example script](https://github.com/kghosesbg/mitty-demo-data/blob/master/simulating-variants/simulate-variants.sh))
