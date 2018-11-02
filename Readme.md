@@ -720,18 +720,16 @@ Mitty also has features to generate simulated genomes in the form of VCF files.
 The `sample-genome` command generates a new VCF with random genotypes from a given VCF.
 
 ```
-@click.option('--vcf', type=click.Path(exists=True))
-@click.option('--output-name', type=str)
-@click.option('--sample-name', type=str)
-@click.option('--default-allele-freq', default=0.01, type=float)
-@click.option('--seed-for-random-number-generator', type=int)
+VCF=source.vcf.gz
 mitty -v4 sample-genome \
-  --vcf ${INPUT_VCF} \
-  --output-name ${OUTPUT_NAME} \
-  --sample-name ${SAMPLENAME} \
-  --default-allele-freq ${DEFAULT_ALLELE_FREQUENCY} \
-  --seed-for-random-number-generator ${SEED_FOR_RNG}
-```
+  ${VCF} \
+  - \
+  --sample-name HG \
+  --default-allele-freq 0.01 \
+  --seed-for-random-number-generator 7 | bgzip -c > ${VCF}
+
+tabix ${VCF}
+```  
 `SEED_FOR_RNG` should be smaller than 2^32 - 1
 If a variant in input VCF contains multiallelics, only the first ALT will be used.
 
