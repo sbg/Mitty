@@ -193,14 +193,14 @@ def print_variant_model_list(ctx, param, value):
   ctx.exit()
 
 
-@cli.command('sample-genome', short_help='Sample graph genome to create an individual')
-@click.option('--graph-genome', type=click.Path(exists=True))
+@cli.command('sample-genome', short_help='Sample variants to create an individual')
+@click.option('--vcf', type=click.Path(exists=True))
 @click.option('--output-name', type=str)
 @click.option('--sample-name', type=str)
-@click.option('--default-allele-freq', default=0.1, type=float)
+@click.option('--default-allele-freq', default=0.01, type=float)
 def simulate_variants(graph_genome, output_name, sample_name, default_allele_freq):
-  """Generates a VCF with random GT information based on the AF of the variants. If AF is not present for a variant, it
-  uses given default allele frequency.
+  """Generates a VCF with random GT information based on the allele frequency (AF) of the variants. If AF is not present
+   for a variant, it uses default allele frequency.
   """
   import mitty.simulation.genome.sampledgenome as sample_genome
 
