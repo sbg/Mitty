@@ -198,7 +198,8 @@ def print_variant_model_list(ctx, param, value):
 @click.option('--output-name', type=str)
 @click.option('--sample-name', type=str)
 @click.option('--default-allele-freq', default=0.01, type=float)
-def simulate_variants(graph_genome, output_name, sample_name, default_allele_freq):
+@click.option('--seed-for-random-number-generator', type=int)
+def simulate_variants(vcf, output_name, sample_name, default_allele_freq, seed_for_random_number_generator):
   """Generates a VCF with random GT information based on the allele frequency (AF) of the variants. If AF is not present
    for a variant, it uses default allele frequency.
   """
@@ -207,10 +208,10 @@ def simulate_variants(graph_genome, output_name, sample_name, default_allele_fre
   if output_name:
     outname = output_name
   else:
-    outname = os.path.split(graph_genome)[1].split("vcf")[0] + "sampled.vcf"
+    outname = os.path.split(vcf)[1].split("vcf")[0] + "sampled.vcf"
 
-  sample_genome.assign_random_gt(input_vcf=graph_genome, outname=outname, sample_name=sample_name,
-                                 default_af=default_allele_freq)
+  sample_genome.assign_random_gt(input_vcf=vcf, outname=outname, sample_name=sample_name,
+                                 default_af=default_allele_freq, seed=seed_for_random_number_generator)
 
 
 @cli.command('simulate-variants', short_help='Create a fully simulated VCF')
