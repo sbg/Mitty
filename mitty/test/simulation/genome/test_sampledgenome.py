@@ -16,6 +16,7 @@ def read_data(outname):
 
 
 def test_assign_random_gt():
+  """Simulation: sampled-genome"""
   outname = os.path.join(mitty.test.example_data_dir, 'random_gt.vcf')
   sg.assign_random_gt(input_vcf=os.path.join(mitty.test.example_data_dir, 'gt_free.vcf'),
                       outname=outname, sample_name="HG", default_af=0.1,
