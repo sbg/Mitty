@@ -713,7 +713,25 @@ The criteria the `partition-bam` tool can be run on can be obtained by passing i
 
 Generating samples (genomes)
 ----------------------------
-Mitty also has features to generate simulated genomes in the form of VCF files. 
+Mitty also has features to generate simulated genomes in the form of VCF files.
+
+### Sampled genomes
+
+The `sample-genome` command generates a new VCF with random genotypes from a given VCF.
+
+```
+VCF=source.vcf.gz
+mitty -v4 sample-genome \
+  ${VCF} \
+  - \
+  --sample-name HG \
+  --default-allele-freq 0.01 \
+  --seed-for-random-number-generator 7 | bgzip -c > ${VCF}
+
+tabix ${VCF}
+```  
+`SEED_FOR_RNG` should be smaller than 2^32 - 1
+If a variant in input VCF contains multiallelics, only the first ALT will be used.
 
 ### Simulated variants
 ([Example script](https://github.com/kghosesbg/mitty-demo-data/blob/master/simulating-variants/simulate-variants.sh))
