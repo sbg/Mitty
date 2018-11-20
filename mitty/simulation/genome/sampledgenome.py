@@ -10,22 +10,30 @@ def assign_random_gt(input_vcf, output, sample_name="HG", default_af=0.01, seed=
         new_header.samples.add(sample_name)
     output.write(str(new_header))
 
-    default_probs = [1 - default_af * (1 + default_af), default_af/2, default_af/2, default_af * default_af]
+    gt = ["0|0", "0|1", "1|0", "1|1"]
+    default_probs_all_gt = [1 - default_af * (1 + default_af), default_af/2, default_af/2, default_af * default_af]
+    default_probs_no_hom_alt = [1 - default_af, default_af]
     rng = RandomState(seed)
-    previous_pos = 0
+    prev_locus = -1, -1
     for rec in vcf_pointer.fetch():
-        rec_copy = rec.copy()
-        if "GT" not in rec_copy.format.keys():
-            if rec_copy.pos == previous_pos:
-                c = "0|0"
-            else:
-                if "AF" not in rec_copy.info.keys():
-                    gt_probs = default_probs
+        r_copy = rec.copy()
+        if "GT" not in r_copy.format.keys():
+            locus = r_copy.pos
+            ok_alts = (locus > prev_locus[0]), (locus > prev_locus[1])
+            if ok_alts[0] or ok_alts[1]:
+                hom_ok = ok_alts[0] and ok_alts[1]
+                if "AF" not in r_copy.info.keys():
+                    gt_p = default_probs_all_gt if hom_ok else default_probs_no_hom_alt
                 else:
-                    af = rec_copy.info["AF"]
-                    gt_probs = [1 - af * (1 + af), af/2, af/2, af * af]
-                c = rng.choice(["0|0", "0|1", "1|0", "1|1"], p=gt_probs)
-            output.write("\t".join([str(rec_copy)[:-1], "GT", c]) + "\n")
-        previous_pos = rec_copy.pos
+                    af = r_copy.info["AF"]
+                    gt_p = [1 - af * (1 + af), af/2, af/2, af * af] if hom_ok else [1 - af, af]
+                c = rng.choice(gt if hom_ok else (["0|.", "1|."] if ok_alts[0] else [".|0", ".|1"]), p=gt_p)
+                prev_locus = (locus + r_copy.rlen - 1) if c[0] == '1' else locus, \
+                             (locus + r_copy.rlen - 1) if c[2] == '1' else locus
+            else:
+                c = ".|."
+                prev_locus = locus, locus
+
+            output.write("\t".join([str(r_copy)[:-1], "GT", c]) + "\n")
 
     vcf_pointer.close()
