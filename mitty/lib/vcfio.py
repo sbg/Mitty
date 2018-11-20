@@ -108,18 +108,21 @@ def parse(v, cpy, v_check):
     raise ValueError("Unusable variants present in VCF. Please filter or refactor these.")
 
   alt = v.samples[0].alleles[cpy]
-  l_r, l_a = len(v.ref), len(alt)
-  if l_r == 1:
-    if l_a == 1:
-      op, op_len = 'X', 0
-    else:
-      op, op_len = 'I', l_a - l_r
-  elif l_a == 1:
-    op, op_len = 'D', l_r - l_a
-  else:
-    raise ValueError("Complex variants present in VCF. Please filter or refactor these.")
+  if alt:
+      l_r, l_a = len(v.ref), len(alt)
+      if l_r == 1:
+        if l_a == 1:
+          op, op_len = 'X', 0
+        else:
+          op, op_len = 'I', l_a - l_r
+      elif l_a == 1:
+        op, op_len = 'D', l_r - l_a
+      else:
+        raise ValueError("Complex variants present in VCF. Please filter or refactor these.")
 
-  return Variant(v.pos, v.ref, v.samples[0].alleles[cpy], op, op_len)
+      return Variant(v.pos, v.ref, v.samples[0].alleles[cpy], op, op_len)
+  else:
+      return None
 
 
 class UnusableVariantFilter:
@@ -161,7 +164,7 @@ class UnusableVariantFilter:
   @staticmethod
   def _angle_bracketed_id(_v, var):
     for alt in var.alleles:
-      if alt[0] == '<':
+      if alt and alt[0] == '<':
         logger.debug('Angle bracketed variant entry {}:{} {} -> {}'.format(_v.contig, _v.pos, _v.ref, var.alleles))
         return True
     return False
